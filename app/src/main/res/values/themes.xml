@@ -1,0 +1,12 @@
+<resources>
+    <style name="Base.Theme.Thrifty" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:navigationBarColor">@color/primary_color</item>
+    </style>
+
+    <style name="Theme.Thrifty" parent="Base.Theme.Thrifty" />
+
+    <style name="FabCircle" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+
+</resources>
