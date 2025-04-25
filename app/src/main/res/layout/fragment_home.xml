@@ -1,13 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background_color"
     tools:context=".HomeFragment">
 
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/small_thrifty"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/transparent"
+            android:clickable="false"
+            android:contentDescription="Small Logo Version"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.06"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/small_logo" />
+
+        <ImageButton
+            android:id="@+id/ic_profile"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Profile"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
+            app:layout_constraintVertical_bias="0.050000012"
+            app:srcCompat="@drawable/sample_profile" />
+
+        <TextView
+            android:id="@+id/user_greet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="25dp"
+            android:fontFamily="@font/poppins"
+            android:text="Hello, Makoy!"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ic_profile"
+            app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
+            app:layout_constraintVertical_bias="0.25" />
+
+        <ImageButton
+            android:id="@+id/ic_notifcations"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Profile"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.60"
+            app:layout_constraintStart_toEndOf="@+id/user_greet"
+            app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
+            app:layout_constraintVertical_bias="0.050000012"
+            app:srcCompat="@drawable/notif" />
+
+        <View
+            android:id="@+id/background_view"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/rounded_background"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ic_profile" />
+
+        <TextView
+            android:id="@+id/total_balance_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/poppins"
+            android:text="Total Balance"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/background_view"
+            app:layout_constraintStart_toStartOf="@+id/background_view"
+            app:layout_constraintTop_toTopOf="@+id/background_view" />
+
+        <TextView
+            android:id="@+id/total_balance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins"
+            android:text="₱ 0.00"
+            android:textColor="@color/black"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/background_view"
+            app:layout_constraintStart_toStartOf="@+id/background_view"
+            app:layout_constraintTop_toBottomOf="@+id/total_balance_text" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
