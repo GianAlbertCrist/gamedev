@@ -48,26 +48,17 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/picture_profile"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_margin="12dp"
-        android:layout_marginTop="37dp"
+    <ImageView
+        android:id="@+id/picture_najud"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/sample_profile"
+        android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.068"
+        app:layout_constraintEnd_toStartOf="@+id/textView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.050000012" >
-        
-        <ImageView
-            android:id="@+id/picture_najud"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@null"/>
-
-    </androidx.cardview.widget.CardView>
+        app:layout_constraintVertical_bias="0.05" />
 
     <TextView
         android:id="@+id/textView"
@@ -96,5 +87,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
         app:layout_constraintVertical_bias="0.112" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
