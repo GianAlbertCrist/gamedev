@@ -51,7 +51,7 @@
     <ImageView
         android:id="@+id/picture_najud"
         android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_height="71dp"
         android:background="@drawable/sample_profile"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
