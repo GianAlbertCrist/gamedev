@@ -6,4 +6,5 @@
     <color name="primary_color">#9BD829</color>
     <color name="income_color">#F2FFC9</color>
     <color name="container_color">#F1FFF3</color>
+    <color name="red">#F60000</color>
 </resources>
