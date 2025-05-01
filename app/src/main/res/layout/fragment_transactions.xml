@@ -49,7 +49,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- "Today" Label -->
             <TextView
                 android:id="@+id/todayLabel"
                 android:layout_width="wrap_content"
@@ -60,7 +59,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp" />
 
-            <!-- Transaction Card 1 -->
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -128,7 +127,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Transaction Card 2 -->
+
             <TextView
                 android:layout_width="411dp"
                 android:layout_height="wrap_content"
@@ -161,7 +160,7 @@
                     android:orientation="vertical"
                     android:gravity="center_vertical">
 
-                    <!-- Centered "Clothing" text beside the icon -->
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
