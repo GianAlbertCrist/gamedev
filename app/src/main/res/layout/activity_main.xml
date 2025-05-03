@@ -41,12 +41,12 @@
         android:contentDescription="Make Entries"
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/white"
-        app:tint="@color/primary_color"
+        app:elevation="6dp"
         app:layout_anchor="@+id/bottom_nav"
         app:layout_anchorGravity="top|center"
-        app:shapeAppearanceOverlay="@style/FabCircle"
         app:maxImageSize="56dp"
-        app:elevation="6dp" />
+        app:shapeAppearanceOverlay="@style/FabCircle"
+        app:tint="@color/primary_color" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_entry"

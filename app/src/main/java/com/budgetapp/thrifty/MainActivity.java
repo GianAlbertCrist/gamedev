@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -32,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
         binding.bottomNav.setBackground(null);
 
         binding.fabAddEntry.setOnClickListener(view -> {
-            replaceFragment(new AddEntryFragment());
+            Intent intent = new Intent(MainActivity.this, AddEntryActivity.class);
+            startActivity(intent);
         });
 
         binding.bottomNav.setOnItemSelectedListener(item -> {
@@ -58,7 +60,22 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        String navigateTo = getIntent().getStringExtra("navigate_to");
+        if (navigateTo != null) {
+            switch (navigateTo) {
+                case "profile":
+                    navigateToProfileFragment();
+                    break;
+            }
+        }
     }
+
+    private void navigateToProfileFragment() {
+        binding.bottomNav.setSelectedItemId(R.id.ic_profile);
+        replaceFragment(new ProfileFragment());
+    }
+
 
     public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
