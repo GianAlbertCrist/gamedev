@@ -16,7 +16,8 @@
     <string name="total_expense">Total Expense</string>
     <string name="current_balance">Current Balance</string>
     <string name="total_income">Total Income</string>
-    <string name="profile">Profile</string>
     <string name="new_expense">New Expense</string>
     <string name="new_income">New Income</string>
+    <string name="total_balance">Total Balance</string>
+    <string name="recent_transactions">Recent Transactions</string>
 </resources>
