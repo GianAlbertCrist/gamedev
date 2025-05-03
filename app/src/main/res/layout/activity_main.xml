@@ -35,18 +35,6 @@
         app:itemIconTint="@color/bottom_nav_icon_selector_day"
         app:menu="@menu/bottom_menu" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="Make Entries"
-        android:src="@drawable/ic_add"
-        app:backgroundTint="@color/white"
-        app:elevation="6dp"
-        app:layout_anchor="@+id/bottom_nav"
-        app:layout_anchorGravity="top|center"
-        app:maxImageSize="56dp"
-        app:shapeAppearanceOverlay="@style/FabCircle"
-        app:tint="@color/primary_color" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_entry"

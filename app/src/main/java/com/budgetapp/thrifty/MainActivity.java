@@ -63,10 +63,8 @@ public class MainActivity extends AppCompatActivity {
 
         String navigateTo = getIntent().getStringExtra("navigate_to");
         if (navigateTo != null) {
-            switch (navigateTo) {
-                case "profile":
-                    navigateToProfileFragment();
-                    break;
+            if (navigateTo.equals("profile")) {
+                navigateToProfileFragment();
             }
         }
     }
