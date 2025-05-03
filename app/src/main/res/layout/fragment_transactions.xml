@@ -67,15 +67,15 @@
                     android:textSize="16sp"
                     android:layout_marginEnd="8dp" />
 
-
                 <ImageView
+                    android:id="@+id/dropdown_icon"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_next" />
             </LinearLayout>
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="651dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="1dp"
                 android:layout_marginTop="12dp"
@@ -101,20 +101,20 @@
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
 
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
                         android:text="Lunch"
                         android:textColor="@color/black"
                         android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:gravity="center_vertical" />
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -142,7 +142,7 @@
             </LinearLayout>
 
             <TextView
-                android:layout_width="411dp"
+                android:layout_width="649dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="1dp"
                 android:layout_marginTop="1dp"
@@ -167,20 +167,22 @@
                     android:src="@drawable/ic_clothes" />
 
                 <LinearLayout
-                    android:layout_width="12dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_height="41dp"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="0dp"
                         android:text="Clothing"
                         android:textColor="@color/black"
                         android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:gravity="center_vertical" />
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
