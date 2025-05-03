@@ -79,7 +79,7 @@
                     android:id="@+id/first_name_input"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
-                    android:hint="@string/eg_juan"
+                    android:hint="eg. John"
                     android:inputType="textPersonName"
                     android:padding="10dp"
                     android:textColor="@android:color/black"

@@ -31,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
         replaceFragment(new HomeFragment());
         binding.bottomNav.setBackground(null);
 
+        binding.fabAddEntry.setOnClickListener(view -> {
+            replaceFragment(new AddEntryFragment());
+        });
+
         binding.bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
 

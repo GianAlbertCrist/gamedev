@@ -48,4 +48,18 @@
         app:maxImageSize="56dp"
         app:elevation="6dp" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_entry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Make Entries"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/white"
+        app:tint="@color/primary_color"
+        app:layout_anchor="@+id/bottom_nav"
+        app:layout_anchorGravity="top|center"
+        app:shapeAppearanceOverlay="@style/FabCircle"
+        app:maxImageSize="56dp"
+        app:elevation="6dp" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
