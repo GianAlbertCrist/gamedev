@@ -40,8 +40,8 @@
 
         <!-- Inputs and Buttons -->
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="317dp"
-            android:layout_height="529dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="@+id/rectangle_3"
             app:layout_constraintEnd_toEndOf="@+id/rectangle_3"
             app:layout_constraintHorizontal_bias="0.666"
@@ -234,19 +234,7 @@
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/toggle_password_visibility"
                     app:layout_constraintStart_toEndOf="@+id/password_icon"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:id="@+id/toggle_password_visibility"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_eye_closed"
-                    android:contentDescription="Toggle Password Visibility"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -299,19 +287,7 @@
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/toggle_confirm_password_visibility"
                     app:layout_constraintStart_toEndOf="@+id/confirm_password_icon"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:id="@+id/toggle_confirm_password_visibility"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_eye_closed"
-                    android:contentDescription="Toggle Confirm Password Visibility"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -333,18 +309,19 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/confirm_password_container" />
 
-            <!-- Login Redirect -->
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/login_redirect"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Have an account already? Log in"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@id/register_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="16dp" />
 
-        <TextView
-            android:id="@+id/login_redirect"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Have an account already? Log in"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            tools:layout_editor_absoluteX="66dp"
-            tools:layout_editor_absoluteY="664dp" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
