@@ -9,7 +9,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.tabs.TabLayout;
+
 public class AddEntryActivity extends AppCompatActivity {
+    private TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +25,10 @@ public class AddEntryActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Initialize TabLayout
+        tabLayout = findViewById(R.id.tabLayout);
+
         // Small Thrifty (Home) button
         ImageButton smallThrifty = findViewById(R.id.small_thrifty);
         smallThrifty.setOnClickListener(view -> {
@@ -37,6 +45,25 @@ public class AddEntryActivity extends AppCompatActivity {
             finish();
         });
 
+        //tab selection listener
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int color = tab.getPosition() == 0 ?
+                        R.color.primary_color : R.color.red;
+                tabLayout.setSelectedTabIndicatorColor(getColor(color));
+                tabLayout.setTabTextColors(
+                        getColor(tab.getPosition() == 0 ?
+                                R.color.red : R.color.primary_color),
+                        getColor(color)
+                );
+            }
 
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
     }
 }
