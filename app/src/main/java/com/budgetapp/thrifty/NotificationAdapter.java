@@ -37,7 +37,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.notificationDescription.setText(notification.getDescription());
         holder.notificationTime.setText(notification.getTime());
 
-        // Optionally, set an icon based on notification type
+
         if (notification.getTitle().equals("Transactions")) {
             holder.notificationIcon.setImageResource(R.drawable.icnotif_transactions);
         } else if (notification.getTitle().equals("Reminder")) {
