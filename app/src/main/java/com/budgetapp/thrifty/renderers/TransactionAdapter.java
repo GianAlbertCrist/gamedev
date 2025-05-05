@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty.renderers;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +45,10 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     @Override
     public int getItemViewType(int position) {
-        return (position == maxVisibleItems - 1) ? VIEW_TYPE_SPACER : VIEW_TYPE_NORMAL;
+        if (transactions.size() >= maxVisibleItems - 1 && position == maxVisibleItems - 1) {
+            return VIEW_TYPE_SPACER;
+        }
+        return VIEW_TYPE_NORMAL;
     }
 
     @NonNull
@@ -60,6 +64,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         return new ViewHolder(view);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (getItemViewType(position) == VIEW_TYPE_SPACER) {
@@ -71,7 +76,11 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             return;
         }
 
-        Transaction t = transactions.get(transactions.size() - 1 - position); // Reverse order
+        int index = transactions.size() - 1 - position;
+
+        if (index < 0 || index >= transactions.size()) return;
+
+        Transaction t = transactions.get(index);
 
         holder.icon.setVisibility(View.VISIBLE);
         holder.icon.setImageResource(t.getIconID());
@@ -79,17 +88,29 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.category.setText(t.getCategory());
         holder.category.setTextColor(ContextCompat.getColor(context, R.color.black));
 
-        CharSequence amountText = t.getAmount();
-        if (!amountText.equals(holder.amount.getText())) {
-            holder.amount.setText(amountText);
-            int color = "Income".equalsIgnoreCase(t.getType()) ?
-                    ContextCompat.getColor(context, R.color.income_green) :
-                    ContextCompat.getColor(context, R.color.red);
-            holder.amount.setTextColor(color);
+        // Display and color amount
+        float amt = t.getRawAmount(); // <-- You'll need to add getRawAmount() in Transaction.java
+        String displayAmount;
+        int color;
+
+        if (amt == 0f) {
+            displayAmount = String.format("₱%.2f", amt);
+            color = ContextCompat.getColor(context, R.color.background_color); // <-- Make sure you have this color defined
+        } else {
+            displayAmount = String.format("%s₱%.2f",
+                    "Income".equalsIgnoreCase(t.getType()) ? "+" : "-",
+                    amt
+            );
+            color = ContextCompat.getColor(context,
+                    "Income".equalsIgnoreCase(t.getType()) ? R.color.income_green : R.color.red
+            );
         }
 
+        holder.amount.setText(displayAmount);
+        holder.amount.setTextColor(color);
+
         String timeText = t.getDateAndTime();
-        if (!timeText.equals(holder.datetime.getText())) {
+        if (!timeText.contentEquals(holder.datetime.getText())) {
             holder.datetime.setText(timeText);
             holder.datetime.setTextColor(ContextCompat.getColor(context, R.color.background_color));
         }
@@ -97,6 +118,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     @Override
     public int getItemCount() {
-        return Math.min(transactions.size(), maxVisibleItems - 1) + 1; // 7 + 1 spacer
+        int size = transactions.size();
+        return size >= maxVisibleItems - 1 ? maxVisibleItems : size;
     }
 }

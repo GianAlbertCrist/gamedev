@@ -3,8 +3,6 @@ package com.budgetapp.thrifty.transaction;
 import android.annotation.SuppressLint;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -22,12 +20,25 @@ public class Transaction {
 
     private int iconID;
 
-    public Transaction(String type, String category, float amount, int iconID) {
+    // "None", "Daily", "Weekly", "Monthly", "Yearly"
+    private String recurring;
+
+    private String description;
+
+    // Constructor with default recurring = "None"
+    public Transaction(String type, String category, float amount, int iconID, String description) {
+        this(type, category, amount, iconID, description, "None");
+    }
+
+    // Full constructor with description and recurring
+    public Transaction(String type, String category, float amount, int iconID, String description, String recurring) {
         this.type = type;
         this.category = category;
         this.amount = amount;
-        this.dateAndTime = getCurrentDateTime();
         this.iconID = iconID;
+        this.description = description;
+        this.recurring = recurring;
+        this.dateAndTime = getCurrentDateTime();
     }
 
     public String getType() {
@@ -71,5 +82,25 @@ public class Transaction {
 
     public void setIconID(int iconID) {
         this.iconID = iconID;
+    }
+
+    public String getRecurring() {
+        return recurring;
+    }
+
+    public void setRecurring(String recurring) {
+        this.recurring = recurring;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public float getRawAmount() {
+        return amount;
     }
 }

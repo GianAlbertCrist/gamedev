@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+
 import com.google.android.material.tabs.TabLayout;
 
 public class AddEntryActivity extends AppCompatActivity {
@@ -17,6 +19,12 @@ public class AddEntryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, new AddIncomeFragment())
+                .commit();
+
         setContentView(R.layout.activity_add_entry);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -47,12 +55,22 @@ public class AddEntryActivity extends AppCompatActivity {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                int color = tab.getPosition() == 0 ?
-                        R.color.primary_color : R.color.red;
+                Fragment selectedFragment;
+                if (tab.getPosition() == 0) {
+                    selectedFragment = new AddIncomeFragment();
+                } else {
+                    selectedFragment = new AddExpenseFragment();
+                }
+
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, selectedFragment)
+                        .commit();
+
+                int color = tab.getPosition() == 0 ? R.color.primary_color : R.color.red;
                 tabLayout.setSelectedTabIndicatorColor(getColor(color));
                 tabLayout.setTabTextColors(
-                        getColor(tab.getPosition() == 0 ?
-                                R.color.red : R.color.primary_color),
+                        getColor(tab.getPosition() == 0 ? R.color.red : R.color.primary_color),
                         getColor(color)
                 );
             }

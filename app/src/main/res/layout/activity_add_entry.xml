@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@color/background_color">
 
+    <!-- Header and Tab Section -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -31,7 +34,7 @@
             android:layout_height="70dp"
             android:layout_marginTop="10dp"
             android:background="@android:color/transparent"
-            android:contentDescription="@null"
+            android:contentDescription="Profile"
             android:scaleType="fitCenter"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -45,27 +48,27 @@
             android:id="@+id/user_greet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="25dp"
+            android:layout_marginStart="24dp"
             android:fontFamily="@font/poppins"
             android:text="Hello, Makoy!"
             android:textColor="@color/white"
             android:textSize="18sp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/ic_profile"
             app:layout_constraintStart_toEndOf="@+id/ic_profile"
-            app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
-            app:layout_constraintVertical_bias="0.100000024" />
+            app:layout_constraintTop_toTopOf="@+id/ic_profile" />
 
         <ImageButton
-            android:id="@+id/ic_notifications"
+            android:id="@+id/ic_notifcations"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="40dp"
             android:background="@android:color/transparent"
-            android:contentDescription="Profile"
+            android:contentDescription="Notifications"
             android:scaleType="fitCenter"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/tabLayout"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.68"
+            app:layout_constraintHorizontal_bias="0.6"
             app:layout_constraintStart_toEndOf="@+id/user_greet"
             app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
             app:layout_constraintVertical_bias="0.0"
@@ -97,4 +100,50 @@
         </com.google.android.material.tabs.TabLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</FrameLayout>
+    <!-- Fragment Container for Tab Content -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/background_color" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:paddingHorizontal="25dp"
+        android:paddingVertical="20dp">
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/red"
+            android:fontFamily="@font/poppins"
+            android:text="Cancel"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.49" />
+
+        <Button
+            android:id="@+id/confirm_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/primary_color"
+            android:fontFamily="@font/poppins"
+            android:text="Confirm"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.49" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
