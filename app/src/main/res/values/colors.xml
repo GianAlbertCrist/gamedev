@@ -8,4 +8,6 @@
     <color name="container_color">#F1FFF3</color>
     <color name="red">#F60000</color>
     <color name="income_green">#2E7D32</color>
+    <color name="lock_green">#087224</color>
+    <color name="grey">#989898</color>
 </resources>
