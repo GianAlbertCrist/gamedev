@@ -50,7 +50,7 @@
 
     <ImageView
         android:id="@+id/picture_najud"
-        android:layout_width="70dp"
+        android:layout_width="65dp"
         android:layout_height="71dp"
         android:background="@drawable/sample_profile"
         android:scaleType="fitCenter"
@@ -76,6 +76,7 @@
         app:layout_constraintVertical_bias="0.04" />
 
     <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Marc Steffen Pantelgone"
@@ -88,6 +89,79 @@
         app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
         app:layout_constraintVertical_bias="0.112" />
 
+    <ImageView
+        android:id="@+id/click_EditProfile"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/sample_profile"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.107"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
+        app:layout_constraintVertical_bias="0.326" />
 
+    <TextView
+        android:id="@+id/Profile_EditProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edit Profile"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/topProfilebar"
+        app:layout_constraintHorizontal_bias="0.266"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
+        app:layout_constraintVertical_bias="0.33" />
+
+    <ImageView
+        android:id="@+id/click_Security"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/sample_profile"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.107"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
+        app:layout_constraintVertical_bias="0.433" />
+
+    <TextView
+        android:id="@+id/Profile_Security"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Security"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/topProfilebar"
+        app:layout_constraintHorizontal_bias="0.266"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
+        app:layout_constraintVertical_bias="0.436" />
+
+    <ImageView
+        android:id="@+id/click_Logout"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/sample_profile"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.107"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
+        app:layout_constraintVertical_bias="0.538" />
+
+    <TextView
+        android:id="@+id/Profile_Logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/topProfilebar"
+        app:layout_constraintHorizontal_bias="0.262"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
+        app:layout_constraintVertical_bias="0.537" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
