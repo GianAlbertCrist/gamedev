@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/rounded_background"
+    android:backgroundTint="@color/white">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:fontFamily="@font/poppins"
+        android:text="@string/end_session"
+        android:textAlignment="center"
+        android:textColor="@color/background_color"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:fontFamily="@font/poppins"
+        android:text="Are you sure you want to logout?"
+        android:textAlignment="center"
+        android:textColor="@color/background_color"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/endsession"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginLeft="55dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/rounded_background"
+        android:backgroundTint="@color/income_green">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Yes, End Session"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins"
+            android:textSize="16sp" />
+        
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/cancelLogout"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="55dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/rounded_background"
+        android:backgroundTint="@null">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+
+</LinearLayout>
+
+
+
+
+
+
