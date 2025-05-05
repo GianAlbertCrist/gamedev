@@ -35,7 +35,9 @@
         app:itemIconTint="@color/bottom_nav_icon_selector_day"
         app:menu="@menu/bottom_menu" />
 
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_entry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="Make Entries"

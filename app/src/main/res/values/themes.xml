@@ -10,4 +10,14 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <style name="BottomNavText" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">12sp</item>
+        <item name="fontFamily">@font/poppins</item>
+    </style>
+
+    <style name="CustomPopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="fontFamily">@font/poppins</item>
+    </style>
+
 </resources>

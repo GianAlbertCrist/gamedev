@@ -1,6 +1,8 @@
 package com.budgetapp.thrifty;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.Window;
 
@@ -11,7 +13,6 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import android.content.res.Configuration;
 
 import com.budgetapp.thrifty.databinding.ActivityMainBinding;
 
@@ -30,6 +31,11 @@ public class MainActivity extends AppCompatActivity {
 
         replaceFragment(new HomeFragment());
         binding.bottomNav.setBackground(null);
+
+        binding.fabAddEntry.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, AddEntryActivity.class);
+            startActivity(intent);
+        });
 
         binding.bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -54,13 +60,26 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        String navigateTo = getIntent().getStringExtra("navigate_to");
+        if (navigateTo != null) {
+            if (navigateTo.equals("profile")) {
+                navigateToProfileFragment();
+            }
+        }
     }
+
+    private void navigateToProfileFragment() {
+        binding.bottomNav.setSelectedItemId(R.id.ic_profile);
+        replaceFragment(new ProfileFragment());
+    }
+
 
     public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout, fragment);
-        fragmentTransaction.commit();
+        fragmentTransaction.commitNow();
     }
 
     public void syncNotificationBarColor() {
@@ -71,11 +90,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Set the status bar icons to dark or light based on the color
         WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, window.getDecorView());
-        insetsController.setAppearanceLightStatusBars(true); // Change to false if you want light icons on a dark background
+        insetsController.setAppearanceLightNavigationBars(true); // For navigation bar
+        WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightStatusBars(true);
     }
     public void themeSync() {
-        boolean isDarkMode = (getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        boolean isDarkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 
         ColorStateList iconTintDay = ContextCompat.getColorStateList(this, R.color.bottom_nav_icon_selector_day);
         ColorStateList iconTintNight = ContextCompat.getColorStateList(this, R.color.bottom_nav_icon_selector_night);
