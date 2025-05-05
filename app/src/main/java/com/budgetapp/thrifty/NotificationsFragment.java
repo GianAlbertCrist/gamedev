@@ -41,9 +41,6 @@ public class NotificationsFragment extends Fragment {
 
         List<Notification> notificationList = new ArrayList<>();
         notificationList.add(new Notification("Transaction", "Salary | ₱15,000.00", "12:29 AM - April 9"));
-        notificationList.add(new Notification("Reminder", "Pay Credit Card Bill", "8:00 AM - April 9"));
-        notificationList.add(new Notification("Expense", "Lunch | ₱150.00", "1:30 PM - April 8"));
-        notificationList.add(new Notification("Transaction", "Clothing | ₱2,500.00", "2:00 PM - April 8"));
 
 
         adapter = new NotificationAdapter(notificationList);
