@@ -5,9 +5,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,6 +29,15 @@ public class HomeFragment extends Fragment {
 
         recyclerView = rootView.findViewById(R.id.home_transactions);
         emptyMessage = rootView.findViewById(R.id.empty_message);
+
+        ImageButton notificationButton = rootView.findViewById(R.id.ic_notifcations);
+        notificationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openNotificationsFragment();
+            }
+        });
+
 
         return rootView;
     }
@@ -60,5 +72,21 @@ public class HomeFragment extends Fragment {
             TransactionAdapter adapter = new TransactionAdapter(getContext(), TransactionsHandler.transactions);
             recyclerView.setAdapter(adapter);
         }
+    }
+
+    private void openNotificationsFragment() {
+        NotificationsFragment notificationsFragment = new NotificationsFragment();
+
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        // Replace the current fragment with NotificationsFragment
+        fragmentTransaction.replace(R.id.frame_layout, notificationsFragment);
+
+        // Add to the back stack so the user can navigate back
+        fragmentTransaction.addToBackStack(null);
+
+        // Commit the transaction
+        fragmentTransaction.commit();
     }
 }
