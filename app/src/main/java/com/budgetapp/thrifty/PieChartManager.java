@@ -84,6 +84,11 @@ public class PieChartManager {
 
         float balance = income - expense;
         pieChart.setCenterText(String.format(Locale.getDefault(), "Current Balance\n₱%.2f", balance));
+        if (balance > 0) {
+            colors.add(ContextCompat.getColor(context, R.color.primary_color));
+        } else {
+            colors.add(ContextCompat.getColor(context, R.color.red));
+        }
 
         pieChart.setData(data);
         pieChart.invalidate();

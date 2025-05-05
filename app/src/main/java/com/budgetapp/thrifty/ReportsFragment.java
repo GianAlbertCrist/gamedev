@@ -17,13 +17,16 @@ public class ReportsFragment extends Fragment {
     private PieChartManager pieChartManager;
     private BarChartManager barChartManager;
     private TextView tvBalanceAmount, tvTotalIncome, tvTotalExpense;
-    private float income = 0f;
-    private float expense = 0f;
+
+    private float income;
+    private float expense;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_report, container, false);
+
+        updateValues();
 
         try {
             // Initialize views
@@ -38,17 +41,23 @@ public class ReportsFragment extends Fragment {
             pieChartManager = new PieChartManager(pieChart, requireContext());
             barChartManager = new BarChartManager(barChart, trendToggle, requireContext());
 
-            updateValues(TransactionsHandler.getTotalIncome(),TransactionsHandler.getTotalExpense());
         } catch (Exception e) {
             Log.e("ReportsFragment", "Error initializing views or managers", e);
         }
 
         return view;
     }
-    private void updateValues(float totalIncome, float totalExpense) {
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateValues();
+    }
+
+    private void updateValues() {
         try {
-            income = totalIncome;
-            expense = totalExpense;
+            income = TransactionsHandler.getTotalIncome();
+            expense = TransactionsHandler.getTotalExpense();
             float balance = income - expense;
 
             tvTotalIncome.setText(String.format(requireContext().getString(R.string.currency_format), income));
@@ -57,6 +66,7 @@ public class ReportsFragment extends Fragment {
 
             pieChartManager.updateChart(income, expense);
             barChartManager.updateBarChart(true);
+
         } catch (Exception e) {
             Log.e("ReportsFragment", "Error updating values", e);
         }

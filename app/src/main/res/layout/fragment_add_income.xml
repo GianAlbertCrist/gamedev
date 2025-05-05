@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@android:color/transparent"
                 android:inputType="number"
-                android:text="0.00"
+                android:text=""
                 android:textColor="@color/white"
                 android:textSize="45dp"
                 android:textStyle="bold"
