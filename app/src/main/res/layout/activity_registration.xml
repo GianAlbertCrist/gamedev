@@ -2,7 +2,6 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -81,6 +80,7 @@
                     android:layout_height="48dp"
                     android:hint="eg. John"
                     android:inputType="textPersonName"
+
                     android:padding="10dp"
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
@@ -125,6 +125,7 @@
                     android:hint="eg. Cruz"
                     android:inputType="textPersonName"
                     android:padding="10dp"
+
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -141,6 +142,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:text="Email Address"
+
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:textStyle="bold"
@@ -165,6 +167,7 @@
                     android:layout_height="24dp"
                     android:layout_marginStart="8dp"
                     android:src="@drawable/ic_email"
+
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -178,6 +181,7 @@
                     android:hint="eg. example@mail.com"
                     android:inputType="textEmailAddress"
                     android:padding="10dp"
+
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -200,6 +204,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/email_container" />
 
+            <!-- Confirm Password -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/password_container"
                 android:layout_width="0dp"
@@ -209,6 +214,7 @@
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/input_box"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/password_label">
 
@@ -224,21 +230,21 @@
 
                 <EditText
                     android:id="@+id/password_input"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_width="219dp"
+                    android:layout_height="46dp"
                     android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
                     android:hint="Enter Password"
                     android:inputType="textPassword"
+
                     android:padding="10dp"
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/password_icon"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="TouchTargetSizeCheck" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Confirm Password -->
             <TextView
                 android:id="@+id/confirm_password_label"
                 android:layout_width="wrap_content"
@@ -277,38 +283,37 @@
 
                 <EditText
                     android:id="@+id/confirm_password_input"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_width="219dp"
+                    android:layout_height="45dp"
                     android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
                     android:hint="Confirm Password"
                     android:inputType="textPassword"
+
                     android:padding="10dp"
                     android:textColor="@android:color/black"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/confirm_password_icon"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0"
+                    tools:ignore="TouchTargetSizeCheck" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Register Button -->
-            <Button
-                android:id="@+id/register_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/rounded_background"
-                android:text="Register"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/confirm_password_container" />
 
+            <ImageButton
+                    android:id="@+id/register_button"
+                    android:layout_width="302dp"
+                    android:layout_height="49dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="@drawable/reg_button"
+                    android:contentDescription="Register"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/confirm_password_container" />
             <TextView
                 android:id="@+id/login_redirect"
                 android:layout_width="0dp"
@@ -321,6 +326,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="16dp" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
