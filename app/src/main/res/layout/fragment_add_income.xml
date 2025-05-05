@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@android:color/transparent"
                 android:inputType="number"
-                android:text="0.00"
+                android:text=""
                 android:textColor="@color/white"
                 android:textSize="45dp"
                 android:textStyle="bold"
@@ -95,6 +95,7 @@
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:padding="8dp"
+                android:layout_marginBottom="10dp"
                 android:src="@drawable/ic_salary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -125,7 +126,7 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="5dp"
+                android:layout_height="2dp"
                 android:background="@color/white"
                 app:layout_constraintBottom_toBottomOf="@+id/category_icon"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -163,7 +164,7 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="3dp"
+                android:layout_height="2dp"
                 android:background="@color/white"
                 app:layout_constraintBottom_toBottomOf="@+id/income_description"
                 app:layout_constraintEnd_toEndOf="parent"

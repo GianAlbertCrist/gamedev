@@ -21,6 +21,7 @@ import com.budgetapp.thrifty.transaction.Transaction;
 public class AddIncomeFragment extends Fragment {
 
     private int selectedIconResId = R.drawable.ic_salary; // default
+    private String selectedRecurring = "None";
 
     public AddIncomeFragment() {
         // Required empty public constructor
@@ -52,7 +53,34 @@ public class AddIncomeFragment extends Fragment {
                 numberInput.selectAll();
             }
         });
-// 2. Category selection logic
+
+        // 2. Category recurring
+        recurringButton.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(requireContext(), recurringButton, 0, 0, R.style.CustomPopupMenu);
+            popup.getMenuInflater().inflate(R.menu.recurring_menu, popup.getMenu());
+
+            popup.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+
+                if (id == R.id.category_none) {
+                    selectedRecurring = "None";
+                } else if (id == R.id.category_daily) {
+                    selectedRecurring = "Daily";
+                } else if (id == R.id.category_weekly) {
+                    selectedRecurring = "Weekly";
+                } else if (id == R.id.category_monthly) {
+                    selectedRecurring = "Montly";
+                } else if (id == R.id.category_yearly) {
+                    selectedRecurring = "Yeary";
+                }
+
+                return true;
+            });
+
+            popup.show();
+        });
+
+        // 3. Category selection logic
         categorySelector.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(requireContext(), categorySelector, 0, 0, R.style.CustomPopupMenu);
             popup.getMenuInflater().inflate(R.menu.income_category_menu, popup.getMenu());
@@ -112,7 +140,7 @@ public class AddIncomeFragment extends Fragment {
             popup.show();
         });
 
-        // 3. Confirm button logic
+        // 4. Confirm button logic
         confirmBtn.setOnClickListener(v -> {
             String category = categoryText.getText().toString();
             String description = descriptionInput.getText().toString();
@@ -128,14 +156,14 @@ public class AddIncomeFragment extends Fragment {
                     amount,
                     iconRes,
                     description,
-                    "None" // default recurring
+                    selectedRecurring
             );
 
             TransactionsHandler.transactions.add(transaction);
             requireActivity().finish(); // go back to MainActivity
         });
 
-        // 4. Cancel button logic
+        // 5. Cancel button logic
         cancelBtn.setOnClickListener(v -> requireActivity().finish());
     }
 }
