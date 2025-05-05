@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 
@@ -36,17 +38,17 @@ public class ReportsFragment extends Fragment {
             pieChartManager = new PieChartManager(pieChart, requireContext());
             barChartManager = new BarChartManager(barChart, trendToggle, requireContext());
 
-//            updateValues(1000f,600f);
+            updateValues(TransactionsHandler.getTotalIncome(),TransactionsHandler.getTotalExpense());
         } catch (Exception e) {
             Log.e("ReportsFragment", "Error initializing views or managers", e);
         }
 
         return view;
     }
-    private void updateValues(float newIncome, float newExpense) {
+    private void updateValues(float totalIncome, float totalExpense) {
         try {
-            income = newIncome;
-            expense = newExpense;
+            income = totalIncome;
+            expense = totalExpense;
             float balance = income - expense;
 
             tvTotalIncome.setText(String.format(requireContext().getString(R.string.currency_format), income));
