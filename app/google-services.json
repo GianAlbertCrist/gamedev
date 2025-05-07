@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "296179808209",
+    "project_id": "pr2-thrifty-id",
+    "storage_bucket": "pr2-thrifty-id.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296179808209:android:747536930966aa895992f0",
+        "android_client_info": {
+          "package_name": "com.budgetapp.thrifty"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYK9rYk9D54dSTg5P1Y8IwAR7JFZHErg0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
