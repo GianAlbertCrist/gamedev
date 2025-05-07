@@ -57,6 +57,9 @@ public class ReportsFragment extends Fragment {
             pieChartManager = new PieChartManager(pieChart, requireContext());
             barChartManager = new BarChartManager(barChart, trendToggle, requireContext());
 
+            // Initialize bar chart with income data
+            barChartManager.updateBarChart(true);
+
             // Set initial toggle states from saved preferences
             final boolean[] isIncomeRanking = {savedIsIncome};
             final boolean[] sortHighToLow = {savedSortHighLow};
