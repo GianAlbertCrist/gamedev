@@ -36,10 +36,10 @@
             android:scaleType="fitCenter"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.093"
+            app:layout_constraintHorizontal_bias="0.1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
-            app:layout_constraintVertical_bias="0.0"
+            app:layout_constraintVertical_bias="0.050000012"
             app:srcCompat="@drawable/sample_profile" />
 
         <TextView
@@ -54,28 +54,28 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/ic_profile"
             app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
-            app:layout_constraintVertical_bias="0.100000024" />
+            app:layout_constraintVertical_bias="0.25" />
 
         <ImageButton
             android:id="@+id/ic_notifcations"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:layout_marginTop="10dp"
             android:background="@android:color/transparent"
             android:contentDescription="Profile"
             android:scaleType="fitCenter"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.68"
+            app:layout_constraintHorizontal_bias="0.60"
             app:layout_constraintStart_toEndOf="@+id/user_greet"
             app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
-            app:layout_constraintVertical_bias="0.0"
+            app:layout_constraintVertical_bias="0.050000012"
             app:srcCompat="@drawable/notif" />
 
         <View
             android:id="@+id/background_view"
             android:layout_width="match_parent"
-            android:layout_height="85dp"
+            android:layout_height="80dp"
             android:layout_marginLeft="20dp"
             android:layout_marginTop="30dp"
             android:layout_marginRight="20dp"
@@ -83,23 +83,21 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ic_profile"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/ic_profile" />
 
         <TextView
             android:id="@+id/total_balance_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:fontFamily="@font/poppins"
             android:text="Total Balance"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/background_view"
             app:layout_constraintEnd_toEndOf="@+id/background_view"
             app:layout_constraintStart_toStartOf="@+id/background_view"
-            app:layout_constraintTop_toTopOf="@+id/background_view"
-            app:layout_constraintVertical_bias="0.15" />
+            app:layout_constraintTop_toTopOf="@+id/background_view" />
 
         <TextView
             android:id="@+id/total_balance"
@@ -113,142 +111,6 @@
             app:layout_constraintEnd_toEndOf="@+id/background_view"
             app:layout_constraintStart_toStartOf="@+id/background_view"
             app:layout_constraintTop_toBottomOf="@+id/total_balance_text" />
-
-        <View
-            android:id="@+id/income_view"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/rounded_background"
-            android:backgroundTint="@color/income_color"
-            app:layout_constraintStart_toStartOf="@+id/background_view"
-            app:layout_constraintTop_toBottomOf="@+id/background_view"
-            app:layout_constraintWidth_percent="0.43" />
-
-        <TextView
-            android:id="@+id/total_income_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
-            android:text="Total Income"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/total_income"
-            app:layout_constraintEnd_toEndOf="@+id/income_view"
-            app:layout_constraintStart_toStartOf="@+id/income_view"
-            app:layout_constraintTop_toTopOf="@+id/income_view"
-            app:layout_constraintVertical_bias="0.062" />
-
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/income"
-            android:scaleType="fitCenter"
-            app:layout_constraintBottom_toTopOf="@+id/total_income"
-            app:layout_constraintEnd_toEndOf="@+id/income_view"
-            app:layout_constraintStart_toStartOf="@+id/income_view"
-            app:layout_constraintTop_toBottomOf="@+id/total_income_text" />
-
-
-        <TextView
-            android:id="@+id/total_income"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
-            android:text="₱ 0.00"
-            android:textColor="@color/black"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/income_view"
-            app:layout_constraintEnd_toEndOf="@+id/income_view"
-            app:layout_constraintStart_toStartOf="@+id/income_view"
-            app:layout_constraintTop_toTopOf="@+id/income_view"
-            app:layout_constraintVertical_bias="1.0" />
-
-        <View
-            android:id="@+id/expense_view"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/rounded_background"
-            android:backgroundTint="@color/container_color"
-            app:layout_constraintEnd_toEndOf="@+id/background_view"
-            app:layout_constraintTop_toBottomOf="@+id/background_view"
-            app:layout_constraintWidth_percent="0.43" />
-
-        <TextView
-            android:id="@+id/total_expense_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
-            android:text="Total Expense"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/expense_view"
-            app:layout_constraintEnd_toEndOf="@+id/expense_view"
-            app:layout_constraintStart_toStartOf="@+id/expense_view"
-            app:layout_constraintTop_toTopOf="@+id/expense_view"
-            app:layout_constraintVertical_bias="0.062" />
-
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/expense"
-            android:scaleType="fitCenter"
-            app:layout_constraintBottom_toTopOf="@+id/total_expense"
-            app:layout_constraintEnd_toEndOf="@+id/expense_view"
-            app:layout_constraintStart_toStartOf="@+id/expense_view"
-            app:layout_constraintTop_toBottomOf="@+id/total_expense_text" />
-
-
-        <TextView
-            android:id="@+id/total_expense"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
-            android:text="₱ 0.00"
-            android:textColor="@color/black"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/expense_view"
-            app:layout_constraintEnd_toEndOf="@+id/expense_view"
-            app:layout_constraintStart_toStartOf="@+id/expense_view"
-            app:layout_constraintTop_toBottomOf="@+id/total_expense_text"
-            app:layout_constraintVertical_bias="1.0" />
-
-        <TextView
-            android:id="@+id/home_transactions_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:fontFamily="@font/poppins"
-            android:text="Recent Transactions"
-            android:textColor="@color/white"
-            android:textSize="15sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.1"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/income_view" />
-
-        <ScrollView
-            android:id="@+id/home_scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/home_transactions_text">
-
-            <LinearLayout
-                android:id="@+id/home_transactions"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="parent"
-                app:layout_constraintVertical_bias="0.0"
-                tools:layout_editor_absoluteX="0dp">
-            </LinearLayout>
-        </ScrollView>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </FrameLayout>

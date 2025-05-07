@@ -1,10 +1,10 @@
 package com.budgetapp.thrifty;
 
 import android.content.res.ColorStateList;
-import android.content.res.Configuration;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Window;
-
+import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import android.content.res.Configuration;
 
 import com.budgetapp.thrifty.databinding.ActivityMainBinding;
 
@@ -28,54 +29,58 @@ public class MainActivity extends AppCompatActivity {
         syncNotificationBarColor();
         themeSync();
 
-        replaceFragment(new HomeFragment());
-        binding.bottomNav.setBackground(null);
+        // Check if the user is logged in
+        if (isUserLoggedIn()) {
+            replaceFragment(new HomeFragment());
+            binding.bottomNav.setBackground(null);
 
-        binding.bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
+            binding.bottomNav.setOnItemSelectedListener(item -> {
+                int id = item.getItemId();
 
-            if (id == R.id.ic_home) {
-                replaceFragment(new HomeFragment());
-                return true;
+                if (id == R.id.ic_home) {
+                    replaceFragment(new HomeFragment());
+                    return true;
 
-            } else if (id == R.id.ic_transactions) {
-                replaceFragment(new TransactionsFragment());
-                return true;
+                } else if (id == R.id.ic_transactions) {
+                    replaceFragment(new TransactionsFragment());
+                    return true;
 
-            } else if (id == R.id.ic_reports) {
-                replaceFragment(new ReportsFragment());
-                return true;
+                } else if (id == R.id.ic_reports) {
+                    replaceFragment(new ReportsFragment());
+                    return true;
 
-            } else if (id == R.id.ic_profile) {
-                replaceFragment(new ProfileFragment());
-                return true;
+                } else if (id == R.id.ic_profile) {
+                    replaceFragment(new ProfileFragment());
+                    return true;
 
-            } else {
-                return false;
-            }
-        });
+                } else {
+                    return false;
+                }
+            });
+        } else {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
     }
 
     public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout, fragment);
-        fragmentTransaction.commitNow();
+        fragmentTransaction.commit();
     }
 
     public void syncNotificationBarColor() {
         Window window = getWindow();
-
-        // Change status bar color to Lavender
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.primary_color)); // Lavender color
-
-        // Set the status bar icons to dark or light based on the color
         WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, window.getDecorView());
-        insetsController.setAppearanceLightNavigationBars(true); // For navigation bar
-        WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightStatusBars(true);
+        insetsController.setAppearanceLightStatusBars(true);
     }
+
     public void themeSync() {
-        boolean isDarkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        boolean isDarkMode = (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 
         ColorStateList iconTintDay = ContextCompat.getColorStateList(this, R.color.bottom_nav_icon_selector_day);
         ColorStateList iconTintNight = ContextCompat.getColorStateList(this, R.color.bottom_nav_icon_selector_night);
@@ -85,5 +90,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             binding.bottomNav.setItemIconTintList(iconTintDay);
         }
+    }
+
+    private boolean isUserLoggedIn() {
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        return prefs.getBoolean("isLoggedIn", false);
     }
 }
