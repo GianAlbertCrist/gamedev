@@ -224,20 +224,20 @@
                 app:layout_constraintTop_toBottomOf="@id/barChart"
                 app:layout_constraintEnd_toEndOf="parent" />
 
-            <ScrollView
-                android:id="@+id/rankingScrollView"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rankingRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:clipToPadding="false"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="24dp"
                 app:layout_constraintTop_toBottomOf="@id/rankingToggle"
-                app:layout_constraintBottom_toBottomOf="parent">
-
-                <LinearLayout
-                    android:id="@+id/rankingContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </ScrollView>
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:listitem="@layout/item_transaction" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
