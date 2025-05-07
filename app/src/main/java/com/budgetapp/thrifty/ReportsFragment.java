@@ -1,5 +1,7 @@
 package com.budgetapp.thrifty;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,9 +22,12 @@ public class ReportsFragment extends Fragment {
     private PieChartManager pieChartManager;
     private BarChartManager barChartManager;
     private TextView tvBalanceAmount, tvTotalIncome, tvTotalExpense;
-
     private float income;
     private float expense;
+
+    private static final String PREFS_NAME = "ReportPreferences";
+    private static final String KEY_IS_INCOME = "isIncomeRanking";
+    private static final String KEY_SORT_HIGH_LOW = "sortHighToLow";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -32,6 +37,11 @@ public class ReportsFragment extends Fragment {
         updateValues();
 
         try {
+            // Get saved preferences
+            SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            boolean savedIsIncome = prefs.getBoolean(KEY_IS_INCOME, true);
+            boolean savedSortHighLow = prefs.getBoolean(KEY_SORT_HIGH_LOW, true);
+
             // Initialize views
             PieChart pieChart = view.findViewById(R.id.pieChart);
             BarChart barChart = view.findViewById(R.id.barChart);
@@ -47,9 +57,14 @@ public class ReportsFragment extends Fragment {
             pieChartManager = new PieChartManager(pieChart, requireContext());
             barChartManager = new BarChartManager(barChart, trendToggle, requireContext());
 
-            // Mutable containers for variables
-            final boolean[] isIncomeRanking = {true}; // Default to income ranking
-            final boolean[] sortHighToLow = {true}; // Default to high-to-low sorting
+            // Set initial toggle states from saved preferences
+            final boolean[] isIncomeRanking = {savedIsIncome};
+            final boolean[] sortHighToLow = {savedSortHighLow};
+
+            // Set initial text based on saved states
+            rankingToggle.setText(isIncomeRanking[0] ? R.string.income_ranking : R.string.expense_ranking);
+            sortToggle.setText(sortHighToLow[0] ? R.string.high : R.string.low);
+
             final RankingAdapter[] rankingAdapter = {new RankingAdapter(
                     requireContext(),
                     TransactionsHandler.transactions,
@@ -72,6 +87,11 @@ public class ReportsFragment extends Fragment {
                         sortHighToLow[0]
                 );
                 rankingRecyclerView.setAdapter(rankingAdapter[0]);
+
+                // Save the new state
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putBoolean(KEY_IS_INCOME, isIncomeRanking[0]);
+                editor.apply();
             });
 
             // Toggle sorting order (High-to-Low/Low-to-High)
@@ -85,6 +105,11 @@ public class ReportsFragment extends Fragment {
                         sortHighToLow[0]
                 );
                 rankingRecyclerView.setAdapter(rankingAdapter[0]);
+
+                // Save the new state
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putBoolean(KEY_SORT_HIGH_LOW, sortHighToLow[0]);
+                editor.apply();
             });
 
         } catch (Exception e) {
