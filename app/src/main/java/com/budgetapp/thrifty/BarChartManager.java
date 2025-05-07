@@ -6,6 +6,8 @@ import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 
+import com.budgetapp.thrifty.handlers.TransactionsHandler;
+import com.budgetapp.thrifty.transaction.Transaction;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -70,13 +72,25 @@ public class BarChartManager {
 
     public void updateBarChart(boolean isIncome) {
         ArrayList<BarEntry> entries = new ArrayList<>();
+        ArrayList<String> xLabels = getLastSevenDays();
+        float[] dailyTotals = new float[7];
 
-        float[] values = isIncome ?
-                new float[]{500f, 700f, 1000f, 600f, 800f, 750f, 900f} :
-                new float[]{300f, 400f, 600f, 350f, 450f, 500f, 400f};
+        // Fetch transactions and filter by type
+        for (Transaction transaction : TransactionsHandler.transactions) {
+            String transactionType = transaction.getType();
+            if ((isIncome && "Income".equalsIgnoreCase(transactionType)) ||
+                    (!isIncome && "Expense".equalsIgnoreCase(transactionType))) {
+                String transactionDate = transaction.getDateAndTime().split(" - ")[1]; // Extract date
+                int index = xLabels.indexOf(transactionDate);
+                if (index != -1) {
+                    dailyTotals[index] += transaction.getRawAmount();
+                }
+            }
+        }
 
-        for (int i = 0; i < values.length; i++) {
-            entries.add(new BarEntry(i, values[i]));
+        // Populate entries for the bar graph
+        for (int i = 0; i < dailyTotals.length; i++) {
+            entries.add(new BarEntry(i, dailyTotals[i]));
         }
 
         BarDataSet dataSet = new BarDataSet(entries, isIncome ? "Income" : "Expense");
@@ -95,9 +109,7 @@ public class BarChartManager {
         BarData barData = new BarData(dataSet);
         barData.setBarWidth(0.7f);
 
-        ArrayList<String> xLabels = getLastSevenDays();
         barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(xLabels));
-
         barChart.setData(barData);
         barChart.animateY(1000);
         barChart.invalidate();
@@ -105,7 +117,7 @@ public class BarChartManager {
 
     private ArrayList<String> getLastSevenDays() {
         ArrayList<String> dates = new ArrayList<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("MMMM d", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
 
         for (int i = 6; i >= 0; i--) {
