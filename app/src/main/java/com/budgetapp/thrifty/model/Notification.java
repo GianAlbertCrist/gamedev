@@ -1,7 +1,6 @@
 package com.budgetapp.thrifty.model;
 
 public class Notification {
-
     private String title;
     private String description;
     private String time;
@@ -12,7 +11,7 @@ public class Notification {
         this.time = time;
     }
 
-    // Getters
+    // Getter methods
     public String getTitle() {
         return title;
     }
@@ -25,4 +24,5 @@ public class Notification {
         return time;
     }
 }
+
 

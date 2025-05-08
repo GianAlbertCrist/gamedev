@@ -18,6 +18,8 @@ import androidx.fragment.app.Fragment;
 
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.model.Notification;
+
 
 public class AddExpenseFragment extends Fragment {
 
@@ -27,13 +29,13 @@ public class AddExpenseFragment extends Fragment {
     private EditText descriptionInput;
 
     public AddExpenseFragment() {
-        // Required empty public constructor
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+
         return inflater.inflate(R.layout.fragment_add_expense, container, false);
     }
 
@@ -165,10 +167,16 @@ public class AddExpenseFragment extends Fragment {
             );
 
             TransactionsHandler.transactions.add(transaction);
-            requireActivity().finish(); // go back to MainActivity
+            String notificationTime = Utils.getCurrentTime();
+
+            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime);
+
+            NotificationsFragment.addNotification(newNotification);
+
+            requireActivity().finish();
         });
 
-        // 5. Cancel button logic
+
         cancelBtn.setOnClickListener(v -> requireActivity().finish());
     }
 }

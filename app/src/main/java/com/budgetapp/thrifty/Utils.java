@@ -5,6 +5,10 @@ import android.content.Context;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class Utils {
     /**
      * Hides the soft keyboard
@@ -18,5 +22,14 @@ public class Utils {
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
         }
+    }
+
+    /**
+     * Returns the current time in a specific format
+     * @return A string representing the current time
+     */
+    public static String getCurrentTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a - MMM dd", Locale.getDefault());
+        return sdf.format(new Date());
     }
 }

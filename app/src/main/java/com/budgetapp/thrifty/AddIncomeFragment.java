@@ -18,16 +18,17 @@ import androidx.fragment.app.Fragment;
 
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.model.Notification;
 
 public class AddIncomeFragment extends Fragment {
 
-    private int selectedIconResId = R.drawable.ic_salary; // default
+    private int selectedIconResId = R.drawable.ic_salary;
     private String selectedRecurring = "None";
     private ScrollView scrollView;
     private EditText descriptionInput;
 
     public AddIncomeFragment() {
-        // Required empty public constructor
+
     }
 
     @Override
@@ -176,10 +177,16 @@ public class AddIncomeFragment extends Fragment {
             );
 
             TransactionsHandler.transactions.add(transaction);
-            requireActivity().finish(); // go back to MainActivity
+            String notificationTime = Utils.getCurrentTime();
+
+            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime);
+
+            NotificationsFragment.addNotification(newNotification);
+
+            requireActivity().finish();
         });
 
-        // 5. Cancel button logic
+
         cancelBtn.setOnClickListener(v -> requireActivity().finish());
     }
 }
