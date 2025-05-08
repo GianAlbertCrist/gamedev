@@ -18,20 +18,32 @@
         app:layout_constraintVertical_bias="0.0"
         tools:layout_editor_absoluteX="-16dp">
 
+        <ImageView
+            android:id="@+id/Profile_back"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:backgroundTint="@color/background_color"
+            android:src="@drawable/arrow_button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins"
             android:text="PROFILE"
-            android:textColor="#000000"
-            android:textSize="20sp"
+            android:textSize="35sp"
             android:textStyle="bold"
-            android:typeface="normal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.3"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0" />
+            app:layout_constraintVertical_bias="0.0" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
@@ -75,79 +87,93 @@
         app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
         app:layout_constraintVertical_bias="0.112" />
 
-    <ImageView
-        android:id="@+id/click_EditProfile"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/sample_profile"
+    <LinearLayout
+        android:id="@+id/edit_profile_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal"
+        android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.107"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.325" />
+        app:layout_constraintVertical_bias="0.325">
 
-    <TextView
-        android:id="@+id/Profile_EditProfile"
-        android:layout_width="wrap_content"
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/icp_profile" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Edit Profile"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/security_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Edit Profile"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/topProfilebar"
-        app:layout_constraintHorizontal_bias="0.266"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.33" />
-
-    <ImageView
-        android:id="@+id/click_Security"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/sample_profile"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.107"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.433" />
+        app:layout_constraintTop_toBottomOf="@+id/edit_profile_button"
+        app:layout_constraintVertical_bias="0.05">
 
-    <TextView
-        android:id="@+id/Profile_Security"
-        android:layout_width="wrap_content"
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/icp_security"
+            android:layout_marginEnd="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Security"
+            android:textColor="@color/white"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/logout_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Security"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/topProfilebar"
-        app:layout_constraintHorizontal_bias="0.266"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.436" />
-
-    <ImageView
-        android:id="@+id/click_Logout"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/sample_profile"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.107"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.538" />
+        app:layout_constraintTop_toBottomOf="@+id/security_button"
+        app:layout_constraintVertical_bias="0.05">
 
-    <TextView
-        android:id="@+id/Profile_Logout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Logout"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/topProfilebar"
-        app:layout_constraintHorizontal_bias="0.262"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.537" />
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/icp_logout"
+            android:layout_marginEnd="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Logout"
+            android:textColor="@color/white"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

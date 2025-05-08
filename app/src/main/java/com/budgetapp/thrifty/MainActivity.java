@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.Window;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
@@ -15,6 +17,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.budgetapp.thrifty.databinding.ActivityMainBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,27 +41,26 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        binding.bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
+        binding.bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
 
-            if (id == R.id.ic_home) {
-                replaceFragment(new HomeFragment());
-                return true;
-
-            } else if (id == R.id.ic_transactions) {
-                replaceFragment(new TransactionsFragment());
-                return true;
-
-            } else if (id == R.id.ic_reports) {
-                replaceFragment(new ReportsFragment());
-                return true;
-
-            } else if (id == R.id.ic_profile) {
-                replaceFragment(new ProfileFragment());
-                return true;
-
-            } else {
-                return false;
+                if (id == R.id.ic_home) {
+                    replaceFragment(new HomeFragment());
+                    return true;
+                } else if (id == R.id.ic_transactions) {
+                    replaceFragment(new TransactionsFragment());
+                    return true;
+                } else if (id == R.id.ic_reports) {
+                    replaceFragment(new ReportsFragment());
+                    return true;
+                } else if (id == R.id.ic_profile) {
+                    replaceFragment(new ProfileFragment());
+                    return true;
+                } else {
+                    return false;
+                }
             }
         });
 
@@ -73,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
         binding.bottomNav.setSelectedItemId(R.id.ic_profile);
         replaceFragment(new ProfileFragment());
     }
-
 
     public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -93,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         insetsController.setAppearanceLightNavigationBars(true); // For navigation bar
         WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightStatusBars(true);
     }
+
     public void themeSync() {
         boolean isDarkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 
