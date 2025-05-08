@@ -119,17 +119,16 @@ public class AddEntryActivity extends AppCompatActivity {
         Button confirmButton = findViewById(R.id.confirm_button);
         Button cancelButton = findViewById(R.id.cancel_button);
 
+        // Handle confirm button click
+        // This will be handled by the fragment
         if (confirmButton != null) {
             confirmButton.setOnClickListener(v -> {
-                // Handle confirm button click
-                // This will be handled by the fragment
             });
         }
-
+        // Handle cancel button click
+        // This will be handled by the fragment
         if (cancelButton != null) {
             cancelButton.setOnClickListener(v -> {
-                // Handle cancel button click
-                // This will be handled by the fragment
             });
         }
     }

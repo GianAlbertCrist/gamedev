@@ -90,7 +90,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
-            android:text="Total Balance"
+            android:text="@string/total_balance"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -105,7 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
-            android:text="₱ 0.00"
+            android:text="@string/initial_money"
             android:textColor="@color/black"
             android:textSize="25sp"
             android:textStyle="bold"
@@ -129,7 +129,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
-            android:text="Total Income"
+            android:text="@string/total_income"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -155,7 +155,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
-            android:text="₱ 0.00"
+            android:text="@string/initial_money"
             android:textColor="@color/black"
             android:textSize="25sp"
             android:textStyle="bold"
@@ -181,7 +181,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
-            android:text="Total Expense"
+            android:text="@string/total_expense"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -207,7 +207,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins"
-            android:text="₱ 0.00"
+            android:text="@string/initial_money"
             android:textColor="@color/black"
             android:textSize="25sp"
             android:textStyle="bold"
@@ -256,13 +256,13 @@
             android:paddingTop="8dp"
             android:paddingEnd="15dp"
             android:paddingBottom="24dp"
+            android:contentDescription="@string/home_transactions_description"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/home_transactions_text"
             tools:listitem="@layout/item_transaction"
-            android:layout_marginBottom="100dp"/>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_marginBottom="100dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
