@@ -26,6 +26,7 @@ public class EditProfileFragment extends Fragment {
     // Avatar selection
     private ImageView[] avatars = new ImageView[8];
     private int selectedAvatarId = -1;
+    private int currentAvatarId = 0; // Default avatar
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -68,11 +69,29 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void showProfilePictureSelector() {
+        // Show the profile picture selector with animation
         profilePictureSelector.setVisibility(View.VISIBLE);
+        profilePictureSelector.setAlpha(0f);
+        profilePictureSelector.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .start();
+
+        // Pre-select the current avatar if any
+        if (currentAvatarId >= 0 && currentAvatarId < avatars.length) {
+            selectAvatar(currentAvatarId);
+        }
     }
 
     private void hideProfilePictureSelector() {
-        profilePictureSelector.setVisibility(View.GONE);
+        // Hide the profile picture selector with animation
+        profilePictureSelector.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction(() -> profilePictureSelector.setVisibility(View.GONE))
+                .start();
+
+        // Reset selection
         selectedAvatarId = -1;
         resetAvatarSelections();
     }
@@ -101,14 +120,16 @@ public class EditProfileFragment extends Fragment {
             // Update the profile image with the selected avatar
             profileImage.setImageDrawable(avatars[selectedAvatarId].getDrawable());
 
-            // Hide the selector
-            profilePictureSelector.setVisibility(View.GONE);
+            // Store the current avatar ID
+            currentAvatarId = selectedAvatarId;
 
-            // Reset selection
-            selectedAvatarId = -1;
-            resetAvatarSelections();
+            // Hide the selector with animation
+            hideProfilePictureSelector();
+
+            // Show confirmation toast
+            Toast.makeText(getContext(), "Profile picture updated", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(getContext(), "Please select an avatar", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please select a profile picture", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -129,7 +150,18 @@ public class EditProfileFragment extends Fragment {
         }
 
         // Here you would typically save the profile data to your database or preferences
-        // For now, just show a success message
+        // For demonstration, we'll just show a success message
+
+        // Create a bundle to pass data back to ProfileFragment
+        Bundle result = new Bundle();
+        result.putString("username", username);
+        result.putString("fullname", fullname);
+        result.putString("email", email);
+        result.putInt("avatarId", currentAvatarId);
+
+        // Set the result to be retrieved by ProfileFragment
+        getParentFragmentManager().setFragmentResult("profileUpdate", result);
+
         Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
 
         // Navigate back to the profile screen
