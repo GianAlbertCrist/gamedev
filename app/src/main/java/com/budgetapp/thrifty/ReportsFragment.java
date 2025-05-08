@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Button;
 
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.RankingAdapter;
@@ -19,9 +20,11 @@ import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 
 public class ReportsFragment extends Fragment {
+    private static final String TAG = "ReportsFragment";
     private PieChartManager pieChartManager;
     private BarChartManager barChartManager;
-    private TextView tvBalanceAmount, tvTotalIncome, tvTotalExpense;
+    private TextView tvBalanceAmount, tvTotalIncome, tvTotalExpense, trendToggle;
+    private BarChart barChart;
     private float income;
     private float expense;
 
@@ -33,19 +36,13 @@ public class ReportsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_report, container, false);
-
-        updateValues();
+        Log.d(TAG, "onCreateView called");
 
         try {
-            // Get saved preferences
-            SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            boolean savedIsIncome = prefs.getBoolean(KEY_IS_INCOME, true);
-            boolean savedSortHighLow = prefs.getBoolean(KEY_SORT_HIGH_LOW, true);
-
             // Initialize views
             PieChart pieChart = view.findViewById(R.id.pieChart);
-            BarChart barChart = view.findViewById(R.id.barChart);
-            TextView trendToggle = view.findViewById(R.id.trendToggle);
+            barChart = view.findViewById(R.id.barChart);
+            trendToggle = view.findViewById(R.id.trendToggle);
             TextView rankingToggle = view.findViewById(R.id.rankingToggle);
             TextView sortToggle = view.findViewById(R.id.sortToggle);
             tvBalanceAmount = view.findViewById(R.id.tvBalanceAmount);
@@ -53,12 +50,14 @@ public class ReportsFragment extends Fragment {
             tvTotalExpense = view.findViewById(R.id.tvTotalExpense);
             RecyclerView rankingRecyclerView = view.findViewById(R.id.rankingRecyclerView);
 
+            // Get saved preferences
+            SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            boolean savedIsIncome = prefs.getBoolean(KEY_IS_INCOME, true);
+            boolean savedSortHighLow = prefs.getBoolean(KEY_SORT_HIGH_LOW, true);
+
             // Initialize managers
             pieChartManager = new PieChartManager(pieChart, requireContext());
             barChartManager = new BarChartManager(barChart, trendToggle, requireContext());
-
-            // Initialize bar chart with income data
-            barChartManager.updateBarChart(true);
 
             // Set initial toggle states from saved preferences
             final boolean[] isIncomeRanking = {savedIsIncome};
@@ -114,9 +113,8 @@ public class ReportsFragment extends Fragment {
                 editor.putBoolean(KEY_SORT_HIGH_LOW, sortHighToLow[0]);
                 editor.apply();
             });
-
         } catch (Exception e) {
-            Log.e("ReportsFragment", "Error initializing views or managers", e);
+            Log.e(TAG, "Error initializing views or managers", e);
         }
 
         return view;
@@ -125,24 +123,62 @@ public class ReportsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume called");
         updateValues();
     }
 
     private void updateValues() {
         try {
+            Log.d(TAG, "updateValues called");
+
+            // Update financial values
             income = TransactionsHandler.getTotalIncome();
             expense = TransactionsHandler.getTotalExpense();
             float balance = income - expense;
 
-            tvTotalIncome.setText(String.format(requireContext().getString(R.string.currency_format), income));
-            tvTotalExpense.setText(String.format(requireContext().getString(R.string.currency_format), expense));
-            tvBalanceAmount.setText(String.format(requireContext().getString(R.string.currency_format), balance));
+            Log.d(TAG, "Income: " + income + ", Expense: " + expense + ", Balance: " + balance);
 
-            pieChartManager.updateChart(income, expense);
-            barChartManager.updateBarChart(true);
+            // Update text views
+            if (tvTotalIncome != null) {
+                tvTotalIncome.setText(String.format(requireContext().getString(R.string.currency_format), income));
+            }
+
+            if (tvTotalExpense != null) {
+                tvTotalExpense.setText(String.format(requireContext().getString(R.string.currency_format), expense));
+            }
+
+            if (tvBalanceAmount != null) {
+                tvBalanceAmount.setText(String.format(requireContext().getString(R.string.currency_format), balance));
+            }
+
+            // Update pie chart
+            if (pieChartManager != null) {
+                Log.d(TAG, "Updating pie chart");
+                pieChartManager.updateChart(income, expense);
+            } else {
+                Log.e(TAG, "pieChartManager is null");
+            }
+
+            // Update bar chart
+            if (barChartManager != null && barChart != null) {
+                Log.d(TAG, "Updating bar chart");
+
+                // Force both income and expense views to update
+                boolean isShowingIncome = trendToggle.getText().toString().contains("Income");
+                Log.d(TAG, "Current toggle state: " + (isShowingIncome ? "Income" : "Expense"));
+
+                // Update with current toggle state
+                barChartManager.updateBarChart(isShowingIncome);
+
+                // Force a redraw
+                barChart.invalidate();
+            } else {
+                Log.e(TAG, "barChartManager or barChart is null");
+            }
 
         } catch (Exception e) {
-            Log.e("ReportsFragment", "Error updating values", e);
+            Log.e(TAG, "Error updating values", e);
+            e.printStackTrace();
         }
     }
 }

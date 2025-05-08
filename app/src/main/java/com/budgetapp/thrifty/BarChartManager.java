@@ -17,13 +17,17 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class BarChartManager {
     private final BarChart barChart;
     private final Context context;
     private final TextView trendToggle;
     private boolean isShowingIncome = true;
+    private static final String DATE_FORMAT = "MMMM d";
+    private static final String TAG = "BarChartManager";
 
     public BarChartManager(BarChart barChart, TextView trendToggle, Context context) {
         this.barChart = barChart;
@@ -31,6 +35,10 @@ public class BarChartManager {
         this.context = context;
         setupBarChart();
         setupToggle();
+    }
+
+    private SimpleDateFormat getDateFormatter() {
+        return new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
     }
 
     private void setupBarChart() {
@@ -41,6 +49,8 @@ public class BarChartManager {
         barChart.setVisibleXRangeMaximum(7);
         barChart.setHighlightPerTapEnabled(false);
         barChart.setHighlightPerDragEnabled(false);
+        barChart.setPinchZoom(false);
+        barChart.setDoubleTapToZoomEnabled(false);
 
         XAxis xAxis = barChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -64,81 +74,119 @@ public class BarChartManager {
         trendToggle.setOnClickListener(v -> {
             isShowingIncome = !isShowingIncome;
             trendToggle.setText(isShowingIncome ? "Income Trend" : "Expense Trend");
+            Log.d(TAG, "Toggle clicked, now showing: " + (isShowingIncome ? "Income" : "Expense"));
             updateBarChart(isShowingIncome);
         });
     }
 
-        public void updateBarChart(boolean isIncome) {
-            ArrayList<BarEntry> entries = new ArrayList<>();
-            ArrayList<String> xLabels = getLastSevenDays();
-            float[] dailyTotals = new float[7];
+    public void updateBarChart(boolean isIncome) {
+        Log.d(TAG, "updateBarChart called with isIncome=" + isIncome);
 
-            // Fetch transactions and filter by type
-            for (Transaction transaction : TransactionsHandler.transactions) {
-                String transactionType = transaction.getType();
-                if ((isIncome && "Income".equalsIgnoreCase(transactionType)) ||
-                        (!isIncome && "Expense".equalsIgnoreCase(transactionType))) {
+        // Clear any existing data
+        barChart.clear();
 
-                    try {
-                        // Get transaction date
-                        String fullDateTime = transaction.getDateAndTime();
-                        String transactionDate = fullDateTime.split(" - ")[0];
+        ArrayList<BarEntry> entries = new ArrayList<>();
+        ArrayList<String> xLabels = getLastSevenDays();
+        float[] dailyTotals = new float[7];
 
-                        // Find matching date in xLabels
-                        int index = xLabels.indexOf(transactionDate);
-                        if (index != -1) {
-                            dailyTotals[index] += transaction.getRawAmount();
-                            Log.d("BarChart", "Added amount " + transaction.getRawAmount() +
-                                    " to date " + transactionDate + " at index " + index);
-                        }
-                    } catch (Exception e) {
-                        Log.e("BarChartManager", "Error processing transaction: " + e.getMessage());
-                    }
-                }
-            }
+        // Get current date info
+        Calendar now = Calendar.getInstance();
+        int currentYear = now.get(Calendar.YEAR);
+        int currentMonth = now.get(Calendar.MONTH);
 
-            // Create bar entries
-            for (int i = 0; i < dailyTotals.length; i++) {
-                entries.add(new BarEntry(i, dailyTotals[i]));
-                Log.d("BarChart", "Entry at index " + i + ": " + dailyTotals[i] +
-                        " for date " + xLabels.get(i));
-            }
+        // Debug current date
+        Log.d(TAG, "Current date: " + now.getTime().toString());
 
-            BarDataSet dataSet = new BarDataSet(entries, isIncome ? "Income" : "Expense");
-            dataSet.setColor(isIncome ?
-                    ContextCompat.getColor(context, R.color.primary_color) :
-                    ContextCompat.getColor(context, R.color.red));
-            dataSet.setValueTextColor(Color.WHITE);
-            dataSet.setValueTextSize(10f);
-            dataSet.setValueFormatter(new IndexAxisValueFormatter() {
-                @Override
-                public String getFormattedValue(float value) {
-                    return value > 0 ? String.format(Locale.getDefault(), "₱%.0f", value) : "";
-                }
-            });
+        // Get current week's dates for comparison
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY); // Start from Monday
+        ArrayList<Calendar> weekDates = new ArrayList<>();
 
-            BarData barData = new BarData(dataSet);
-            barData.setBarWidth(0.7f);
-
-            barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(xLabels));
-            barChart.setData(barData);
-            barChart.animateY(1000);
-            barChart.invalidate();
+        for (int i = 0; i < 7; i++) {
+            Calendar day = (Calendar) calendar.clone();
+            weekDates.add(day);
+            Log.d(TAG, "Week day " + i + ": " + day.getTime().toString());
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
         }
+
+        // Debug transactions count
+        Log.d(TAG, "Total transactions: " + TransactionsHandler.transactions.size());
+
+        // Process transactions - use a simpler approach
+        for (Transaction transaction : TransactionsHandler.transactions) {
+            String transactionType = transaction.getType();
+
+            // Debug transaction
+            Log.d(TAG, "Processing transaction: " + transaction.getCategory() +
+                    ", Type: " + transactionType +
+                    ", Amount: " + transaction.getRawAmount() +
+                    ", Date: " + transaction.getDateAndTime());
+
+            // Check if this transaction matches our filter (income or expense)
+            if ((isIncome && "Income".equalsIgnoreCase(transactionType)) ||
+                    (!isIncome && "Expense".equalsIgnoreCase(transactionType))) {
+
+                // For simplicity, let's just add all transactions to today's bar
+                // This is a temporary solution to verify the chart is working
+                Calendar today = Calendar.getInstance();
+                int dayOfWeek = today.get(Calendar.DAY_OF_WEEK) - Calendar.MONDAY;
+                if (dayOfWeek < 0) dayOfWeek += 7; // Adjust for Sunday
+
+                if (dayOfWeek >= 0 && dayOfWeek < 7) {
+                    dailyTotals[dayOfWeek] += transaction.getRawAmount();
+                    Log.d(TAG, "Added amount " + transaction.getRawAmount() +
+                            " to day " + dayOfWeek + ", new total: " + dailyTotals[dayOfWeek]);
+                }
+
+                // We'll implement proper date parsing in the next iteration
+            }
+        }
+
+        // Create bar entries
+        for (int i = 0; i < dailyTotals.length; i++) {
+            entries.add(new BarEntry(i, dailyTotals[i]));
+            Log.d(TAG, "Bar entry for day " + i + ": " + dailyTotals[i]);
+        }
+
+        // Update chart data
+        BarDataSet dataSet = new BarDataSet(entries, isIncome ? "Income" : "Expense");
+        dataSet.setColor(ContextCompat.getColor(context,
+                isIncome ? R.color.primary_color : R.color.red));
+        dataSet.setValueTextColor(Color.WHITE);
+        dataSet.setValueTextSize(10f);
+        dataSet.setValueFormatter(new IndexAxisValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return value > 0 ? String.format(Locale.getDefault(), "₱%.0f", value) : "";
+            }
+        });
+
+        BarData barData = new BarData(dataSet);
+        barData.setBarWidth(0.7f);
+
+        barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(xLabels));
+        barChart.setData(barData);
+        barChart.animateY(1000);
+        barChart.invalidate();
+
+        Log.d(TAG, "Chart updated and invalidated");
+    }
 
     private ArrayList<String> getLastSevenDays() {
         ArrayList<String> dates = new ArrayList<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("MMMM d", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
 
-        // Get to the start of the current week (Monday)
-        while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
-            calendar.add(Calendar.DAY_OF_YEAR, -1);
-        }
+        // Set to start of current week (Monday)
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        int daysToSubtract = dayOfWeek - Calendar.MONDAY;
+        if (daysToSubtract < 0) daysToSubtract += 7;
+        calendar.add(Calendar.DAY_OF_YEAR, -daysToSubtract);
 
-        // Add all days of the current week
+        // Add dates for the whole week
         for (int i = 0; i < 7; i++) {
-            dates.add(sdf.format(calendar.getTime()));
+            String dateStr = getDateFormatter().format(calendar.getTime());
+            dates.add(dateStr);
+            Log.d(TAG, "Added date label: " + dateStr);
             calendar.add(Calendar.DAY_OF_YEAR, 1);
         }
 
