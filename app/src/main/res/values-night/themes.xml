@@ -17,7 +17,13 @@
 
     <style name="CustomPopupMenu" parent="Widget.AppCompat.PopupMenu">
         <item name="android:popupBackground">@drawable/bg_popup_menu</item>
-        <item name="fontFamily">@font/poppins</item>
+        <item name="android:textAppearance">@style/CustomPopupMenuItemText</item>
     </style>
+
+    <style name="CustomPopupMenuItemText" parent="TextAppearance.AppCompat.Medium">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
 
 </resources>

@@ -7,6 +7,6 @@
     <item android:id="@+id/category_transport" android:title="Transport" android:icon="@drawable/ic_transport"/>
     <item android:id="@+id/category_housing" android:title="Housing" android:icon="@drawable/ic_housing"/>
     <item android:id="@+id/category_entertainment" android:title="Entertainment" android:icon="@drawable/ic_entertainment"/>
-    <item android:id="@+id/category_education" android:title="Transport" android:icon="@drawable/ic_education"/>
-    <item android:id="@+id/category_others" android:title="Transport" android:icon="@drawable/ic_others"/>
+    <item android:id="@+id/category_education" android:title="Education" android:icon="@drawable/ic_education"/>
+    <item android:id="@+id/category_others" android:title="Others" android:icon="@drawable/ic_others"/>
 </menu>

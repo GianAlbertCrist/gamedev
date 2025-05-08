@@ -21,7 +21,7 @@ import com.budgetapp.thrifty.transaction.Transaction;
 
 public class AddExpenseFragment extends Fragment {
 
-    private int selectedIconResId = R.drawable.ic_salary; // default
+    private int selectedIconResId = R.drawable.ic_transport; // default
     private String selectedRecurring = "None";
     private ScrollView scrollView;
     private EditText descriptionInput;

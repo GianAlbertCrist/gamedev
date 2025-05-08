@@ -235,13 +235,13 @@
             android:id="@+id/empty_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:fontFamily="@font/poppins"
+            android:gravity="center"
             android:text="No records found."
             android:textColor="@color/white"
             android:textSize="16sp"
-            android:gravity="center"
             android:visibility="gone"
-            android:layout_marginTop="20dp"
             app:layout_constraintBottom_toTopOf="@+id/home_transactions"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -251,18 +251,20 @@
             android:id="@+id/home_transactions"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginBottom="100dp"
             android:clipToPadding="false"
             android:paddingStart="15dp"
             android:paddingTop="8dp"
             android:paddingEnd="15dp"
             android:paddingBottom="24dp"
-            android:contentDescription="@string/home_transactions_description"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/home_transactions_text"
             tools:listitem="@layout/item_transaction"
-            android:layout_marginBottom="100dp" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+            android:contentDescription="@string/home_transactions_description"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

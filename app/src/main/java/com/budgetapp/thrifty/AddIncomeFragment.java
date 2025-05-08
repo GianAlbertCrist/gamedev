@@ -117,7 +117,7 @@ public class AddIncomeFragment extends Fragment {
                 } else if (id == R.id.category_allowance) {
                     categoryText.setText("Allowance");
                     categoryIcon.setImageResource(R.drawable.ic_allowance);
-                    selectedIconResId = R.drawable.ic_salary;
+                    selectedIconResId = R.drawable.ic_allowance;
 
                 } else if (id == R.id.category_bonus) {
                     categoryText.setText("Bonus");

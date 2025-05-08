@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.TransactionAdapter;
+import com.budgetapp.thrifty.utils.FormatUtils;
 
 public class HomeFragment extends Fragment {
 
@@ -55,9 +56,13 @@ public class HomeFragment extends Fragment {
         TextView incomeText = rootView.findViewById(R.id.total_income);
         TextView expenseText = rootView.findViewById(R.id.total_expense);
 
-        balanceText.setText(String.format("₱ %.2f", TransactionsHandler.getBalance()));
-        incomeText.setText(String.format("₱ %.2f", TransactionsHandler.getTotalIncome()));
-        expenseText.setText(String.format("₱ %.2f", TransactionsHandler.getTotalExpense()));
+        double balance = TransactionsHandler.getBalance();
+        double income = TransactionsHandler.getTotalIncome();
+        double expense = TransactionsHandler.getTotalExpense();
+
+        balanceText.setText(String.format("₱ %s", FormatUtils.formatAmount(balance, false)));
+        incomeText.setText(String.format("₱ %s", FormatUtils.formatAmount(income, true)));
+        expenseText.setText(String.format("₱ %s", FormatUtils.formatAmount(expense, true)));
     }
 
     private void loadTransactions() {

@@ -2,6 +2,7 @@ package com.budgetapp.thrifty.renderers;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.budgetapp.thrifty.R;
@@ -67,6 +69,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @SuppressLint("DefaultLocale")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Typeface poppins = ResourcesCompat.getFont(context, R.font.poppins);
+
         if (getItemViewType(position) == VIEW_TYPE_SPACER) {
             holder.itemView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             holder.icon.setVisibility(View.INVISIBLE);
@@ -77,7 +81,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         }
 
         int index = transactions.size() - 1 - position;
-
         if (index < 0 || index >= transactions.size()) return;
 
         Transaction t = transactions.get(index);
@@ -86,16 +89,16 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.icon.setImageResource(t.getIconID());
 
         holder.category.setText(t.getCategory());
+        holder.category.setTypeface(poppins);
         holder.category.setTextColor(ContextCompat.getColor(context, R.color.black));
 
-        // Display and color amount
-        float amt = t.getRawAmount(); // <-- You'll need to add getRawAmount() in Transaction.java
+        float amt = t.getRawAmount();
         String displayAmount;
         int color;
 
         if (amt == 0f) {
             displayAmount = String.format("₱%.2f", amt);
-            color = ContextCompat.getColor(context, R.color.background_color); // <-- Make sure you have this color defined
+            color = ContextCompat.getColor(context, R.color.background_color);
         } else {
             displayAmount = String.format("%s₱%.2f",
                     "Income".equalsIgnoreCase(t.getType()) ? "+" : "-",
@@ -107,13 +110,13 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         }
 
         holder.amount.setText(displayAmount);
+        holder.amount.setTypeface(poppins);
         holder.amount.setTextColor(color);
 
         String timeText = t.getDateAndTime();
-        if (!timeText.contentEquals(holder.datetime.getText())) {
-            holder.datetime.setText(timeText);
-            holder.datetime.setTextColor(ContextCompat.getColor(context, R.color.background_color));
-        }
+        holder.datetime.setText(timeText);
+        holder.datetime.setTypeface(poppins);
+        holder.datetime.setTextColor(ContextCompat.getColor(context, R.color.background_color));
     }
 
     @Override

@@ -1,56 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
-    android:padding="12dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/transaction_container"
-    android:gravity="center_vertical"> <!-- Aligns everything vertically -->
+    android:orientation="horizontal"
+    android:background="@drawable/transaction_background"
+    android:padding="12dp"
+    android:layout_margin="4dp">
 
     <ImageView
         android:id="@+id/transaction_icon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginEnd="12dp"
-        android:scaleType="fitCenter" />
+        android:src="@drawable/ic_food" />
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:gravity="center_vertical"> <!-- Aligns text vertically -->
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/transaction_category"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Category"
-            android:textSize="16sp"
-            android:textColor="@color/black"
-            android:textStyle="bold" />
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
     </LinearLayout>
 
     <LinearLayout
-        android:orientation="vertical"
+        android:layout_marginTop="0dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:layout_marginStart="12dp">
+        android:orientation="vertical"
+        android:gravity="end">
 
         <TextView
             android:id="@+id/transaction_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="₱0.00"
-            android:textSize="16sp"
+            android:text="- ₱500"
+            android:textColor="#FF6B6B"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/transaction_datetime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Time"
-            android:textSize="12sp"
-            android:textColor="#888888" />
+            android:text="10:50 AM - Apr 8"
+            android:textColor="@color/black"
+            android:textSize="12sp" />
     </LinearLayout>
 </LinearLayout>

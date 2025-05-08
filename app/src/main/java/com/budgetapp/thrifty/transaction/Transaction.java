@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class Transaction {
@@ -24,6 +25,8 @@ public class Transaction {
     private String recurring;
 
     private String description;
+
+    private java.util.Date parsedDate;
 
     // Constructor with default recurring = "None"
     public Transaction(String type, String category, float amount, int iconID, String description) {
@@ -64,8 +67,13 @@ public class Transaction {
 
     private String getCurrentDateTime() {
         Calendar calendar = Calendar.getInstance();
+        this.parsedDate = calendar.getTime();
         SimpleDateFormat format = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault());
-        return format.format(calendar.getTime());
+        return format.format(parsedDate);
+    }
+
+    public Date getParsedDate() {
+        return parsedDate;
     }
 
     public String getDateAndTime() {
