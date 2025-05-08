@@ -19,6 +19,7 @@
 
                     <activity
                         android:name=".AddEntryActivity"
+                        android:windowSoftInputMode="adjustResize"
                         android:exported="false" />
                     <activity
                         android:name=".MainActivity"

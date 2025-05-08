@@ -11,6 +11,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.ScrollView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
@@ -22,6 +23,8 @@ public class AddExpenseFragment extends Fragment {
 
     private int selectedIconResId = R.drawable.ic_salary; // default
     private String selectedRecurring = "None";
+    private ScrollView scrollView;
+    private EditText descriptionInput;
 
     public AddExpenseFragment() {
         // Required empty public constructor
@@ -30,8 +33,10 @@ public class AddExpenseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_add_expense, container, false);
     }
+
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
