@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/first"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToOutline="true"
-    android:background="@color/background_color">
+    android:background="@color/background_color"
+    android:clipToOutline="true">
 
     <ImageView
         android:id="@+id/tst_img"
         android:layout_width="281dp"
         android:layout_height="273dp"
-        android:layout_alignParentStart="true"
         android:layout_marginStart="70dp"
         android:layout_marginTop="-30dp"
         android:contentDescription="@string/tst_img_desc"
-        android:src="@drawable/tst_img" />
+        android:src="@drawable/tst_img"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/give_money"
         android:layout_width="281dp"
         android:layout_height="273dp"
-        android:layout_below="@id/tst_img"
-        android:layout_alignParentStart="true"
         android:layout_marginStart="-4dp"
         android:layout_marginTop="-50dp"
         android:contentDescription="@string/give_money_desc"
-        android:src="@drawable/give_money" />
+        android:src="@drawable/give_money"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tst_img" />
 
     <ImageButton
         android:id="@+id/sign_in_button"
         android:layout_width="wrap_content"
         android:layout_height="157dp"
-        android:layout_below="@id/give_money"
-        android:layout_alignParentStart="true"
         android:layout_marginStart="87dp"
         android:layout_marginTop="20dp"
         android:background="@android:color/transparent"
@@ -41,14 +41,14 @@
         android:contentDescription="@string/sign_in_button"
         android:focusable="true"
         android:gravity="center"
-        android:src="@drawable/sign_in_button" />
+        android:src="@drawable/sign_in_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/give_money" />
 
     <ImageButton
         android:id="@+id/register_button"
         android:layout_width="wrap_content"
         android:layout_height="157dp"
-        android:layout_below="@id/sign_in_button"
-        android:layout_alignParentStart="true"
         android:layout_marginStart="87dp"
         android:layout_marginTop="-71dp"
         android:background="@android:color/transparent"
@@ -56,5 +56,8 @@
         android:contentDescription="@string/sign_up_button"
         android:focusable="true"
         android:gravity="center"
-        android:src="@drawable/register_button" />
-</RelativeLayout>
+        android:src="@drawable/register_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sign_in_button" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
