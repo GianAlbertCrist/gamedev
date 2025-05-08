@@ -3,22 +3,28 @@ package com.budgetapp.thrifty;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Button;
+import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.budgetapp.thrifty.account.Account;
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
-import com.budgetapp.thrifty.handlers.AccountsHandler;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
     private ActivityLoginBinding binding;
+    private FirebaseAuth mAuth;
+    private static final String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,10 +32,13 @@ public class LoginActivity extends AppCompatActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
         // Initialize views
         EditText enterMail = binding.enterMail;
         EditText enterPassword = binding.enterPassw;
-        Button loginButton = binding.loginButton;
+        ImageButton loginButton = binding.loginButton;
         TextView registerText = binding.registerNo;
 
         loginButton.setOnClickListener(view -> {
@@ -37,7 +46,7 @@ public class LoginActivity extends AppCompatActivity {
             String password = enterPassword.getText().toString().trim();
 
             if (validateInput(email, password)) {
-                authenticateUser(email, password);
+                signInWithEmailAndPassword(email, password);
             }
         });
 
@@ -54,13 +63,24 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            // User is already signed in, go to MainActivity
+            updateUI(currentUser);
+        }
+    }
+
     private boolean validateInput(String email, String password) {
-        if (email.isEmpty()) {
+        if (TextUtils.isEmpty(email)) {
             binding.enterMail.setError("Email cannot be empty");
             return false;
         }
 
-        if (password.isEmpty()) {
+        if (TextUtils.isEmpty(password)) {
             binding.enterPassw.setError("Password cannot be empty");
             return false;
         }
@@ -68,26 +88,44 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
 
-    private void authenticateUser(String email, String password) {
-        // Use AccountsHandler to authenticate
-        Account account = AccountsHandler.authenticate(email, password);
+    private void signInWithEmailAndPassword(String email, String password) {
+        // Show loading indicator if you have one
 
-        if (account != null) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        // Hide loading indicator if you have one
+
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            updateUI(user);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Toast.makeText(LoginActivity.this, "Authentication failed: " +
+                                            task.getException().getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                            updateUI(null);
+                        }
+                    }
+                });
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
             // Save login state
             SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
             preferences.edit()
                     .putBoolean("isLoggedIn", true)
-                    .putString("userEmail", email)
-                    .putString("userName", account.getFirstname())
+                    .putString("userEmail", user.getEmail())
+                    .putString("userName", user.getDisplayName() != null ?
+                            user.getDisplayName() : user.getEmail())
                     .apply();
 
             // Proceed to main activity
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
-        } else {
-            Toast.makeText(LoginActivity.this,
-                    "Invalid email or password",
-                    Toast.LENGTH_SHORT).show();
         }
     }
 }

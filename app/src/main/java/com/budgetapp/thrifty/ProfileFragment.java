@@ -5,70 +5,39 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentResultListener;
 import androidx.fragment.app.FragmentTransaction;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ProfileFragment extends Fragment {
 
     private LinearLayout editProfileButton;
     private LinearLayout securityButton;
     private LinearLayout logoutButton;
-    private ImageView profileImage;
-    private TextView profileName;
-    private TextView profileFullName;
+    private FirebaseAuth mAuth;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        // Initialize views
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
+        // Initialize buttons
         editProfileButton = view.findViewById(R.id.edit_profile_button);
         securityButton = view.findViewById(R.id.security_button);
         logoutButton = view.findViewById(R.id.logout_button);
-        profileImage = view.findViewById(R.id.picture_najud);
-        profileName = view.findViewById(R.id.textView);
-        profileFullName = view.findViewById(R.id.textView2);
 
         // Set click listeners
         editProfileButton.setOnClickListener(v -> navigateToEditProfile());
         securityButton.setOnClickListener(v -> navigateToSecurity());
         logoutButton.setOnClickListener(v -> showLogoutDialog());
-
-        // Listen for profile updates from EditProfileFragment
-        getParentFragmentManager().setFragmentResultListener("profileUpdate", this,
-                new FragmentResultListener() {
-                    @Override
-                    public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
-                        // Update profile information with data from EditProfileFragment
-                        String username = result.getString("username", "");
-                        String fullname = result.getString("fullname", "");
-                        int avatarId = result.getInt("avatarId", -1);
-
-                        if (!username.isEmpty()) {
-                            profileName.setText(username);
-                        }
-
-                        if (!fullname.isEmpty()) {
-                            profileFullName.setText(fullname.toUpperCase());
-                        }
-
-                        // Update avatar if one was selected
-                        if (avatarId >= 0) {
-                            // In a real app, you would have a way to map avatarId to the correct drawable
-                            // For now, we'll just use the sample_profile drawable
-                            profileImage.setImageResource(R.drawable.sample_profile);
-                        }
-                    }
-                });
 
         return view;
     }

@@ -1,5 +1,7 @@
 package com.budgetapp.thrifty;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -11,26 +13,38 @@ import android.widget.Toast;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class EndSessionFragment extends Fragment implements View.OnTouchListener {
 
-    private Button yesEndSessionButton;
+    private Button endSessionButton;
     private Button cancelButton;
     private View rootView;
     private CardView dialogContainer;
+    private FirebaseAuth mAuth;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_endsession, container, false);
 
-        // Initialize buttons
-        yesEndSessionButton = rootView.findViewById(R.id.yes_end_session);
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
+        // Initialize buttons with the correct IDs from the new layout
+        endSessionButton = rootView.findViewById(R.id.yes_end_session);
         cancelButton = rootView.findViewById(R.id.cancel_button);
         dialogContainer = rootView.findViewById(R.id.dialog_container);
 
         // Set click listeners
-        yesEndSessionButton.setOnClickListener(v -> performLogout());
+        endSessionButton.setOnClickListener(v -> performLogout());
         cancelButton.setOnClickListener(v -> cancelLogout());
+
+        // Back button click listener
+        View backButton = rootView.findViewById(R.id.end_session_back);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> cancelLogout());
+        }
 
         // Set touch listener on the root view to detect touches outside the container
         rootView.setOnTouchListener(this);
@@ -48,21 +62,8 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
 
             // Check if the touch is outside the dialog container
             if (dialogContainer != null && !isPointInsideView(x, y, dialogContainer)) {
-                // Check if the touch is in the middle section (not header or footer)
-                int[] rootLocation = new int[2];
-                rootView.getLocationOnScreen(rootLocation);
-                float screenY = y + rootLocation[1];
-
-                // Get header and footer heights (approximate)
-                int headerHeight = rootView.findViewById(R.id.topEndSessionBar).getHeight();
-                int footerHeight = 150; // Approximate height of the bottom navigation
-                int screenHeight = rootView.getHeight();
-
-                // Check if touch is in the middle section
-                if (screenY > headerHeight && screenY < (screenHeight - footerHeight)) {
-                    cancelLogout();
-                    return true; // Consume the touch event
-                }
+                cancelLogout();
+                return true; // Consume the touch event
             }
         }
         return false; // Let other touch events pass through
@@ -71,28 +72,37 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
     private boolean isPointInsideView(float x, float y, View view) {
         // Get the absolute coordinates of the view
         int[] location = new int[2];
-        view.getLocationInWindow(location);
+        view.getLocationOnScreen(location);
+
+        // Convert touch coordinates to be relative to the screen
+        int[] rootLocation = new int[2];
+        rootView.getLocationOnScreen(rootLocation);
+        float screenX = x + rootLocation[0];
+        float screenY = y + rootLocation[1];
 
         // Check if the point is inside the view's bounds
-        return (x >= location[0] &&
-                x <= location[0] + view.getWidth() &&
-                y >= location[1] &&
-                y <= location[1] + view.getHeight());
+        return (screenX >= location[0] &&
+                screenX <= location[0] + view.getWidth() &&
+                screenY >= location[1] &&
+                screenY <= location[1] + view.getHeight());
     }
 
     private void performLogout() {
-        // Here you would typically clear user session data, preferences, etc.
+        // Sign out from Firebase
+        mAuth.signOut();
+
+        // Clear shared preferences
+        SharedPreferences preferences = requireActivity().getSharedPreferences("UserPrefs",
+                requireActivity().MODE_PRIVATE);
+        preferences.edit().clear().apply();
+
         Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
 
-        // Navigate back to login screen or close the app
-        // For now, just go back to the home screen
-        requireActivity().getSupportFragmentManager().popBackStack(null,
-                androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-        // Replace with the HomeFragment
-        requireActivity().getSupportFragmentManager().beginTransaction()
-                .replace(R.id.frame_layout, new HomeFragment())
-                .commit();
+        // Navigate to FirstActivity
+        Intent intent = new Intent(getActivity(), FirstActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        requireActivity().finish();
     }
 
     private void cancelLogout() {
