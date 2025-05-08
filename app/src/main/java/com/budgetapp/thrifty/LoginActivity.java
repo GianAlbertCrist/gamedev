@@ -11,7 +11,9 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.budgetapp.thrifty.account.Account;
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
+import com.budgetapp.thrifty.handlers.AccountsHandler;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -66,13 +68,16 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void authenticateUser(String email, String password) {
-        // Replace with your actual authentication logic
-        if (email.equals("test@example.com") && password.equals("password123")) {
+        // Use AccountsHandler to authenticate
+        Account account = AccountsHandler.authenticate(email, password);
+
+        if (account != null) {
             // Save login state
             SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
             preferences.edit()
                     .putBoolean("isLoggedIn", true)
                     .putString("userEmail", email)
+                    .putString("userName", account.getFirstname())
                     .apply();
 
             // Proceed to main activity
