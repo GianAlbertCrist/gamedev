@@ -48,20 +48,25 @@
 
         <!-- Inputs and Buttons -->
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_width="334dp"
+            android:layout_height="679dp"
             app:layout_constraintBottom_toBottomOf="@+id/rectangle_3"
             app:layout_constraintEnd_toEndOf="@+id/rectangle_3"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="@+id/rectangle_3"
-            app:layout_constraintTop_toTopOf="@+id/rectangle_3">
+            app:layout_constraintTop_toTopOf="@+id/rectangle_3"
+            app:layout_constraintVertical_bias="0.684">
 
             <!-- First Name -->
+
+            <!-- Surname -->
+
             <TextView
                 android:id="@+id/first_name_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="60dp"
                 android:text="First Name"
                 android:textColor="@color/black"
                 android:textSize="14sp"
@@ -74,24 +79,24 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:layout_marginEnd="16dp"
-                android:hint="eg Maynard"
+                android:hint="Enter First Name"
                 android:textColorHint="@color/grey"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/first_name_label">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
                     android:background="@drawable/input_box"
+                    android:inputType="text"
                     android:textColor="@color/black"
                     android:textColorHint="@color/grey" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Surname -->
             <TextView
                 android:id="@+id/surname_label"
                 android:layout_width="wrap_content"
@@ -105,29 +110,31 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/first_name_container" />
 
+            <!-- Email -->
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/surname_container"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:layout_marginEnd="16dp"
-                android:hint="eg Piit"
+                android:hint="Enter Surname"
                 android:textColorHint="@color/grey"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/surname_label">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
                     android:background="@drawable/input_box"
+                    android:inputType="text"
                     android:textColor="@color/black"
                     android:textColorHint="@color/grey" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Email -->
             <TextView
                 android:id="@+id/email_label"
                 android:layout_width="wrap_content"
@@ -141,37 +148,41 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/surname_container" />
 
+            <!-- Password -->
+
+            <!-- Confirm Password -->
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/email_container"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:layout_marginEnd="16dp"
                 android:hint="Enter email"
-                app:startIconDrawable="@drawable/ic_email"
-                app:startIconTint="@color/lock_green"
                 android:textColorHint="@color/grey"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/email_label">
+                app:layout_constraintTop_toBottomOf="@+id/email_label"
+                app:startIconDrawable="@drawable/ic_email"
+                app:startIconTint="@color/lock_green">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textEmailAddress"
                     android:background="@drawable/input_box"
+                    android:inputType="textEmailAddress"
                     android:textColor="@color/black"
                     android:textColorHint="@color/grey" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Password -->
             <TextView
                 android:id="@+id/password_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
                 android:text="Password"
                 android:textColor="@color/black"
                 android:textSize="14sp"
@@ -187,25 +198,25 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="16dp"
                 android:hint="Enter password"
+                android:textColorHint="@color/grey"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/password_label"
                 app:passwordToggleEnabled="true"
                 app:passwordToggleTint="@color/lock_green"
                 app:startIconDrawable="@drawable/ic_lock"
-                app:startIconTint="@color/lock_green"
-                android:textColorHint="@color/grey"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/password_label">
+                app:startIconTint="@color/lock_green">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPassword"
                     android:background="@drawable/input_box"
+                    android:inputType="textPassword"
                     android:textColor="@color/black"
                     android:textColorHint="@color/grey" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Confirm Password -->
             <TextView
                 android:id="@+id/confirm_password_label"
                 android:layout_width="wrap_content"
@@ -219,6 +230,10 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/password_container" />
 
+            <!-- Register Button -->
+
+            <!-- Login Redirect -->
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/confirm_password_container"
                 android:layout_width="0dp"
@@ -227,47 +242,47 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="16dp"
                 android:hint="Confirm password"
+                android:textColorHint="@color/grey"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/confirm_password_label"
                 app:passwordToggleEnabled="true"
                 app:passwordToggleTint="@color/lock_green"
                 app:startIconDrawable="@drawable/ic_lock"
-                app:startIconTint="@color/lock_green"
-                android:textColorHint="@color/grey"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/confirm_password_label">
+                app:startIconTint="@color/lock_green">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPassword"
                     android:background="@drawable/input_box"
+                    android:inputType="textPassword"
                     android:textColor="@color/black"
                     android:textColorHint="@color/grey" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Register Button -->
             <ImageButton
                 android:id="@+id/register_button"
                 android:layout_width="302dp"
                 android:layout_height="49dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/reg_button"
                 android:contentDescription="Register"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/confirm_password_container" />
 
-            <!-- Login Redirect -->
             <TextView
                 android:id="@+id/login_redirect"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:layout_marginTop="16dp"
                 android:text="Have an account already? Log in"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/register_button" />
 
