@@ -24,7 +24,7 @@ public class ReportsFragment extends Fragment {
     private static final String TAG = "ReportsFragment";
     private PieChartManager pieChartManager;
     private BarChartManager barChartManager;
-    private TextView tvBalanceAmount, tvTotalIncome, tvTotalExpense, trendToggle;
+    private TextView tvBalanceAmount, tvCurrentBalance, tvTotalIncome, tvTotalExpense, trendToggle;
     private BarChart barChart;
     private float income;
     private float expense;
@@ -46,6 +46,7 @@ public class ReportsFragment extends Fragment {
             trendToggle = view.findViewById(R.id.trendToggle);
             TextView rankingToggle = view.findViewById(R.id.rankingToggle);
             TextView sortToggle = view.findViewById(R.id.sortToggle);
+            tvCurrentBalance = view.findViewById(R.id.tvCurrentBalance);
             tvBalanceAmount = view.findViewById(R.id.tvBalanceAmount);
             tvTotalIncome = view.findViewById(R.id.tvTotalIncome);
             tvTotalExpense = view.findViewById(R.id.tvTotalExpense);
@@ -152,8 +153,10 @@ public class ReportsFragment extends Fragment {
                 tvBalanceAmount.setText(String.format(requireContext().getString(R.string.currency_format), balance));
                 // Set color based on balance value
                 if (balance < 0) {
+                    tvCurrentBalance.setTextColor(ContextCompat.getColor(requireContext(), R.color.red));
                     tvBalanceAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.red));
                 } else {
+                    tvCurrentBalance.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_color));
                     tvBalanceAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_color));
                 }
             }
