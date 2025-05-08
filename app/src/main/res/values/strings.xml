@@ -50,4 +50,5 @@
     <string name="give_money_desc">Illustration of giving money</string>
     <string name="sign_in_button">Sign In Button</string>
     <string name="sign_up_button">Sign Up Button</string>
+    <string name="reg_img">reg_img</string>
 </resources>
