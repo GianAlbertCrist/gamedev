@@ -2,10 +2,12 @@ package com.budgetapp.thrifty;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageButton;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
@@ -20,16 +22,27 @@ public class AddEntryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
 
+        // Set window soft input mode to adjust resize
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+        setContentView(R.layout.activity_add_entry);
+
+        // Load initial fragment
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_container, new AddIncomeFragment())
                 .commit();
 
-        setContentView(R.layout.activity_add_entry);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        View rootView = findViewById(R.id.main);
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+            int imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+            int navigationBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+
+            // Apply padding for both IME and navigation bar
+            int totalBottomPadding = Math.max(imeHeight, navigationBarHeight);
+            v.setPadding(0, 0, 0, totalBottomPadding);
+
+            return WindowInsetsCompat.CONSUMED;
         });
 
         // Initialize TabLayout
@@ -50,6 +63,9 @@ public class AddEntryActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        // Setup touch outside to dismiss keyboard
+        setupTouchOutsideToDismissKeyboard();
 
         //tab selection listener
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -81,5 +97,40 @@ public class AddEntryActivity extends AppCompatActivity {
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
+    }
+
+    private void setupTouchOutsideToDismissKeyboard() {
+        // Get the main layout
+        View mainLayout = findViewById(R.id.main);
+
+        // Set up touch listener for non-text box views to hide keyboard
+        if (mainLayout != null) {
+            mainLayout.setOnClickListener(v -> {
+                // Hide keyboard when clicking outside of text fields
+                View currentFocus = getCurrentFocus();
+                if (currentFocus != null) {
+                    currentFocus.clearFocus();
+                    Utils.hideKeyboard(this, currentFocus);
+                }
+            });
+        }
+
+        // Make sure buttons don't trigger the keyboard hiding when clicked
+        Button confirmButton = findViewById(R.id.confirm_button);
+        Button cancelButton = findViewById(R.id.cancel_button);
+
+        if (confirmButton != null) {
+            confirmButton.setOnClickListener(v -> {
+                // Handle confirm button click
+                // This will be handled by the fragment
+            });
+        }
+
+        if (cancelButton != null) {
+            cancelButton.setOnClickListener(v -> {
+                // Handle cancel button click
+                // This will be handled by the fragment
+            });
+        }
     }
 }

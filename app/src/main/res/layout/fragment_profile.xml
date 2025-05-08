@@ -97,7 +97,7 @@
         app:layout_constraintHorizontal_bias="0.107"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topProfilebar"
-        app:layout_constraintVertical_bias="0.326" />
+        app:layout_constraintVertical_bias="0.325" />
 
     <TextView
         android:id="@+id/Profile_EditProfile"

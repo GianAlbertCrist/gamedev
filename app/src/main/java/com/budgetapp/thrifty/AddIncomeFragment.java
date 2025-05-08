@@ -11,6 +11,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.ScrollView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
@@ -22,6 +23,8 @@ public class AddIncomeFragment extends Fragment {
 
     private int selectedIconResId = R.drawable.ic_salary; // default
     private String selectedRecurring = "None";
+    private ScrollView scrollView;
+    private EditText descriptionInput;
 
     public AddIncomeFragment() {
         // Required empty public constructor
@@ -30,8 +33,11 @@ public class AddIncomeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_add_income, container, false);
+        View view = inflater.inflate(R.layout.fragment_add_income, container, false);
+        scrollView = (ScrollView) view;
+        return view;
     }
+
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -41,7 +47,7 @@ public class AddIncomeFragment extends Fragment {
         TextView categoryText = view.findViewById(R.id.category_text);
         ImageView categoryIcon = view.findViewById(R.id.category_icon);
         EditText numberInput = view.findViewById(R.id.number_input);
-        EditText descriptionInput = view.findViewById(R.id.income_description);
+        descriptionInput = view.findViewById(R.id.income_description);
         ImageButton recurringButton = view.findViewById(R.id.ic_recurring);
 
         Button confirmBtn = requireActivity().findViewById(R.id.confirm_button);
@@ -51,6 +57,16 @@ public class AddIncomeFragment extends Fragment {
         numberInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 numberInput.selectAll();
+            }
+        });
+
+        // Setup description input focus listener to scroll to it when focused
+        descriptionInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                // Post with a delay to ensure keyboard is visible
+                v.postDelayed(() -> {
+                    scrollView.smoothScrollTo(0, descriptionInput.getBottom());
+                }, 300);
             }
         });
 
