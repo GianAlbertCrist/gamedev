@@ -2,6 +2,7 @@ package com.budgetapp.thrifty;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -17,6 +18,7 @@ import java.util.Locale;
 public class PieChartManager {
     private final PieChart pieChart;
     private final Context context;
+    private static final String TAG = "PieChartManager";
 
     public PieChartManager(PieChart pieChart, Context context) {
         this.pieChart = pieChart;
@@ -43,54 +45,68 @@ public class PieChartManager {
     }
 
     public void updateChart(float income, float expense) {
+        Log.d(TAG, "Updating pie chart with income: " + income + ", expense: " + expense);
         ArrayList<PieEntry> entries = new ArrayList<>();
+        ArrayList<Integer> colors = new ArrayList<>();
 
-        // Calculate remaining income (current balance)
-        float remainingIncome = income - expense;
+        // Calculate balance
+        float balance = income - expense;
+        Log.d(TAG, "Calculated balance: " + balance);
 
-        // Use expense and remaining income as percentages of total income
-        float expensePercentage = (expense / income) * 100;
-        float remainingPercentage = (remainingIncome / income) * 100;
-
-        // Add entries in reverse order (expense first, then remaining income)
-        if (expense > 0) {
-            entries.add(new PieEntry(expensePercentage, "Expense"));
+        // Set center text color based on balance
+        if (balance > 0) {
+            pieChart.setCenterTextColor(ContextCompat.getColor(context, R.color.primary_color));
+        } else if (balance < 0) {
+            pieChart.setCenterTextColor(ContextCompat.getColor(context, R.color.red));
+        } else {
+            pieChart.setCenterTextColor(ContextCompat.getColor(context, R.color.grey));
         }
-        if (remainingIncome > 0) {
-            entries.add(new PieEntry(remainingPercentage, "Income"));
-        }
 
-        if (entries.isEmpty()) {
+        // Set center text with balance
+        pieChart.setCenterText(String.format(Locale.getDefault(), "Current Balance\n₱%.2f", balance));
+
+        // Handle special cases
+        if (income == 0 && expense == 0) {
+            // No data case
             entries.add(new PieEntry(100, "No Data"));
+            colors.add(ContextCompat.getColor(context, R.color.grey));
+        } else if (income == 0) {
+            // Only expenses
+            entries.add(new PieEntry(100, "Expense"));
+            colors.add(ContextCompat.getColor(context, R.color.red));
+        } else if (expense == 0) {
+            // Only income
+            entries.add(new PieEntry(100, "Income"));
+            colors.add(ContextCompat.getColor(context, R.color.primary_color));
+        } else {
+            // Both income and expense
+            float total = income + expense; // Use total for percentage calculation
+
+            // Add income entry (always use primary color)
+            entries.add(new PieEntry((income / total) * 100, "Income"));
+            colors.add(ContextCompat.getColor(context, R.color.primary_color));
+
+            // Add expense entry (always use red)
+            entries.add(new PieEntry((expense / total) * 100, "Expense"));
+            colors.add(ContextCompat.getColor(context, R.color.red));
         }
 
+        // Create and configure the dataset
         PieDataSet dataSet = new PieDataSet(entries, "");
         dataSet.setSliceSpace(3f);
-
-        ArrayList<Integer> colors = new ArrayList<>();
-        if (income > 0) colors.add(ContextCompat.getColor(context, R.color.primary_color));
-        if (expense > 0) colors.add(ContextCompat.getColor(context, R.color.red));
-        if (entries.size() == 1 && income == 0 && expense == 0) {
-            colors.add(Color.GRAY);
-        }
-
         dataSet.setColors(colors);
         dataSet.setValueTextColor(Color.WHITE);
         dataSet.setValueTextSize(12f);
 
+        // Create and configure the data
         PieData data = new PieData(dataSet);
         data.setDrawValues(true);
         data.setValueFormatter(new PercentFormatter(pieChart));
 
-        float balance = income - expense;
-        pieChart.setCenterText(String.format(Locale.getDefault(), "Current Balance\n₱%.2f", balance));
-        if (balance > 0) {
-            colors.add(ContextCompat.getColor(context, R.color.primary_color));
-        } else {
-            colors.add(ContextCompat.getColor(context, R.color.red));
-        }
-
+        // Set the data and refresh
         pieChart.setData(data);
         pieChart.invalidate();
+
+        Log.d(TAG, "Pie chart updated with " + entries.size() + " entries");
     }
 }

@@ -3,6 +3,7 @@ package com.budgetapp.thrifty;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -149,6 +150,12 @@ public class ReportsFragment extends Fragment {
 
             if (tvBalanceAmount != null) {
                 tvBalanceAmount.setText(String.format(requireContext().getString(R.string.currency_format), balance));
+                // Set color based on balance value
+                if (balance < 0) {
+                    tvBalanceAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.red));
+                } else {
+                    tvBalanceAmount.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_color));
+                }
             }
 
             // Update pie chart
