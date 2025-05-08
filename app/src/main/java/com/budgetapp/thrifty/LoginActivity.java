@@ -3,6 +3,7 @@ package com.budgetapp.thrifty;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -28,7 +29,7 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize views
         EditText enterMail = binding.enterMail;
         EditText enterPassword = binding.enterPassw;
-        ImageButton loginButton = binding.loginButton;
+        Button loginButton = binding.loginButton;
         TextView registerText = binding.registerNo;
 
         loginButton.setOnClickListener(view -> {

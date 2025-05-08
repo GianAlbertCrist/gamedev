@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.model.Notification;
+import com.budgetapp.thrifty.utils.KeyboardBehavior;
 
 public class AddIncomeFragment extends Fragment {
 
@@ -177,7 +178,7 @@ public class AddIncomeFragment extends Fragment {
             );
 
             TransactionsHandler.transactions.add(transaction);
-            String notificationTime = Utils.getCurrentTime();
+            String notificationTime = KeyboardBehavior.getCurrentTime();
 
             Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime);
 

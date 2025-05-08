@@ -1,4 +1,4 @@
-package com.budgetapp.thrifty;
+package com.budgetapp.thrifty.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class Utils {
+public class KeyboardBehavior {
     /**
      * Hides the soft keyboard
      * @param activity Current activity

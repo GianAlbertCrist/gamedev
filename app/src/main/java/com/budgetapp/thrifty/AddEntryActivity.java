@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.budgetapp.thrifty.utils.KeyboardBehavior;
 import com.google.android.material.tabs.TabLayout;
 
 public class AddEntryActivity extends AppCompatActivity {
@@ -110,7 +111,7 @@ public class AddEntryActivity extends AppCompatActivity {
                 View currentFocus = getCurrentFocus();
                 if (currentFocus != null) {
                     currentFocus.clearFocus();
-                    Utils.hideKeyboard(this, currentFocus);
+                    KeyboardBehavior.hideKeyboard(this, currentFocus);
                 }
             });
         }
