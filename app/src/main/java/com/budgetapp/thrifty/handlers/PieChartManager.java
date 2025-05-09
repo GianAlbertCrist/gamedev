@@ -1,4 +1,4 @@
-package com.budgetapp.thrifty;
+package com.budgetapp.thrifty.handlers;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
+import com.budgetapp.thrifty.R;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;

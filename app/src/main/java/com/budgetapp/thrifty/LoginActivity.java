@@ -12,6 +12,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
+import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -30,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        ThemeSync.syncNotificationBarColor(getWindow(), this);
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 

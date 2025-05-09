@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <!-- Header with back button -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topEndSessionBar"
         android:layout_width="match_parent"
@@ -20,9 +18,9 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:backgroundTint="@color/background_color"
-            android:src="@drawable/arrow_button"
             android:clickable="true"
             android:focusable="true"
+            android:src="@drawable/arrow_button"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -40,7 +38,6 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Profile picture and name -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/profile_header"
         android:layout_width="match_parent"
@@ -52,9 +49,9 @@
             android:id="@+id/profile_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/sample_profile"
             android:background="@drawable/rounded_background"
             android:scaleType="centerCrop"
+            android:src="@drawable/sample_profile"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -62,11 +59,11 @@
             android:id="@+id/profile_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:text="makoy"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_marginStart="16dp"
             app:layout_constraintStart_toEndOf="@+id/profile_image"
             app:layout_constraintTop_toTopOf="@+id/profile_image" />
 
@@ -74,76 +71,74 @@
             android:id="@+id/profile_full_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:text="MARC STEFFEN PANTELGONE"
             android:textColor="@color/white"
             android:textSize="12sp"
-            android:layout_marginStart="16dp"
             app:layout_constraintStart_toEndOf="@+id/profile_image"
             app:layout_constraintTop_toBottomOf="@+id/profile_name" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Logout Dialog -->
     <androidx.cardview.widget.CardView
         android:id="@+id/dialog_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="32dp"
-        app:cardCornerRadius="24dp"
         app:cardBackgroundColor="@color/white"
-        app:layout_constraintTop_toBottomOf="@+id/profile_header"
+        app:cardCornerRadius="24dp"
         app:layout_constraintBottom_toTopOf="@+id/bottom_nav_placeholder"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profile_header"
         app:layout_constraintWidth_percent="0.8">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp"
-            android:gravity="center">
+            android:padding="24dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:text="End Session"
                 android:textColor="@color/background_color"
                 android:textSize="24sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
                 android:text="Are you sure you want to log out?"
                 android:textColor="@color/background_color"
-                android:textSize="16sp"
-                android:layout_marginBottom="24dp"/>
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/yes_end_session"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Yes, End Session"
-                android:textColor="@color/white"
+                android:layout_marginBottom="8dp"
                 android:backgroundTint="@color/primary_color"
-                android:layout_marginBottom="8dp"/>
+                android:text="Yes, End Session"
+                android:textColor="@color/white" />
 
             <Button
                 android:id="@+id/cancel_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#E0F0E0"
                 android:text="Cancel"
-                android:textColor="@color/background_color"
-                android:backgroundTint="#E0F0E0"/>
+                android:textColor="@color/background_color" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Bottom Navigation Placeholder -->
     <View
         android:id="@+id/bottom_nav_placeholder"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

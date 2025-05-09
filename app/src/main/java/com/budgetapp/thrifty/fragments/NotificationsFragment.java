@@ -1,4 +1,4 @@
-package com.budgetapp.thrifty;
+package com.budgetapp.thrifty.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,7 +9,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.budgetapp.thrifty.NotificationAdapter;
+import com.budgetapp.thrifty.renderers.NotificationAdapter;
+import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.model.Notification;
 
 import java.util.ArrayList;

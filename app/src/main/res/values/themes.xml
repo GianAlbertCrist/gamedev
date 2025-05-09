@@ -4,6 +4,11 @@
         <item name="colorButtonNormal">@color/primary_color</item>
     </style>
 
+    <style name="LaunchTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item> <!-- Set background color to black -->
+        <item name="android:windowAnimationStyle">@android:style/Animation.Activity</item> <!-- Optional: Add an animation -->
+    </style>
+
     <style name="Theme.Thrifty" parent="Base.Theme.Thrifty" />
 
     <style name="FabCircle" parent="">
@@ -60,6 +65,5 @@
         <item name="android:textColor">@color/black</item>
         <item name="android:textSize">16sp</item>
     </style>
-
 
 </resources>

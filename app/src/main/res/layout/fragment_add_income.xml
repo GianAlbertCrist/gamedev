@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@color/background_color"
-    android:isScrollContainer="true"
-    android:fadeScrollbars="false"
     android:clipToPadding="false"
+    android:fadeScrollbars="false"
+    android:fillViewport="true"
+    android:isScrollContainer="true"
     android:paddingBottom="?android:attr/actionBarSize">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/background_color"
         android:orientation="vertical"
-        android:paddingVertical="15dp"
         android:paddingHorizontal="25dp"
-        android:paddingBottom="200dp"
-        android:background="@color/background_color">
+        android:paddingVertical="15dp"
+        android:paddingBottom="200dp">
 
-        <!-- Income Input Section -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -41,6 +39,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@android:color/transparent"
+                android:fontFamily=""
                 android:inputType="number"
                 android:text=""
                 android:textColor="@color/white"
@@ -49,8 +48,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/ic_recurring"
                 app:layout_constraintStart_toEndOf="@+id/currency_sign"
-                app:layout_constraintTop_toTopOf="parent"
-                android:fontFamily=""/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
                 android:id="@+id/ic_recurring"
@@ -75,7 +73,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"/>
+            android:layout_marginTop="30dp" />
 
         <TextView
             android:id="@+id/txt_category"
@@ -95,15 +93,15 @@
             android:id="@+id/category_selector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusable="true"
-            android:clickable="true">
+            android:clickable="true"
+            android:focusable="true">
 
             <ImageView
                 android:id="@+id/category_icon"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:padding="8dp"
                 android:layout_marginBottom="10dp"
+                android:padding="8dp"
                 android:src="@drawable/ic_salary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -146,7 +144,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"/>
+            android:layout_marginTop="30dp" />
 
         <TextView
             android:id="@+id/txt_description"
@@ -166,12 +164,12 @@
             android:id="@+id/income_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Type here..."
-            android:textSize="22sp"
-            android:textColorHint="#80FFFFFF"
-            android:textColor="@color/white"
             android:backgroundTint="@android:color/transparent"
-            android:inputType="text"/>
+            android:hint="Type here..."
+            android:inputType="text"
+            android:textColor="@color/white"
+            android:textColorHint="#80FFFFFF"
+            android:textSize="22sp" />
 
         <View
             android:layout_width="match_parent"
