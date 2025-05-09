@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/first"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,13 +10,14 @@
     android:clipToOutline="true">
 
     <ImageView
+        android:layout_marginVertical="50dp"
         android:id="@+id/tst_img"
         android:layout_width="281dp"
         android:layout_height="273dp"
-        android:layout_marginStart="70dp"
         android:layout_marginTop="-30dp"
         android:contentDescription="@string/tst_img_desc"
         android:src="@drawable/tst_img"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -23,41 +25,48 @@
         android:id="@+id/give_money"
         android:layout_width="281dp"
         android:layout_height="273dp"
-        android:layout_marginStart="-4dp"
         android:layout_marginTop="-50dp"
         android:contentDescription="@string/give_money_desc"
         android:src="@drawable/give_money"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tst_img" />
 
-    <ImageButton
+    <Button
         android:id="@+id/sign_in_button"
-        android:layout_width="wrap_content"
-        android:layout_height="157dp"
-        android:layout_marginStart="87dp"
-        android:layout_marginTop="20dp"
-        android:background="@android:color/transparent"
+        android:layout_width="200dp"
+        android:layout_height="70dp"
+        android:backgroundTint="@color/white"
         android:clickable="true"
-        android:contentDescription="@string/sign_in_button"
         android:focusable="true"
+        android:fontFamily="@font/poppins"
         android:gravity="center"
-        android:src="@drawable/sign_in_button"
+        android:text="Sign In"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/give_money" />
+        app:layout_constraintTop_toBottomOf="@+id/give_money"
+        app:layout_constraintVertical_bias="0.19999999" />
 
-    <ImageButton
+    <Button
         android:id="@+id/register_button"
-        android:layout_width="wrap_content"
-        android:layout_height="157dp"
-        android:layout_marginStart="87dp"
-        android:layout_marginTop="-71dp"
-        android:background="@android:color/transparent"
+        android:layout_width="200dp"
+        android:layout_height="70dp"
+        android:backgroundTint="@color/primary_color"
         android:clickable="true"
-        android:contentDescription="@string/sign_up_button"
         android:focusable="true"
+        android:fontFamily="@font/poppins"
         android:gravity="center"
-        android:src="@drawable/register_button"
+        android:text="Register"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/sign_in_button" />
+        app:layout_constraintTop_toBottomOf="@+id/sign_in_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
