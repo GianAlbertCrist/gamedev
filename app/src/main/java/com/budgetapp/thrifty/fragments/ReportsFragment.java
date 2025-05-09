@@ -1,4 +1,4 @@
-package com.budgetapp.thrifty;
+package com.budgetapp.thrifty.fragments;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -12,6 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.budgetapp.thrifty.handlers.BarChartManager;
+import com.budgetapp.thrifty.handlers.PieChartManager;
+import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.RankingAdapter;
 import com.github.mikephil.charting.charts.BarChart;

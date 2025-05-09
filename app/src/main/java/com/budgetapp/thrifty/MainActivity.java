@@ -5,19 +5,20 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.budgetapp.thrifty.databinding.ActivityMainBinding;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.budgetapp.thrifty.fragments.HomeFragment;
+import com.budgetapp.thrifty.fragments.ProfileFragment;
+import com.budgetapp.thrifty.fragments.ReportsFragment;
+import com.budgetapp.thrifty.fragments.TransactionsFragment;
+import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        syncNotificationBarColor();
+        ThemeSync.syncNotificationBarColor(getWindow(), this);
         themeSync();
 
         replaceFragment(new HomeFragment());
@@ -82,18 +83,6 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout, fragment);
         fragmentTransaction.commitNow();
-    }
-
-    public void syncNotificationBarColor() {
-        Window window = getWindow();
-
-        // Change status bar color to Lavender
-        window.setStatusBarColor(ContextCompat.getColor(this, R.color.primary_color)); // Lavender color
-
-        // Set the status bar icons to dark or light based on the color
-        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, window.getDecorView());
-        insetsController.setAppearanceLightNavigationBars(true); // For navigation bar
-        WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightStatusBars(true);
     }
 
     public void themeSync() {

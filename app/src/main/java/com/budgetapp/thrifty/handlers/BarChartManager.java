@@ -1,11 +1,12 @@
-package com.budgetapp.thrifty;
+package com.budgetapp.thrifty.handlers;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
-import com.budgetapp.thrifty.handlers.TransactionsHandler;
+
+import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;

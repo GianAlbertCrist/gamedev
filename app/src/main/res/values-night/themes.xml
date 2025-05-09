@@ -4,6 +4,11 @@
         <item name="colorButtonNormal">@color/primary_color</item>
     </style>
 
+    <style name="LaunchTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item> <!-- Set background color to black -->
+        <item name="android:windowAnimationStyle">@android:style/Animation.Activity</item> <!-- Optional: Add an animation -->
+    </style>
+
     <style name="Theme.Thrifty" parent="Base.Theme.Thrifty" />
 
     <style name="FabCircle" parent="">
@@ -14,16 +19,51 @@
         <item name="android:textSize">12sp</item>
         <item name="fontFamily">@font/poppins</item>
     </style>
+    <style name="thrifty">
+        <item name="android:textSize">80sp</item>
+        <item name="android:textColor">#9BD829</item>
+    </style>
+    <style name="email">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#2C2C2C</item>
+    </style>
+    <style name="password">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#1E1E1E</item>
+    </style>
+    <style name="enter_passw">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#989898</item>
+    </style>
+    <style name="enter_mail">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#989898</item>
+    </style>
+    <style name="log_in">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+    <style name="forgot_pass">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#2C2C2C</item>
+    </style>
+    <style name="don_t_have_">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#000000</item>
+    </style>
+    <style name="register_no">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#087224</item>
+    </style>
 
     <style name="CustomPopupMenu" parent="Widget.AppCompat.PopupMenu">
-        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="android:popupBackground">@drawable/transaction_container</item>
         <item name="android:textAppearance">@style/CustomPopupMenuItemText</item>
     </style>
 
     <style name="CustomPopupMenuItemText" parent="TextAppearance.AppCompat.Medium">
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">@color/black</item>
         <item name="android:textSize">16sp</item>
     </style>
-
 
 </resources>

@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true"
     android:background="@color/background_color"
     android:clickable="true"
-    android:focusableInTouchMode="true">
+    android:fitsSystemWindows="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical">
 
     <!-- Header and Tab Section -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -54,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:fontFamily="@font/poppins"
-            android:text="Hello, Makoy!"
+            android:text="Hello, "
             android:textColor="@color/white"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="@+id/ic_profile"
@@ -84,13 +83,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:background="@color/background_color"
-            app:layout_constraintTop_toBottomOf="@id/ic_profile"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ic_profile"
+            app:tabIndicatorColor="@color/primary_color"
             app:tabSelectedTextAppearance="@color/red"
             app:tabSelectedTextColor="@color/primary_color"
-            app:tabTextColor="@color/red"
-            app:tabIndicatorColor="@color/primary_color">
+            app:tabTextColor="@color/red">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"

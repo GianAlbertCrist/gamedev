@@ -1,4 +1,4 @@
-package com.budgetapp.thrifty;
+package com.budgetapp.thrifty.fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +13,8 @@ import android.widget.Toast;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
+import com.budgetapp.thrifty.FirstActivity;
+import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class EndSessionFragment extends Fragment implements View.OnTouchListener {
