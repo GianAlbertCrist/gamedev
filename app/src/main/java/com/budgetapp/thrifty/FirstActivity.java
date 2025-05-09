@@ -11,7 +11,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class FirstActivity extends AppCompatActivity {
 
-    private ImageView registerButton;
+    private Button registerButton;
 
     private Button signInButton;
     private FirebaseAuth mAuth;
