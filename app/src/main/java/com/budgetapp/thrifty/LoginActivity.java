@@ -6,14 +6,11 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -39,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize views
         EditText enterMail = binding.enterMail;
         EditText enterPassword = binding.enterPassw;
-        ImageButton loginButton = binding.loginButton;
+        Button loginButton = binding.loginButton;
         TextView registerText = binding.registerNo;
 
         loginButton.setOnClickListener(view -> {

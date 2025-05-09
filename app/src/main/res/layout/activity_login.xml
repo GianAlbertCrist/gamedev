@@ -8,23 +8,22 @@
     android:clipToOutline="true"
     android:background="@color/background_color">
 
-    <ImageButton
+    <ImageView
         android:id="@+id/loginstyle3"
-        android:layout_width="379dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_marginStart="32dp"
         android:layout_marginTop="250dp"
         android:background="@android:color/transparent"
-        android:clickable="false"
-        android:contentDescription="Login background style 3"
+        android:contentDescription="@string/login_background_style"
         android:scaleType="fitCenter"
         android:src="@drawable/login_img3" />
 
     <RelativeLayout
         android:id="@+id/form_log_in"
-        android:layout_width="331dp"
-        android:layout_height="375dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_marginStart="40dp"
         android:layout_marginTop="302dp"
@@ -43,15 +42,15 @@
         android:scaleType="fitCenter"
         android:src="@drawable/small_logo" />
 
-    <ImageButton
+    <Button
         android:id="@+id/loginButton"
         android:layout_width="268dp"
         android:layout_height="56dp"
         android:layout_alignParentStart="true"
         android:layout_marginStart="69dp"
         android:layout_marginTop="556.32dp"
-        android:background="@drawable/ic_login"
         android:text="LOG IN"
+        android:backgroundTint="@color/primary_color"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:contentDescription="Login Button"
@@ -180,30 +179,26 @@
         android:text="Register"
         android:textAppearance="@style/register_no" />
 
-    <ImageButton
+    <ImageView
         android:id="@+id/loginstyle1"
-        android:layout_width="350dp"
-        android:layout_height="250dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="156dp"
+        android:layout_marginStart="145dp"
         android:layout_marginTop="0dp"
         android:background="@android:color/transparent"
-        android:clickable="false"
-        android:contentDescription="Login background style 1"
-        android:scaleType="fitCenter"
+        android:contentDescription="@string/login_background_style"
         android:src="@drawable/login_img1" />
 
-    <ImageButton
+    <ImageView
         android:id="@+id/loginstyle2"
-        android:layout_width="350dp"
-        android:layout_height="250dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="-102dp"
-        android:layout_marginTop="-6dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
         android:background="@android:color/transparent"
-        android:clickable="false"
-        android:contentDescription="Login background style 2"
-        android:scaleType="fitCenter"
+        android:contentDescription="@string/login_background_style"
         android:src="@drawable/login_img2" />
 
 </RelativeLayout>
