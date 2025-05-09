@@ -11,7 +11,9 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class FirstActivity extends AppCompatActivity {
 
-    private Button signInButton, registerButton;
+    private ImageView registerButton;
+
+    private Button signInButton;
     private FirebaseAuth mAuth;
 
     @Override
