@@ -77,7 +77,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:hint="eg Maynard"
+                    android:hint="Enter First Name"
                     android:textColorHint="@color/grey"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"

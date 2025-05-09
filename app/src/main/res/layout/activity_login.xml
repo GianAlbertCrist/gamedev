@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/login_sign_"
-    android:layout_width="428dp"
-    android:layout_height="926dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:clipToOutline="true"
     android:background="@color/background_color">
 
@@ -50,8 +51,9 @@
         android:layout_marginStart="69dp"
         android:layout_marginTop="556.32dp"
         android:background="@drawable/ic_login"
-        android:scaleType="fitXY"
-        android:adjustViewBounds="true"
+        android:text="LOG IN"
+        android:textColor="@color/white"
+        android:textSize="16sp"
         android:contentDescription="Login Button"
         android:clickable="true"
         android:focusable="true" />
@@ -77,14 +79,15 @@
             android:textColor="@android:color/black"
             android:textSize="16sp"
             android:inputType="textPassword"
-            android:importantForAccessibility="yes" />
+            android:importantForAccessibility="yes"
+            android:textCursorDrawable="@null" />
 
         <ImageView
-            android:layout_width="350dp"
-            android:layout_height="25dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="-155dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_centerVertical="true"
             android:background="@android:color/transparent"
             android:clickable="false"
             android:scaleType="fitCenter"
@@ -112,14 +115,15 @@
             android:textColor="@android:color/black"
             android:textSize="16sp"
             android:inputType="textEmailAddress"
-            android:importantForAccessibility="yes" />
+            android:importantForAccessibility="yes"
+            android:textCursorDrawable="@null" />
 
         <ImageView
-            android:layout_width="350dp"
-            android:layout_height="25dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="-155dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_centerVertical="true"
             android:background="@android:color/transparent"
             android:clickable="false"
             android:scaleType="fitCenter"
