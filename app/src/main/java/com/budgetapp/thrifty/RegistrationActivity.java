@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,12 +36,19 @@ public class RegistrationActivity extends AppCompatActivity {
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // Get references to input fields
-        TextInputLayout firstNameLayout = findViewById(R.id.first_name_container);
-        TextInputLayout surnameLayout = findViewById(R.id.surname_container);
-        TextInputLayout emailLayout = findViewById(R.id.email_container);
-        TextInputLayout passwordLayout = findViewById(R.id.password_container);
-        TextInputLayout confirmPasswordLayout = findViewById(R.id.confirm_password_container);
+        // Get references to input containers
+        ConstraintLayout firstNameContainer = findViewById(R.id.first_name_container);
+        ConstraintLayout surnameContainer = findViewById(R.id.surname_container);
+        ConstraintLayout emailContainer = findViewById(R.id.email_container);
+        ConstraintLayout passwordContainer = findViewById(R.id.password_container);
+        ConstraintLayout confirmPasswordContainer = findViewById(R.id.confirm_password_container);
+
+        // Find TextInputLayout inside each container
+        TextInputLayout firstNameLayout = (TextInputLayout) firstNameContainer.getChildAt(0);
+        TextInputLayout surnameLayout = (TextInputLayout) surnameContainer.getChildAt(0);
+        TextInputLayout emailLayout = (TextInputLayout) emailContainer.getChildAt(0);
+        TextInputLayout passwordLayout = (TextInputLayout) passwordContainer.getChildAt(0);
+        TextInputLayout confirmPasswordLayout = (TextInputLayout) confirmPasswordContainer.getChildAt(0);
 
         // Get the TextInputEditText from each layout
         TextInputEditText firstNameInput = (TextInputEditText) firstNameLayout.getEditText();
