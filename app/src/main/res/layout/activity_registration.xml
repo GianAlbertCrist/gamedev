@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black">
+    android:background="@color/background_color">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -88,6 +88,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:inputType="textEmailAddress"
+                        android:textColor="@color/black"
                         android:background="@drawable/input_box" />
                 </com.google.android.material.textfield.TextInputLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -131,6 +132,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:inputType="textEmailAddress"
+                        android:textColor="@color/black"
                         android:background="@drawable/input_box" />
                 </com.google.android.material.textfield.TextInputLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -180,6 +182,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:inputType="textEmailAddress"
+                        android:textColor="@color/black"
                         android:background="@drawable/input_box"
                         android:paddingStart="48dp"
                         android:paddingEnd="48dp" />
@@ -232,6 +235,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:inputType="textPassword"
+                        android:textColor="@color/black"
                         android:background="@drawable/input_box"
                         android:paddingStart="48dp"
                         android:paddingEnd="48dp" />
@@ -284,6 +288,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:inputType="textPassword"
+                        android:textColor="@color/black"
                         android:background="@drawable/input_box"
                         android:paddingStart="48dp"
                         android:paddingEnd="48dp" />
