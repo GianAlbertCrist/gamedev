@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color"
-    android:padding="35dp">
+    android:paddingHorizontal="35dp"
+    android:paddingVertical="15dp">
 
     <ImageView
         android:id="@+id/small_thrifty"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="100dp"
         android:background="@android:color/transparent"
-        android:clickable="false"
         android:contentDescription="Small Logo Version"
         android:scaleType="fitCenter"
         android:src="@drawable/small_logo"
@@ -23,12 +23,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/registration_form"
-        android:padding="15dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/small_thrifty"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintVertical_bias="0.5">
 
         <TextView
             android:id="@+id/first_name_label"
@@ -301,9 +304,9 @@
 
         <TextView
             android:id="@+id/login_redirect"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="10dp"
             android:gravity="center"
             android:fontFamily="@font/poppins"
             android:text="Have an account already? Log in"

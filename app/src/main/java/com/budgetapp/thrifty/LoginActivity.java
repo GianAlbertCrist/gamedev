@@ -3,14 +3,21 @@ package com.budgetapp.thrifty;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -39,7 +46,6 @@ public class LoginActivity extends AppCompatActivity {
         EditText enterMail = binding.enterMail;
         EditText enterPassword = binding.enterPassw;
         Button loginButton = binding.loginButton;
-        TextView registerText = binding.registerNo;
 
         loginButton.setOnClickListener(view -> {
             String email = enterMail.getText().toString().trim();
@@ -50,17 +56,36 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        registerText.setOnClickListener(view -> {
-            startActivity(new Intent(LoginActivity.this, RegistrationActivity.class));
-            finish();
-        });
+        TextView registerRedirect = findViewById(R.id.register_redirect);
 
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+        // Create spannable string for "Don't have an account? Register"
+        String text = "Don't have an account? Register";
+        SpannableString spannableString = new SpannableString(text);
+
+        int startIndex = text.indexOf("Register");
+        int endIndex = startIndex + "Register".length();
+
+        ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
-            public void handleOnBackPressed() {
+            public void onClick(@NonNull View widget) {
+                startActivity(new Intent(LoginActivity.this, RegistrationActivity.class));
                 finish();
             }
-        });
+
+            @Override
+            public void updateDrawState(@NonNull TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(false);
+            }
+        };
+
+        ForegroundColorSpan colorSpan = new ForegroundColorSpan(ContextCompat.getColor(this, R.color.primary_color));
+
+        spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(colorSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        registerRedirect.setText(spannableString);
+        registerRedirect.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     @Override

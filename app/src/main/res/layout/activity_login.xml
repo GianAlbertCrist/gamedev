@@ -208,37 +208,24 @@
                     android:text="LOG IN"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@+id/don_t_have_"
+                    app:layout_constraintBottom_toTopOf="@+id/register_redirect"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/forgot_pass" />
 
                 <TextView
-                    android:id="@+id/don_t_have_"
+                    android:id="@+id/register_redirect"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins"
-                    android:text="Don't have an account?"
-                    android:textSize="12sp"
-                    android:textAppearance="@style/don_t_have_"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <TextView
-                    android:id="@+id/register_no"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Register"
-                    android:fontFamily="@font/poppins"
-                    android:textStyle="bold"
-                    android:textAppearance="@style/register_no"
-                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:text="@string/don_t_have_an_account_register"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:layout_marginTop="10dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="1.0"
-                    app:layout_constraintStart_toEndOf="@+id/don_t_have_"
-                    app:layout_constraintTop_toTopOf="@+id/don_t_have_"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintStart_toStartOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
