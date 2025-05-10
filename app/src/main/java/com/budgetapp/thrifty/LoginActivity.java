@@ -56,6 +56,12 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        TextView forgotPass = findViewById(R.id.forgot_pass);
+        forgotPass.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+            startActivity(intent);
+        });
+
         TextView registerRedirect = findViewById(R.id.register_redirect);
 
         // Create spannable string for "Don't have an account? Register"
