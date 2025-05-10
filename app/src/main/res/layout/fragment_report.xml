@@ -214,15 +214,35 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/barChart" />
 
+            <TextView
+                android:id="@+id/ranking_empty_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="25dp"
+                android:fontFamily="@font/poppins"
+                android:gravity="center"
+                android:text="@string/no_records_found"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/rankingToggle" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rankingRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:clipToPadding="false"
+                android:text="@string/no_records_found"
+                android:contentDescription="@string/home_transactions_description"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
-                android:paddingBottom="24dp"
+                android:paddingBottom="25dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/rankingToggle"

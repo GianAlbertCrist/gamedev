@@ -33,7 +33,7 @@ public class ReportsFragment extends Fragment {
     private TextView rankingToggle, sortToggle;
     private boolean isIncomeRanking = true;
     private boolean sortHighToLow = true;
-
+    private TextView rankingEmptyMessage;
     private static final String PREFS_NAME = "ReportPreferences";
     private static final String KEY_IS_INCOME = "isIncomeRanking";
     private static final String KEY_SORT_HIGH_LOW = "sortHighToLow";
@@ -55,6 +55,7 @@ public class ReportsFragment extends Fragment {
             tvBalanceAmount = view.findViewById(R.id.tvBalanceAmount);
             tvTotalIncome = view.findViewById(R.id.tvTotalIncome);
             tvTotalExpense = view.findViewById(R.id.tvTotalExpense);
+            rankingEmptyMessage = view.findViewById(R.id.ranking_empty_message);
             rankingRecyclerView = view.findViewById(R.id.rankingRecyclerView);
 
             // Get saved preferences
@@ -72,7 +73,7 @@ public class ReportsFragment extends Fragment {
 
             // Set up RecyclerView for ranking
             rankingRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-            updateRankingAdapter(); // Initialize the adapter
+            updateRankingAdapter();
 
             // Toggle ranking type (Income/Expense)
             rankingToggle.setOnClickListener(v -> {
@@ -116,16 +117,23 @@ public class ReportsFragment extends Fragment {
             Log.d(TAG, "Updating ranking adapter with isIncomeRanking=" + isIncomeRanking +
                     ", sortHighToLow=" + sortHighToLow);
 
-            RankingAdapter rankingAdapter = new RankingAdapter(
-                    requireContext(),
-                    TransactionsHandler.transactions,
-                    isIncomeRanking,
-                    sortHighToLow
-            );
-            rankingRecyclerView.setAdapter(rankingAdapter);
+            // Check if transactions list is empty
+            if (TransactionsHandler.transactions.isEmpty()) {
+                rankingRecyclerView.setVisibility(View.GONE);
+                rankingEmptyMessage.setVisibility(View.VISIBLE);
+            } else {
+                rankingRecyclerView.setVisibility(View.VISIBLE);
+                rankingEmptyMessage.setVisibility(View.GONE);
 
-            // Notify for a smooth update
-            rankingAdapter.notifyDataSetChanged();
+                RankingAdapter rankingAdapter = new RankingAdapter(
+                        requireContext(),
+                        TransactionsHandler.transactions,
+                        isIncomeRanking,
+                        sortHighToLow
+                );
+                rankingRecyclerView.setAdapter(rankingAdapter);
+                rankingAdapter.notifyDataSetChanged();
+            }
         } else {
             Log.e(TAG, "Cannot update ranking adapter: rankingRecyclerView is null");
         }

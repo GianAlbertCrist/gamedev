@@ -238,7 +238,7 @@
             android:layout_marginTop="20dp"
             android:fontFamily="@font/poppins"
             android:gravity="center"
-            android:text="No records found."
+            android:text="@string/no_records_found"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:visibility="gone"

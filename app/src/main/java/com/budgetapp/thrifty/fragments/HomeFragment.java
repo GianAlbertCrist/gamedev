@@ -33,12 +33,7 @@ public class HomeFragment extends Fragment {
         emptyMessage = rootView.findViewById(R.id.empty_message);
 
         ImageButton notificationButton = rootView.findViewById(R.id.ic_notifcations);
-        notificationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openNotificationsFragment();
-            }
-        });
+        notificationButton.setOnClickListener(v -> openNotificationsFragment());
 
 
         return rootView;
@@ -83,7 +78,7 @@ public class HomeFragment extends Fragment {
     private void openNotificationsFragment() {
         NotificationsFragment notificationsFragment = new NotificationsFragment();
 
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         // Replace the current fragment with NotificationsFragment

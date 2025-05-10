@@ -53,4 +53,5 @@
     <string name="reg_img">reg_img</string>
     <string name="login_background_style">Login background style</string>
     <string name="don_t_have_an_account_register">Don\'t have an account? Register</string>
+    <string name="no_records_found">No records found.</string>
 </resources>
