@@ -20,11 +20,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
 import com.budgetapp.thrifty.utils.ThemeSync;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -32,26 +32,31 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private static final String TAG = "LoginActivity";
 
+    private TextInputLayout emailLayout;
+    private TextInputLayout passwordLayout;
+    private EditText emailInput;
+    private EditText passwordInput;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         ThemeSync.syncNotificationBarColor(getWindow(), this);
-        // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // Initialize views
-        EditText enterMail = binding.enterMail;
-        EditText enterPassword = binding.enterPassw;
+        // Initialize input fields
+        emailLayout = findViewById(R.id.enter_email);
+        passwordLayout = findViewById(R.id.enter_password);
+        emailInput = emailLayout.getEditText();
+        passwordInput = passwordLayout.getEditText();
         Button loginButton = binding.loginButton;
 
-        loginButton.setOnClickListener(view -> {
-            String email = enterMail.getText().toString().trim();
-            String password = enterPassword.getText().toString().trim();
+        loginButton.setOnClickListener(v -> {
+            String email = Objects.requireNonNull(emailInput).getText().toString().trim();
+            String password = Objects.requireNonNull(passwordInput).getText().toString();
 
-            if (validateInput(email, password)) {
+            if (validateInputs(email, password)) {
                 signInWithEmailAndPassword(email, password);
             }
         });
@@ -62,9 +67,51 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        TextView registerRedirect = findViewById(R.id.register_redirect);
+        setupRegisterRedirect();
+    }
 
-        // Create spannable string for "Don't have an account? Register"
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            // User is already signed in, go to MainActivity
+            updateUI(currentUser);
+        }
+    }
+
+    private boolean validateInputs(String email, String password) {
+        boolean isValid = true;
+
+        // Reset errors
+        emailLayout.setError(null);
+        passwordLayout.setError(null);
+
+        // Validate email
+        if (TextUtils.isEmpty(email)) {
+            emailLayout.setError("Email is required");
+            isValid = false;
+
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailLayout.setError("Invalid email address");
+            isValid = false;
+        }
+
+        // Validate password
+        if (TextUtils.isEmpty(password)) {
+            passwordLayout.setError("Password is required");
+            isValid = false;
+        } else if (password.length() < 6) {
+            passwordLayout.setError("Password must be at least 6 characters");
+            isValid = false;
+        }
+
+        return isValid;
+        }
+
+    private void setupRegisterRedirect() {
+        TextView registerRedirect = findViewById(R.id.register_redirect);
         String text = "Don't have an account? Register";
         SpannableString spannableString = new SpannableString(text);
 
@@ -86,7 +133,6 @@ public class LoginActivity extends AppCompatActivity {
         };
 
         ForegroundColorSpan colorSpan = new ForegroundColorSpan(ContextCompat.getColor(this, R.color.primary_color));
-
         spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         spannableString.setSpan(colorSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
@@ -94,51 +140,17 @@ public class LoginActivity extends AppCompatActivity {
         registerRedirect.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            // User is already signed in, go to MainActivity
-            updateUI(currentUser);
-        }
-    }
-
-    private boolean validateInput(String email, String password) {
-        if (TextUtils.isEmpty(email)) {
-            binding.enterMail.setError("Email cannot be empty");
-            return false;
-        }
-
-        if (TextUtils.isEmpty(password)) {
-            binding.enterPassw.setError("Password cannot be empty");
-            return false;
-        }
-
-        return true;
-    }
-
     private void signInWithEmailAndPassword(String email, String password) {
-        // Show loading indicator if you have one
-
         mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        // Hide loading indicator if you have one
-
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Toast.makeText(LoginActivity.this, "Authentication failed: " +
-                                            task.getException().getMessage(),
-                                    Toast.LENGTH_SHORT).show();
-                            updateUI(null);
-                        }
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        updateUI(user);
+                    } else {
+                        Toast.makeText(LoginActivity.this,
+                                "Authentication failed: " + task.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                        updateUI(null);
                     }
                 });
     }
