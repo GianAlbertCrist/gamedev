@@ -7,7 +7,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-public class Transaction {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Transaction implements Parcelable {
 
     // Income or Expense
     private String type;
@@ -43,6 +46,50 @@ public class Transaction {
         this.recurring = recurring;
         this.dateAndTime = getCurrentDateTime();
     }
+
+    protected Transaction(Parcel in) {
+        type = in.readString();
+        category = in.readString();
+        amount = in.readFloat();
+        dateAndTime = in.readString();
+        iconID = in.readInt();
+        recurring = in.readString();
+        description = in.readString();
+        parsedDate = new Date(in.readLong()); // Read the Date as a long
+    }
+
+    public static final Creator<Transaction> CREATOR = new Creator<Transaction>() {
+        @Override
+        public Transaction createFromParcel(Parcel in) {
+            return new Transaction(in);
+        }
+
+        @Override
+        public Transaction[] newArray(int size) {
+            return new Transaction[size];
+        }
+    };
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    // Parcelable method to write the object to a Parcel
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(type);
+        dest.writeString(category);
+        dest.writeFloat(amount);
+        dest.writeString(dateAndTime);
+        dest.writeInt(iconID);
+        dest.writeString(recurring);
+        dest.writeString(description);
+        dest.writeLong(parsedDate.getTime());  // Writing the Date as long
+    }
+
+
 
     public String getType() {
         return type;

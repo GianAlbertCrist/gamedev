@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
@@ -219,7 +220,24 @@ public class TransactionsFragment extends Fragment {
             amount.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
             date.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
 
+            TextView description = itemView.findViewById(R.id.transaction_description);
+            description.setText(t.getDescription());
+
             container.addView(itemView);
+        }
+    }
+
+    private void openTransactionDetailFragment(Transaction transaction) {
+
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity != null) {
+            DescriptionDialogFragment descriptionDialogFragment = DescriptionDialogFragment.newInstance(transaction);
+
+
+            activity.getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_layout, descriptionDialogFragment)
+                    .addToBackStack(null)
+                    .commit();
         }
     }
 }

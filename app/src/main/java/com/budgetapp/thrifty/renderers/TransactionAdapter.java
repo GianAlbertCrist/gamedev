@@ -13,9 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+
 
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.fragments.DescriptionDialogFragment;
+
 
 import java.util.List;
 
@@ -27,14 +31,16 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private final Context context;
     private final int maxVisibleItems = 8; // 7 items + 1 spacer
 
+    // Constructor to initialize the adapter with context and transactions
     public TransactionAdapter(Context context, List<Transaction> transactions) {
         this.context = context;
         this.transactions = transactions;
     }
 
+    // ViewHolder to hold the views for each transaction item
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView icon;
-        TextView category, amount, datetime;
+        TextView category, amount, datetime, description;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -42,6 +48,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             category = itemView.findViewById(R.id.transaction_category);
             amount = itemView.findViewById(R.id.transaction_amount);
             datetime = itemView.findViewById(R.id.transaction_datetime);
+            description = itemView.findViewById(R.id.transaction_description);  // Add this line for description
         }
     }
 
@@ -56,6 +63,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflate the layout for each transaction item
         View view = LayoutInflater.from(context).inflate(R.layout.item_transaction, parent, false);
         RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) view.getLayoutParams();
         if (params != null) {
@@ -92,6 +100,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.category.setTypeface(poppins);
         holder.category.setTextColor(ContextCompat.getColor(context, R.color.black));
 
+        // Display amount with proper formatting
         float amt = t.getRawAmount();
         String displayAmount;
         int color;
@@ -113,10 +122,21 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.amount.setTypeface(poppins);
         holder.amount.setTextColor(color);
 
+
+        holder.description.setText(t.getDescription());  // Set the description from the transaction
+
+
         String timeText = t.getDateAndTime();
         holder.datetime.setText(timeText);
         holder.datetime.setTypeface(poppins);
         holder.datetime.setTextColor(ContextCompat.getColor(context, R.color.background_color));
+
+
+        holder.description.setOnClickListener(v -> {
+
+            DescriptionDialogFragment dialogFragment = DescriptionDialogFragment.newInstance(t);
+            dialogFragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "descriptionDialog");
+        });
     }
 
     @Override
