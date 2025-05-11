@@ -1,10 +1,13 @@
 package com.budgetapp.thrifty;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.TextView;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -71,6 +74,36 @@ public class MainActivity extends AppCompatActivity {
                 navigateToProfileFragment();
             }
         }
+
+        // Register for profile updates
+        getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                .registerOnSharedPreferenceChangeListener(prefsListener);
+    }
+
+    private SharedPreferences.OnSharedPreferenceChangeListener prefsListener =
+            (sharedPreferences, key) -> {
+                // Update UI elements when profile data changes
+                if (key.equals("username") || key.equals("fullname")) {
+                    updateProfileUI();
+                }
+            };
+
+    private void updateProfileUI() {
+        // Find all instances of the username and fullname in the current fragment
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+        if (currentFragment != null && currentFragment.getView() != null) {
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            String username = prefs.getString("username", "");
+            String fullname = prefs.getString("fullname", "");
+
+            // Update UI in HomeFragment
+            if (currentFragment instanceof HomeFragment) {
+                TextView userGreet = currentFragment.getView().findViewById(R.id.user_greet);
+                if (userGreet != null && !username.isEmpty()) {
+                    userGreet.setText("Hello, " + username + "!");
+                }
+            }
+        }
     }
 
     private void navigateToProfileFragment() {
@@ -96,5 +129,13 @@ public class MainActivity extends AppCompatActivity {
         } else {
             binding.bottomNav.setItemIconTintList(iconTintDay);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister the listener to prevent memory leaks
+        getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                .unregisterOnSharedPreferenceChangeListener(prefsListener);
     }
 }

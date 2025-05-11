@@ -1,6 +1,7 @@
 package com.budgetapp.thrifty;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -23,7 +24,11 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class RegistrationActivity extends AppCompatActivity {
@@ -124,42 +129,59 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     private void createAccount(String firstName, String surname, String email, String password) {
-        // Show loading indicator if you have one
+        // Show loading indicator
+        Toast.makeText(RegistrationActivity.this, "Creating account...", Toast.LENGTH_SHORT).show();
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    // Hide loading indicator if you have one
-
                     if (task.isSuccessful()) {
                         // Sign in success, update user profile
                         Log.d(TAG, "createUserWithEmail:success");
                         FirebaseUser user = mAuth.getCurrentUser();
 
-                        // Update user profile with display name
-                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(firstName + " " + surname)
-                                .build();
+                        if (user != null) {
+                            // Create full name
+                            String fullName = firstName + " " + surname;
 
-                        assert user != null;
-                        user.updateProfile(profileUpdates)
-                                .addOnCompleteListener(profileTask -> {
-                                    if (profileTask.isSuccessful()) {
-                                        Log.d(TAG, "User profile updated.");
-                                    }
+                            // Use first name as username
+                            String username = firstName;
 
-                                    // Sign out the user since we want them to log in explicitly
-                                    mAuth.signOut();
+                            // Update Firebase Auth profile
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(username)
+                                    .build();
 
-                                    // Show success message
-                                    Toast.makeText(RegistrationActivity.this,
-                                            "Registration successful. Please log in.",
-                                            Toast.LENGTH_SHORT).show();
+                            user.updateProfile(profileUpdates)
+                                    .addOnCompleteListener(profileTask -> {
+                                        if (profileTask.isSuccessful()) {
+                                            Log.d(TAG, "User profile updated.");
 
-                                    // Navigate to LoginActivity
-                                    Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                                });
+                                            // Save user data to Firebase Database
+                                            saveUserToDatabase(user.getUid(), username, fullName, email);
+
+                                            // Save to SharedPreferences
+                                            saveToSharedPreferences(username, fullName, email);
+
+                                            // Sign out the user since we want them to log in explicitly
+                                            mAuth.signOut();
+
+                                            // Show success message
+                                            Toast.makeText(RegistrationActivity.this,
+                                                    "Registration successful. Please log in.",
+                                                    Toast.LENGTH_SHORT).show();
+
+                                            // Navigate to LoginActivity
+                                            Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
+                                            startActivity(intent);
+                                            finish();
+                                        } else {
+                                            Log.w(TAG, "updateProfile:failure", profileTask.getException());
+                                            Toast.makeText(RegistrationActivity.this,
+                                                    "Failed to update profile: " + profileTask.getException().getMessage(),
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -168,5 +190,29 @@ public class RegistrationActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void saveUserToDatabase(String uid, String username, String fullName, String email) {
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("username", username);
+        userData.put("fullname", fullName);
+        userData.put("email", email);
+        userData.put("avatarId", 0); // Default avatar
+
+        mDatabase.child("users").child(uid).setValue(userData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User data saved to database"))
+                .addOnFailureListener(e -> Log.w(TAG, "Error saving user data to database", e));
+    }
+
+    private void saveToSharedPreferences(String username, String fullName, String email) {
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("username", username);
+        editor.putString("fullname", fullName);
+        editor.putString("email", email);
+        editor.putInt("avatarId", 0); // Default avatar
+        editor.apply();
     }
 }

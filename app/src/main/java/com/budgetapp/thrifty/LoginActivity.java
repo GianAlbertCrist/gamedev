@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,6 +24,11 @@ import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 
@@ -77,7 +83,7 @@ public class LoginActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             // User is already signed in, go to MainActivity
-            updateUI(currentUser);
+            loadUserDataAndProceed(currentUser);
         }
     }
 
@@ -108,7 +114,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         return isValid;
-        }
+    }
 
     private void setupRegisterRedirect() {
         TextView registerRedirect = findViewById(R.id.register_redirect);
@@ -141,34 +147,159 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void signInWithEmailAndPassword(String email, String password) {
+        // Show loading indicator
+        Toast.makeText(LoginActivity.this, "Signing in...", Toast.LENGTH_SHORT).show();
+
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        updateUI(user);
+                        if (user != null) {
+                            loadUserDataAndProceed(user);
+                        }
                     } else {
                         Toast.makeText(LoginActivity.this,
                                 "Authentication failed: " + task.getException().getMessage(),
                                 Toast.LENGTH_SHORT).show();
-                        updateUI(null);
                     }
                 });
     }
 
-    private void updateUI(FirebaseUser user) {
-        if (user != null) {
-            // Save login state
-            SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-            preferences.edit()
-                    .putBoolean("isLoggedIn", true)
-                    .putString("userEmail", user.getEmail())
-                    .putString("userName", user.getDisplayName() != null ?
-                            user.getDisplayName() : user.getEmail())
-                    .apply();
+    private void loadUserDataAndProceed(FirebaseUser user) {
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        String uid = user.getUid();
 
-            // Proceed to main activity
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            finish();
+        mDatabase.child("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // Get user data from Firebase
+                    String username = dataSnapshot.child("username").getValue(String.class);
+                    String fullname = dataSnapshot.child("fullname").getValue(String.class);
+                    String email = dataSnapshot.child("email").getValue(String.class);
+                    Long avatarIdLong = dataSnapshot.child("avatarId").getValue(Long.class);
+                    int avatarId = avatarIdLong != null ? avatarIdLong.intValue() : 0;
+
+                    // Save to SharedPreferences
+                    SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean("isLoggedIn", true);
+
+                    if (username != null && !username.isEmpty()) {
+                        editor.putString("username", username);
+                    } else if (user.getDisplayName() != null) {
+                        editor.putString("username", user.getDisplayName());
+                    } else {
+                        editor.putString("username", "User");
+                    }
+
+                    if (fullname != null && !fullname.isEmpty()) {
+                        editor.putString("fullname", fullname);
+                    }
+
+                    if (email != null && !email.isEmpty()) {
+                        editor.putString("email", email);
+                    } else {
+                        editor.putString("email", user.getEmail());
+                    }
+
+                    editor.putInt("avatarId", avatarId);
+                    editor.apply();
+
+                    // Proceed to main activity
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    // User exists in Auth but not in Database, create a new entry
+                    createUserInDatabase(user);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w(TAG, "loadUserData:onCancelled", databaseError.toException());
+                // Fallback to basic user data
+                saveBasicUserDataAndProceed(user);
+            }
+        });
+    }
+
+    private void createUserInDatabase(FirebaseUser user) {
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        String uid = user.getUid();
+
+        // Extract username from email if display name is not available
+        String username = user.getDisplayName();
+        if (username == null || username.isEmpty()) {
+            String email = user.getEmail();
+            username = email != null ? email.substring(0, email.indexOf('@')) : "User";
+        }
+
+        // Create user data
+        String finalUsername = username;
+        mDatabase.child("users").child(uid).setValue(
+                        new UserData(finalUsername, finalUsername, user.getEmail(), 0))
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Save to SharedPreferences
+                        SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putBoolean("isLoggedIn", true);
+                        editor.putString("username", finalUsername);
+                        editor.putString("fullname", finalUsername);
+                        editor.putString("email", user.getEmail());
+                        editor.putInt("avatarId", 0);
+                        editor.apply();
+
+                        // Proceed to main activity
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        finish();
+                    } else {
+                        Log.w(TAG, "createUserInDatabase:failure", task.getException());
+                        saveBasicUserDataAndProceed(user);
+                    }
+                });
+    }
+
+    private void saveBasicUserDataAndProceed(FirebaseUser user) {
+        // Extract username from email if display name is not available
+        String username = user.getDisplayName();
+        if (username == null || username.isEmpty()) {
+            String email = user.getEmail();
+            username = email != null ? email.substring(0, email.indexOf('@')) : "User";
+        }
+
+        // Save to SharedPreferences
+        SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("isLoggedIn", true);
+        editor.putString("username", username);
+        editor.putString("fullname", username);
+        editor.putString("email", user.getEmail());
+        editor.putInt("avatarId", 0);
+        editor.apply();
+
+        // Proceed to main activity
+        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+        finish();
+    }
+
+    // Simple data class for user information
+    private static class UserData {
+        public String username;
+        public String fullname;
+        public String email;
+        public int avatarId;
+
+        public UserData() {
+            // Default constructor required for Firebase
+        }
+
+        public UserData(String username, String fullname, String email, int avatarId) {
+            this.username = username;
+            this.fullname = fullname;
+            this.email = email;
+            this.avatarId = avatarId;
         }
     }
 }
