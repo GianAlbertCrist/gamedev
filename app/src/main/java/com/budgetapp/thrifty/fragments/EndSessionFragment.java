@@ -1,21 +1,20 @@
 package com.budgetapp.thrifty.fragments;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-
 import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class EndSessionFragment extends Fragment implements View.OnTouchListener {
 
@@ -24,6 +23,7 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
     private View rootView;
     private CardView dialogContainer;
     private FirebaseAuth mAuth;
+    private TextView profileName, profileFullName;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,19 +33,42 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // Initialize buttons with the correct IDs from the new layout
+        // Initialize views
+        initializeViews();
+
+        // Set click listeners
+        setupClickListeners();
+
+        // Load user profile data
+        loadUserProfile();
+
+        return rootView;
+    }
+
+    private void initializeViews() {
         endSessionButton = rootView.findViewById(R.id.yes_end_session);
         cancelButton = rootView.findViewById(R.id.cancel_button);
         dialogContainer = rootView.findViewById(R.id.dialog_container);
+        profileName = rootView.findViewById(R.id.profile_name);
+        profileFullName = rootView.findViewById(R.id.profile_full_name);
+    }
 
-        // Set click listeners
+    private void setupClickListeners() {
         endSessionButton.setOnClickListener(v -> performLogout());
         cancelButton.setOnClickListener(v -> cancelLogout());
-
-        // Set touch listener on the root view to detect touches outside the container
         rootView.setOnTouchListener(this);
+    }
 
-        return rootView;
+    private void loadUserProfile() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && user.getDisplayName() != null) {
+            String[] userData = user.getDisplayName().split("\\|");
+            String username = userData[0];
+            String fullName = userData.length > 1 ? userData[1] : username;
+
+            profileName.setText(username);
+            profileFullName.setText(fullName.toUpperCase());
+        }
     }
 
     @Override

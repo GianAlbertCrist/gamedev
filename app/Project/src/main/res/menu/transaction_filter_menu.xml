@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/filter_today" android:title="Today" />
+    <item android:id="@+id/filter_days" android:title="Days" />
+    <item android:id="@+id/filter_weeks" android:title="Weeks" />
+    <item android:id="@+id/filter_months" android:title="Months" />
+</menu>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/category_none" android:title="None"/>
+    <item android:id="@+id/category_daily" android:title="Daily"/>
+    <item android:id="@+id/category_weekly" android:title="Weekly"/>
+    <item android:id="@+id/category_monthly" android:title="Monthly"/>
+    <item android:id="@+id/category_yearly" android:title="Yearly"/>
+</menu>

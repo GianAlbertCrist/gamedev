@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/category_food" android:title="Food and Drink" android:icon="@drawable/ic_food"/>
+    <item android:id="@+id/category_clothes" android:title="Clothes" android:icon="@drawable/ic_clothes"/>
+    <item android:id="@+id/category_healthcare" android:title="Healthcare" android:icon="@drawable/ic_healthcare"/>
+    <item android:id="@+id/category_gifts" android:title="Gifts" android:icon="@drawable/ic_gifts"/>
+    <item android:id="@+id/category_transport" android:title="Transport" android:icon="@drawable/ic_transport"/>
+    <item android:id="@+id/category_housing" android:title="Housing" android:icon="@drawable/ic_housing"/>
+    <item android:id="@+id/category_entertainment" android:title="Entertainment" android:icon="@drawable/ic_entertainment"/>
+    <item android:id="@+id/category_education" android:title="Education" android:icon="@drawable/ic_education"/>
+    <item android:id="@+id/category_others" android:title="Others" android:icon="@drawable/ic_others"/>
+</menu>

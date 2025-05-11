@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color"
+    android:clipToPadding="false"
+    tools:context=".MainActivity">
+
+    <FrameLayout
+        android:id="@+id/frame_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bottom_vec_navbar_bg"
+        android:elevation="0dp"
+        android:translationZ="0dp" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@android:color/transparent"
+        app:itemIconTint="@color/bottom_nav_icon_selector_day"
+        app:itemRippleColor="@android:color/transparent"
+        app:itemTextAppearanceActive="@font/poppins"
+        app:itemTextColor="@color/background_color"
+        app:menu="@menu/bottom_menu" />
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_entry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Make Entries"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/white"
+        app:elevation="6dp"
+        app:layout_anchor="@+id/bottom_nav"
+        app:layout_anchorGravity="top|center"
+        app:maxImageSize="56dp"
+        app:shapeAppearanceOverlay="@style/FabCircle"
+        app:tint="@color/primary_color" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

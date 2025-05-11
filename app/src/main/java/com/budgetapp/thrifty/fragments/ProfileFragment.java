@@ -11,12 +11,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-
 import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -149,56 +147,43 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadProfileData() {
-        // First try to load from SharedPreferences for immediate display
-        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                requireActivity().MODE_PRIVATE);
-
-        String username = prefs.getString("username", "");
-        String fullname = prefs.getString("fullname", "");
-        int avatarId = prefs.getInt("avatarId", 0);
-
-        if (!username.isEmpty()) {
-            usernameText.setText(username);
-        }
-
-        if (!fullname.isEmpty()) {
-            fullNameText.setText(fullname.toUpperCase());
-        }
-
-        if (avatarId > 0) {
-            updateProfileImage(avatarId);
-            currentAvatarId = avatarId;
-        }
-
-        // Then try to get from Firebase for the most up-to-date data
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            String uid = user.getUid();
+        if (user != null && user.getDisplayName() != null) {
+            // Get the display name
+            String displayName = user.getDisplayName();
 
-            mDatabase.child("users").child(uid).get().addOnCompleteListener(task -> {
-                if (task.isSuccessful() && task.getResult().exists()) {
-                    String dbUsername = task.getResult().child("username").getValue(String.class);
-                    String dbFullname = task.getResult().child("fullname").getValue(String.class);
-                    Long dbAvatarIdLong = task.getResult().child("avatarId").getValue(Long.class);
-                    int dbAvatarId = dbAvatarIdLong != null ? dbAvatarIdLong.intValue() : 0;
+            // Safely split the display name and extract values
+            String username = "";
+            String fullName = "";
 
-                    if (dbUsername != null && !dbUsername.isEmpty()) {
-                        usernameText.setText(dbUsername);
-                        saveProfileData("username", dbUsername);
-                    }
-
-                    if (dbFullname != null && !dbFullname.isEmpty()) {
-                        fullNameText.setText(dbFullname.toUpperCase());
-                        saveProfileData("fullname", dbFullname);
-                    }
-
-                    if (dbAvatarId > 0) {
-                        updateProfileImage(dbAvatarId);
-                        currentAvatarId = dbAvatarId;
-                        saveProfileData("avatarId", String.valueOf(dbAvatarId));
-                    }
+            if (displayName.contains("|")) {
+                String[] userData = displayName.split("\\|");
+                if (userData.length >= 2) {
+                    username = userData[0];
+                    fullName = userData[1];
+                } else {
+                    // Fallback if format is incorrect
+                    username = displayName;
+                    fullName = displayName;
                 }
-            });
+            } else {
+                // Fallback if no separator found
+                username = displayName;
+                fullName = displayName;
+            }
+
+            usernameText.setText(username);
+            fullNameText.setText(fullName.toUpperCase());
+            profileImage.setImageResource(R.drawable.sample_profile); // Default profile image
+
+            // Get avatar ID from arguments if available
+            Bundle args = getArguments();
+            if (args != null) {
+                int avatarId = args.getInt("avatarId", 0);
+                if (avatarId > 0) {
+                    updateProfileImage(avatarId);
+                }
+            }
         }
     }
 

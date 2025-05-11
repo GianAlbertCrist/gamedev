@@ -1,28 +1,23 @@
 package com.budgetapp.thrifty.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.TransactionAdapter;
 import com.budgetapp.thrifty.utils.FormatUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
@@ -64,50 +59,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadUserProfile() {
-        // First try to load from SharedPreferences for immediate display
-        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                requireActivity().MODE_PRIVATE);
-
-        String username = prefs.getString("username", "");
-
-        if (!username.isEmpty()) {
-            userGreet.setText("Hello, " + username + "!");
-        }
-
-        // Then try to get from Firebase for the most up-to-date data
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            String uid = user.getUid();
-
-            // Remove any existing listener
-            if (profileListener != null) {
-                mDatabase.child("users").child(uid).removeEventListener(profileListener);
-            }
-
-            // Add real-time listener for profile changes
-            profileListener = mDatabase.child("users").child(uid).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        String username = dataSnapshot.child("username").exists() ?
-                                dataSnapshot.child("username").getValue(String.class) : "";
-
-                        if (username != null && !username.isEmpty()) {
-                            userGreet.setText("Hello, " + username + "!");
-
-                            // Also save to SharedPreferences as backup
-                            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                                    requireActivity().MODE_PRIVATE);
-                            prefs.edit().putString("username", username).apply();
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    // Handle possible errors
-                }
-            });
+        if (user != null && user.getDisplayName() != null) {
+            String[] userData = user.getDisplayName().split("\\|");
+            String username = userData[0];
+            userGreet.setText("Hello, " + username + "!");
         } else {
             userGreet.setText("Hello, User!");
         }
