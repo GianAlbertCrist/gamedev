@@ -11,9 +11,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+
 
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.fragments.DescriptionDialogFragment;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +40,8 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView icon;
-        TextView category, amount, datetime;
+        TextView category, amount, datetime, description;
+
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -44,6 +49,7 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingAdapter.ViewHold
             category = itemView.findViewById(R.id.transaction_category);
             amount = itemView.findViewById(R.id.transaction_amount);
             datetime = itemView.findViewById(R.id.transaction_datetime);
+            description = itemView.findViewById(R.id.transaction_description);
         }
     }
 
@@ -84,10 +90,19 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingAdapter.ViewHold
 
         holder.datetime.setText(transaction.getDateAndTime());
         holder.datetime.setTextColor(ContextCompat.getColor(context, R.color.background_color));
+
+        holder.description.setText(transaction.getDescription());
+
+
+        holder.description.setOnClickListener(v -> {
+            DescriptionDialogFragment dialogFragment = DescriptionDialogFragment.newInstance(transaction);
+            dialogFragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "descriptionDialog");
+        });
     }
 
     @Override
     public int getItemCount() {
+
         return transactions.size();
     }
 

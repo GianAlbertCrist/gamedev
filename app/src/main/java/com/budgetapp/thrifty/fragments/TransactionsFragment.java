@@ -223,21 +223,14 @@ public class TransactionsFragment extends Fragment {
             TextView description = itemView.findViewById(R.id.transaction_description);
             description.setText(t.getDescription());
 
+
+            description.setOnClickListener(v -> {
+                DescriptionDialogFragment descriptionDialogFragment = DescriptionDialogFragment.newInstance(t);
+                descriptionDialogFragment.show(((AppCompatActivity) getActivity()).getSupportFragmentManager(), "descriptionDialog");
+            });
+
+
             container.addView(itemView);
-        }
-    }
-
-    private void openTransactionDetailFragment(Transaction transaction) {
-
-        AppCompatActivity activity = (AppCompatActivity) getActivity();
-        if (activity != null) {
-            DescriptionDialogFragment descriptionDialogFragment = DescriptionDialogFragment.newInstance(transaction);
-
-
-            activity.getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.frame_layout, descriptionDialogFragment)
-                    .addToBackStack(null)
-                    .commit();
         }
     }
 }
