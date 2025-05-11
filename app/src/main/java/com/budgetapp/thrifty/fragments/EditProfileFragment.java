@@ -24,7 +24,7 @@ public class EditProfileFragment extends Fragment {
 
     private ImageView profileImage;
     private TextView profileName, profileFullName;
-    private EditText usernameInput, fullnameInput;
+    private EditText usernameInput, fullnameInput, emailInput;
     private ImageButton editProfileImage;
     private Button updateProfileButton;
     private CardView profilePictureSelector;
@@ -66,6 +66,8 @@ public class EditProfileFragment extends Fragment {
         profilePictureSelector = view.findViewById(R.id.profile_picture_selector);
         cancelAvatarSelection = view.findViewById(R.id.cancel_avatar_selection);
         confirmAvatarSelection = view.findViewById(R.id.confirm_avatar_selection);
+        emailInput = view.findViewById(R.id.email_input);
+        emailInput.setEnabled(false);
 
         // Initialize avatar views
         avatarViews[0] = view.findViewById(R.id.avatar_1);
@@ -82,10 +84,16 @@ public class EditProfileFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null && user.getDisplayName() != null) {
             String[] userData = user.getDisplayName().split("\\|");
+            String userEmail = user.getEmail();
             String username = userData[0];
             String fullName = userData[1];
 
-            // Set the text in TextViews and EditTexts
+            profileName.setText(username);
+            profileFullName.setText(fullName.toUpperCase());
+            usernameInput.setText(username);
+            fullnameInput.setText(fullName);
+            emailInput.setText(userEmail);
+
             profileName.setText(username);
             profileFullName.setText(fullName.toUpperCase());
             usernameInput.setText(username);
