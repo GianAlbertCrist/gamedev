@@ -23,13 +23,7 @@ public class SecurityFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_security, container, false);
 
         // Initialize views
-        backButton = view.findViewById(R.id.security_back);
         termsAndConditionsRow = view.findViewById(R.id.terms_conditions_row);
-
-        // Set click listeners
-        if (backButton != null) {
-            backButton.setOnClickListener(v -> navigateBack());
-        }
 
         termsAndConditionsRow.setOnClickListener(v -> showTermsAndConditions());
 

@@ -43,11 +43,6 @@ public class DeleteAccountFragment extends Fragment implements View.OnTouchListe
         deleteAccountButton.setOnClickListener(v -> performDeleteAccount());
         cancelButton.setOnClickListener(v -> cancelDeleteAccount());
 
-        // Back button click listener
-        View backButton = rootView.findViewById(R.id.delete_account_back);
-        if (backButton != null) {
-            backButton.setOnClickListener(v -> cancelDeleteAccount());
-        }
 
         // Set touch listener on the root view to detect touches outside the container
         rootView.setOnTouchListener(this);

@@ -68,7 +68,6 @@ public class EditProfileFragment extends Fragment {
         cancelAvatarSelection = view.findViewById(R.id.cancel_avatar_selection);
         confirmAvatarSelection = view.findViewById(R.id.confirm_avatar_selection);
         updateProfileButton = view.findViewById(R.id.update_profile_button);
-        backButton = view.findViewById(R.id.edit_profile_back);
         usernameInput = view.findViewById(R.id.username_input);
         fullnameInput = view.findViewById(R.id.fullname_input);
         emailInput = view.findViewById(R.id.email_input);
@@ -151,7 +150,6 @@ public class EditProfileFragment extends Fragment {
         cancelAvatarSelection.setOnClickListener(v -> hideProfilePictureSelector());
         confirmAvatarSelection.setOnClickListener(v -> confirmAvatarAndHideSelector());
         updateProfileButton.setOnClickListener(v -> updateProfile());
-        backButton.setOnClickListener(v -> navigateBack());
 
         // Set click listeners for avatars
         for (int i = 0; i < avatars.length; i++) {

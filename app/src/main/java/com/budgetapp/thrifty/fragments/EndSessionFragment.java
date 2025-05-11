@@ -42,12 +42,6 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
         endSessionButton.setOnClickListener(v -> performLogout());
         cancelButton.setOnClickListener(v -> cancelLogout());
 
-        // Back button click listener
-        View backButton = rootView.findViewById(R.id.end_session_back);
-        if (backButton != null) {
-            backButton.setOnClickListener(v -> cancelLogout());
-        }
-
         // Set touch listener on the root view to detect touches outside the container
         rootView.setOnTouchListener(this);
 
@@ -90,21 +84,26 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
     }
 
     private void performLogout() {
-        // Sign out from Firebase
-        mAuth.signOut();
+        if (getActivity() == null) return;
 
-        // Clear shared preferences
-        SharedPreferences preferences = requireActivity().getSharedPreferences("UserPrefs",
-                requireActivity().MODE_PRIVATE);
-        preferences.edit().clear().apply();
+        try {
+            // Sign out from Firebase Auth
+            mAuth.signOut();
 
-        Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
+            // Navigate to FirstActivity immediately after sign out
+            Intent intent = new Intent(getActivity(), FirstActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
 
-        // Navigate to FirstActivity
-        Intent intent = new Intent(getActivity(), FirstActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        requireActivity().finish();
+            // Finish current activity
+            requireActivity().finish();
+
+        } catch (Exception e) {
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Error during logout: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void cancelLogout() {
