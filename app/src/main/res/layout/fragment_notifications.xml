@@ -10,19 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/Profile_back"
-            android:layout_width="38dp"
-            android:layout_height="35dp"
-            android:layout_marginTop="8dp"
-            android:contentDescription="Back"
-            android:src="@drawable/arrow_button"
-            android:clickable="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.046"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <TextView
             android:id="@+id/headerText"
             android:layout_width="wrap_content"

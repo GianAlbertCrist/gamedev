@@ -11,8 +11,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
+import com.budgetapp.thrifty.fragments.ProfileFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
@@ -52,10 +55,13 @@ public class AddEntryActivity extends AppCompatActivity {
         // Initialize TabLayout
         tabLayout = findViewById(R.id.tabLayout);
 
-        // Small Thrifty (Home) button
         ImageButton smallThrifty = findViewById(R.id.small_thrifty);
         smallThrifty.setOnClickListener(view -> {
-            // This will close the current activity and return to MainActivity
+            finish();
+        });
+
+        ImageButton notificationsIcon = findViewById(R.id.ic_notifications);
+        notificationsIcon.setOnClickListener(view -> {
             finish();
         });
 
@@ -68,8 +74,15 @@ public class AddEntryActivity extends AppCompatActivity {
             finish();
         });
 
+        // notification button
         ImageButton notificationsButton = findViewById(R.id.ic_notifications);
-        notificationsButton.setOnClickListener(view -> openNotificationsFragment());
+        notificationsButton.setOnClickListener(view -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("force_navigate_to", "notifications");
+            startActivity(intent);
+            finish();
+        });
+
 
         // Setup touch outside to dismiss keyboard
         setupTouchOutsideToDismissKeyboard();
@@ -138,13 +151,5 @@ public class AddEntryActivity extends AppCompatActivity {
             cancelButton.setOnClickListener(v -> {
             });
         }
-    }
-
-    private void openNotificationsFragment() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtra("navigate_to", "notifications");
-        startActivity(intent);
-        finish();
     }
 }

@@ -40,8 +40,18 @@ public class MainActivity extends AppCompatActivity {
         ThemeSync.syncNotificationBarColor(getWindow(), this);
         themeSync();
 
-        // Default fragment - HomeFragment
-        replaceFragment(new HomeFragment());
+        // Handle navigation intents immediately before any other fragment operations
+        String navigateTo = getIntent().getStringExtra("navigate_to");
+        String forceNavigateTo = getIntent().getStringExtra("force_navigate_to");
+
+        if (forceNavigateTo != null && forceNavigateTo.equals("notifications")) {
+            navigateToNotificationFragment();
+        } else if (navigateTo != null && navigateTo.equals("profile")) {
+            navigateToProfileFragment();
+        } else {
+            replaceFragment(new HomeFragment());
+        }
+
         binding.bottomNav.setBackground(null);
 
         // Floating Action Button (FAB) for adding a new entry
@@ -74,11 +84,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Handle profile navigation from other activities/fragments (if any)
-        String navigateTo = getIntent().getStringExtra("navigate_to");
-        if (navigateTo != null && navigateTo.equals("profile")) {
-            navigateToProfileFragment();
-        }
 
         // Register for profile updates to update the UI
         getSharedPreferences("UserPrefs", MODE_PRIVATE)
@@ -122,6 +127,10 @@ public class MainActivity extends AppCompatActivity {
         replaceFragment(new ProfileFragment());
     }
 
+    private void navigateToNotificationFragment() {
+        replaceFragment(new NotificationsFragment());;
+    }
+
     // Replace current fragment with the new fragment
     public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -130,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commitNow();
     }
 
-    // Sync bottom navigation icon colors with the current theme (Day/Night mode)
     public void themeSync() {
         boolean isDarkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 

@@ -12,6 +12,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.budgetapp.thrifty.MainActivity;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.TransactionAdapter;
@@ -125,13 +127,10 @@ public class HomeFragment extends Fragment {
         FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        // Replace the current fragment with NotificationsFragment
         fragmentTransaction.replace(R.id.frame_layout, notificationsFragment);
 
-        // Add to the back stack so the user can navigate back
         fragmentTransaction.addToBackStack(null);
 
-        // Commit the transaction
         fragmentTransaction.commit();
     }
 
