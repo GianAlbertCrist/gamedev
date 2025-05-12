@@ -53,7 +53,7 @@ public class PieChartManager {
 
         // Calculate balance
         float balance = income - expense;
-        Log.d(TAG, "Calculated balance: " + FormatUtils.formatAmount(balance, true));
+        Log.d(TAG, "Calculated balance: " + balance);
 
         // Set center text color based on balance
         if (balance > 0) {
@@ -65,7 +65,8 @@ public class PieChartManager {
         }
 
         // Set center text with balance
-        pieChart.setCenterText(String.format(Locale.getDefault(), "Current Balance\n₱%.2f", balance));
+        pieChart.setCenterText(String.format(Locale.getDefault(), "Current Balance\n₱%s",
+                FormatUtils.formatAmount(balance, true)));
 
         // Handle special cases
         if (income == 0 && expense == 0) {
