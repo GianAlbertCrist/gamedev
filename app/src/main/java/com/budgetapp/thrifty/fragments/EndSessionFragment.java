@@ -2,6 +2,8 @@ package com.budgetapp.thrifty.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,6 +26,7 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
     private CardView dialogContainer;
     private FirebaseAuth mAuth;
     private TextView profileName, profileFullName;
+    private View loadingLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,6 +54,7 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
         dialogContainer = rootView.findViewById(R.id.dialog_container);
         profileName = rootView.findViewById(R.id.profile_name);
         profileFullName = rootView.findViewById(R.id.profile_full_name);
+        loadingLayout = rootView.findViewById(R.id.loading_layout);
     }
 
     private void setupClickListeners() {
@@ -110,18 +114,26 @@ public class EndSessionFragment extends Fragment implements View.OnTouchListener
         if (getActivity() == null) return;
 
         try {
-            // Sign out from Firebase Auth
+            loadingLayout.setVisibility(View.VISIBLE);
+            Toast.makeText(requireContext(), "Logging out...", Toast.LENGTH_SHORT).show();
             mAuth.signOut();
 
-            // Navigate to FirstActivity immediately after sign out
-            Intent intent = new Intent(getActivity(), FirstActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                // Navigate to FirstActivity after delay
+                Intent intent = new Intent(getActivity(), FirstActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
 
-            // Finish current activity
-            requireActivity().finish();
+                loadingLayout.setVisibility(View.GONE);
+
+                // Finish current activity
+                if (getActivity() != null) {
+                    getActivity().finish();
+                }
+            }, 1500);
 
         } catch (Exception e) {
+            loadingLayout.setVisibility(View.GONE);
             if (getContext() != null) {
                 Toast.makeText(getContext(), "Error during logout: " + e.getMessage(),
                         Toast.LENGTH_SHORT).show();
