@@ -53,24 +53,18 @@ public class FirstActivity extends AppCompatActivity {
 
             db.collection("users").document(uid).get()
                     .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            String role = documentSnapshot.getString("role");
-
-                            if ("admin".equalsIgnoreCase(role)) {
-                                startActivity(new Intent(this, AdminActivity.class));
-                            } else {
-                                startActivity(new Intent(this, MainActivity.class));
-                            }
-                            finish();
+                        if (documentSnapshot.exists() && "admin".equalsIgnoreCase(documentSnapshot.getString("role"))) {
+                            // Admin user
+                            startActivity(new Intent(this, AdminActivity.class));
                         } else {
-                            Toast.makeText(this, "Role not defined. Logging out.", Toast.LENGTH_SHORT).show();
-                            FirebaseAuth.getInstance().signOut();
+                            // Regular user — allow access even if no Firestore doc exists
+                            startActivity(new Intent(this, MainActivity.class));
                         }
+                        finish();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "Failed to check role.", Toast.LENGTH_SHORT).show();
                     });
         }
     }
-
 }
