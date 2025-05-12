@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.budgetapp.thrifty.fragments.NotificationsFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
@@ -66,6 +67,9 @@ public class AddEntryActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        ImageButton notificationsButton = findViewById(R.id.ic_notifications);
+        notificationsButton.setOnClickListener(view -> openNotificationsFragment());
 
         // Setup touch outside to dismiss keyboard
         setupTouchOutsideToDismissKeyboard();
@@ -134,5 +138,13 @@ public class AddEntryActivity extends AppCompatActivity {
             cancelButton.setOnClickListener(v -> {
             });
         }
+    }
+
+    private void openNotificationsFragment() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.putExtra("navigate_to", "notifications");
+        startActivity(intent);
+        finish();
     }
 }

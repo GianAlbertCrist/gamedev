@@ -45,8 +45,10 @@ public class HomeFragment extends Fragment {
         emptyMessage = rootView.findViewById(R.id.empty_message);
         userGreet = rootView.findViewById(R.id.user_greet);
 
-        ImageButton notificationButton = rootView.findViewById(R.id.ic_notifcations);
+        ImageButton notificationButton = rootView.findViewById(R.id.ic_notifications);
         notificationButton.setOnClickListener(v -> openNotificationsFragment());
+        ImageButton profileButton = rootView.findViewById(R.id.ic_profile);
+        profileButton.setOnClickListener(v -> openProfileFragment());
 
         // Load user profile data
         loadUserProfile();
@@ -132,4 +134,14 @@ public class HomeFragment extends Fragment {
         // Commit the transaction
         fragmentTransaction.commit();
     }
+
+    private void openProfileFragment() {
+        ProfileFragment profileFragment = new ProfileFragment();
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.frame_layout, profileFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+    }
+
 }

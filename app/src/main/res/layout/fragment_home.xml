@@ -56,7 +56,7 @@
             app:layout_constraintTop_toTopOf="@+id/ic_profile" />
 
         <ImageButton
-            android:id="@+id/ic_notifcations"
+            android:id="@+id/ic_notifications"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_marginTop="10dp"
