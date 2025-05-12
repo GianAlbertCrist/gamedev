@@ -24,6 +24,7 @@ import com.budgetapp.thrifty.fragments.ReportsFragment;
 import com.budgetapp.thrifty.fragments.TransactionsFragment;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.model.Notification;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 
 
@@ -207,15 +208,21 @@ public class AddExpenseFragment extends Fragment {
             // Add the new/edited transaction
             TransactionsHandler.transactions.add(transaction);
 
-            // Create the Notification object
-            String notificationTime = KeyboardBehavior.getCurrentTime();
-            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime, selectedRecurring, iconRes);
+            // Save to Firestore
+            FirestoreManager.saveTransaction(transaction);
 
-            NotificationsFragment notificationsFragment = (NotificationsFragment) getActivity().getSupportFragmentManager()
-                    .findFragmentByTag(NotificationsFragment.class.getSimpleName());
+            // Create and save notification if recurring
+            if (!selectedRecurring.equals("None")) {
+                String notificationTime = KeyboardBehavior.getCurrentTime();
+                Notification newNotification = new Notification(
+                        "Transaction",
+                        category + " | ₱" + amount,
+                        notificationTime,
+                        selectedRecurring,
+                        iconRes
+                );
 
-            if (notificationsFragment != null) {
-                notificationsFragment.addNotification(newNotification);
+                FirestoreManager.saveNotification(newNotification, transaction.getId());
             }
 
             ReportsFragment reportsFragment = (ReportsFragment) requireActivity().getSupportFragmentManager()

@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,6 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
+import com.budgetapp.thrifty.handlers.TransactionsHandler;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -158,33 +161,26 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            String uid = user.getUid();
+            Log.d("LoginActivity", "Loading user profile...");
+            FirestoreManager.loadUserProfile(profileData -> {
+                Log.d("LoginActivity", "Profile loaded, loading transactions...");
 
-            db.collection("users").document(uid).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        String role = documentSnapshot.getString("role");
+                SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                preferences.edit()
+                        .putBoolean("isLoggedIn", true)
+                        .putString("userEmail", user.getEmail())
+                        .putString("userName", profileData.get("displayName").toString())
+                        .apply();
 
-                        if ("admin".equalsIgnoreCase(role)) {
-                            // Admin user
-                            startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-                        } else {
-                            // Regular user (no doc or role is not admin)
-                            SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                            preferences.edit()
-                                    .putBoolean("isLoggedIn", true)
-                                    .putString("userEmail", user.getEmail())
-                                    .putString("userName", user.getDisplayName() != null ? user.getDisplayName() : user.getEmail())
-                                    .apply();
+                FirestoreManager.loadTransactions(transactions -> {
+                    Log.d("LoginActivity", "Loaded " + transactions.size() + " transactions");
+                    TransactionsHandler.transactions.clear();
+                    TransactionsHandler.transactions.addAll(transactions);
 
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                        }
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to check user role.", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    });
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                });
+            });
         }
     }
 }

@@ -19,6 +19,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -137,11 +139,7 @@ public class RegistrationActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            // Create full name
                             String fullName = firstName + " " + surname;
-
-                            // Use first name as username and store full name in display name
-                            // Format: "firstname|fullname"
                             String displayNameWithFullName = firstName + "|" + fullName;
 
                             // Update Firebase Auth profile
@@ -152,7 +150,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             user.updateProfile(profileUpdates)
                                     .addOnCompleteListener(profileTask -> {
                                         if (profileTask.isSuccessful()) {
-                                            // Sign out and redirect to login
+                                            FirestoreManager.saveUserProfile(displayNameWithFullName, email, 0);
                                             mAuth.signOut();
                                             Toast.makeText(RegistrationActivity.this,
                                                     "Registration successful. Please log in.",

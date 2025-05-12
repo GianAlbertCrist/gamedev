@@ -39,7 +39,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         Notification notification = notificationList.get(position);
 
         // Set notification title
-        holder.notificationTitle.setText(notification.getTitle());
+        holder.notificationTitle.setText(notification.getType());
 
         // Format amount in description if it contains a currency value
         String description = notification.getDescription();
@@ -49,7 +49,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.notificationTime.setText(notification.getTime());
 
         // Set the recurring type (Daily, Weekly, etc.)
-        holder.notificationRecurring.setText(notification.getRecurringText());  // Set recurring type dynamically
+        holder.notificationRecurring.setText(notification.getRecurring());  // Set recurring type dynamically
 
         // Set the appropriate icon based on transaction type (Income/Expense)
         if ("Income".equalsIgnoreCase(notification.getDescription())) {

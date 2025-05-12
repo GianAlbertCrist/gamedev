@@ -24,6 +24,7 @@ import com.budgetapp.thrifty.fragments.ReportsFragment;
 import com.budgetapp.thrifty.fragments.TransactionsFragment;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.model.Notification;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 
 public class AddIncomeFragment extends Fragment {
@@ -61,8 +62,8 @@ public class AddIncomeFragment extends Fragment {
         descriptionInput = view.findViewById(R.id.income_description);
         ImageButton recurringButton = view.findViewById(R.id.ic_recurring);
 
-        Button confirmBtn = view.findViewById(R.id.confirm_button);
-        Button cancelBtn = view.findViewById(R.id.cancel_button);
+        Button confirmBtn = requireActivity().findViewById(R.id.confirm_button);
+        Button cancelBtn = requireActivity().findViewById(R.id.cancel_button);
 
         // 1. Select all on focus
         numberInput.setOnFocusChangeListener((v, hasFocus) -> {
@@ -186,54 +187,60 @@ public class AddIncomeFragment extends Fragment {
             String category = categoryText.getText().toString();
             String description = descriptionInput.getText().toString();
 
+            // Get and validate amount
             String amountStr = numberInput.getText().toString().trim();
             float amount = amountStr.isEmpty() ? 0 : Float.parseFloat(amountStr);
 
-            int iconRes = selectedIconResId;
-
-            // Create updated transaction
+            // Create transaction object
             Transaction transaction = new Transaction(
-                    "Income",
+                    "Income",  // Set type as Income
                     category,
                     amount,
-                    iconRes,
+                    selectedIconResId,
                     description,
                     selectedRecurring
             );
 
-            // Remove the old transaction if editing
+            // Remove old transaction if editing
             if (editingTransaction != null) {
                 TransactionsHandler.transactions.remove(editingTransaction);
             }
 
-            // Add the new/updated transaction
+            // Add new transaction
             TransactionsHandler.transactions.add(transaction);
 
-            // Create the Notification object with the recurringText value set
-            String notificationTime = KeyboardBehavior.getCurrentTime();
-            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime, selectedRecurring, iconRes);
+            // Save to Firestore
+            FirestoreManager.saveTransaction(transaction);
 
-            NotificationsFragment notificationsFragment = (NotificationsFragment) requireActivity().getSupportFragmentManager()
-                    .findFragmentByTag(NotificationsFragment.class.getSimpleName());
+            // Create notification if recurring transaction
+            if (!selectedRecurring.equals("None")) {
+                Notification notification = new Notification(
+                        "Transaction",
+                        category + " | ₱" + amount,
+                        KeyboardBehavior.getCurrentTime(),
+                        selectedRecurring,
+                        selectedIconResId
+                );
 
-            if (notificationsFragment != null) {
-                notificationsFragment.addNotification(newNotification);
+                FirestoreManager.saveNotification(notification, transaction.getId());
             }
 
-            ReportsFragment reportsFragment = (ReportsFragment) requireActivity().getSupportFragmentManager()
+            // Refresh UI
+            ReportsFragment reportsFragment = (ReportsFragment) requireActivity()
+                    .getSupportFragmentManager()
                     .findFragmentByTag(ReportsFragment.class.getSimpleName());
             if (reportsFragment != null) {
-                reportsFragment.onResume();  // Triggers update of charts and values
+                reportsFragment.onResume();
             }
 
             TransactionsFragment transactionsFragment = (TransactionsFragment) requireActivity()
                     .getSupportFragmentManager()
                     .findFragmentByTag(TransactionsFragment.class.getSimpleName());
-
             if (transactionsFragment != null) {
                 transactionsFragment.refreshTransactions();
             }
 
+            // Close dialog/activity
             Fragment parent = getParentFragment();
             if (parent instanceof DialogFragment) {
                 ((DialogFragment) parent).dismiss();
@@ -241,7 +248,6 @@ public class AddIncomeFragment extends Fragment {
                 requireActivity().finish();
             }
         });
-
 
         cancelBtn.setOnClickListener(v -> {
             Fragment parent = getParentFragment();

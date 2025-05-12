@@ -11,7 +11,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Transaction implements Parcelable {
-
+    private String id;
     // Income or Expense
     private String type;
 
@@ -31,6 +31,10 @@ public class Transaction implements Parcelable {
 
     private java.util.Date parsedDate;
 
+    public Transaction() {
+        // Required empty constructor for Firestore
+    }
+
     // Constructor with default recurring = "None"
     public Transaction(String type, String category, float amount, int iconID, String description) {
         this(type, category, amount, iconID, description, "None");
@@ -45,6 +49,7 @@ public class Transaction implements Parcelable {
         this.description = description;
         this.recurring = recurring;
         this.dateAndTime = getCurrentDateTime();
+        this.id = java.util.UUID.randomUUID().toString();
     }
 
     protected Transaction(Parcel in) {
@@ -107,6 +112,14 @@ public class Transaction implements Parcelable {
         dest.writeString(recurring);
         dest.writeString(description);
         dest.writeLong(parsedDate != null ? parsedDate.getTime() : -1L);
+    }
+
+    // Add this method to set parsed date from Firestore timestamp
+    public void setParsedDate(Date date) {
+        this.parsedDate = date;
+        // Update dateAndTime string
+        SimpleDateFormat format = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault());
+        this.dateAndTime = format.format(date);
     }
 
 
@@ -177,6 +190,14 @@ public class Transaction implements Parcelable {
 
     public float getRawAmount() {
         return amount;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
 

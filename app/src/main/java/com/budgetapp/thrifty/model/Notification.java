@@ -1,41 +1,70 @@
 package com.budgetapp.thrifty.model;
 
 public class Notification {
-    private String title;
+    private String type;
     private String description;
     private String time;
+    private String recurring;
+    private int iconID;
 
-    private String recurringText; // Recurring type (Daily, Weekly, etc.)
-
-    private int iconResId; // Icon resource ID for the notification
-
-    // Constructor that accepts all necessary fields including recurring text and iconResId
-    public Notification(String title, String description, String time, String recurringText, int iconResId) {
-        this.title = title;
+    public Notification(String type, String description, String time, String recurring, int iconID) {
+        this.type = type;
         this.description = description;
         this.time = time;
-        this.recurringText = recurringText;  // Set recurring type (Daily, Weekly, etc.)
-        this.iconResId = iconResId;  // Set the icon resource ID
+        this.recurring = recurring;
+        this.iconID = iconID;
     }
 
-    // Getter methods
-    public String getTitle() {
-        return title;
+    // Getters and setters
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getDescription() {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getTime() {
         return time;
     }
 
-    public int getIconResId() {
-        return iconResId;  // Return the icon resource ID
+    public void setTime(String time) {
+        this.time = time;
     }
 
-    public String getRecurringText() {
-        return recurringText;  // Return the recurring type (Daily, Weekly, etc.)
+    public String getRecurring() {
+        return recurring;
+    }
+
+    public void setRecurring(String recurring) {
+        this.recurring = recurring;
+    }
+
+    public int getIconID() {
+        return iconID;
+    }
+
+    public void setIconID(int iconID) {
+        this.iconID = iconID;
+    }
+
+    // Optional: Override toString() for debugging
+    @Override
+    public String toString() {
+        return "Notification{" +
+                "type='" + type + '\'' +
+                ", description='" + description + '\'' +
+                ", time='" + time + '\'' +
+                ", recurring='" + recurring + '\'' +
+                ", iconID=" + iconID +
+                '}';
     }
 }
