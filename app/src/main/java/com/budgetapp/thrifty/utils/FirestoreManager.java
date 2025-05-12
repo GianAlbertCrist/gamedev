@@ -157,22 +157,45 @@ public class FirestoreManager {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
 
+        String userId = currentUser.getUid();
+        String transactionId = transaction.getId(); // Get the ID
+
+        Log.d(TAG, "Updating transaction with ID: " + transactionId);
+
+        DocumentReference transactionRef = db.collection("users")
+                .document(userId)
+                .collection("transactions")
+                .document(transactionId);
+
+        // Prepare the update data
         Map<String, Object> transactionData = new HashMap<>();
         transactionData.put("type", transaction.getType());
         transactionData.put("category", transaction.getCategory());
         transactionData.put("amount", transaction.getRawAmount());
-        transactionData.put("dateTime", transaction.getParsedDate());
         transactionData.put("iconID", transaction.getIconID());
         transactionData.put("recurring", transaction.getRecurring());
         transactionData.put("description", transaction.getDescription());
+        transactionData.put("dateTime", transaction.getParsedDate() != null ?
+                transaction.getParsedDate() : new Date());
 
-        db.collection("users")
-                .document(currentUser.getUid())
-                .collection("transactions")
-                .document(transaction.getId())
-                .set(transactionData)
-                .addOnSuccessListener(unused -> Log.d(TAG, "Transaction updated successfully"))
-                .addOnFailureListener(e -> Log.e(TAG, "Error updating transaction", e));
+        // Update the document
+        transactionRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        transactionRef.update(transactionData)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Transaction successfully updated");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error updating transaction", e);
+                                });
+                    } else {
+                        Log.e(TAG, "Transaction document not found: " + transactionId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error checking transaction existence", e);
+                });
     }
 
     public interface OnDeleteTransactionListener {

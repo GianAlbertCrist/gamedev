@@ -2,6 +2,7 @@ package com.budgetapp.thrifty.transaction;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ public class AddIncomeFragment extends Fragment {
     private int selectedIconResId = R.drawable.ic_salary;
     private String selectedRecurring = "None";
     private EditText descriptionInput;
+    Transaction editingTransaction;
 
     public AddIncomeFragment() {
 
@@ -48,7 +50,6 @@ public class AddIncomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Transaction editingTransaction;
         if (getArguments() != null && getArguments().containsKey("transactionToEdit")) {
             editingTransaction = getArguments().getParcelable("transactionToEdit");
         } else {
@@ -62,8 +63,8 @@ public class AddIncomeFragment extends Fragment {
         descriptionInput = view.findViewById(R.id.income_description);
         ImageButton recurringButton = view.findViewById(R.id.ic_recurring);
 
-        Button confirmBtn = requireActivity().findViewById(R.id.confirm_button);
-        Button cancelBtn = requireActivity().findViewById(R.id.cancel_button);
+        Button confirmBtn = view.findViewById(R.id.confirm_button);
+        Button cancelBtn = view.findViewById(R.id.cancel_button);
 
         // 1. Select all on focus
         numberInput.setOnFocusChangeListener((v, hasFocus) -> {
@@ -210,8 +211,17 @@ public class AddIncomeFragment extends Fragment {
             if (editingTransaction != null) {
                 // Update existing transaction
                 transaction.setId(editingTransaction.getId());
+                transaction.setParsedDate(editingTransaction.getParsedDate()); // Preserve the original date
+
+                Log.d("AddIncomeFragment", "Updating transaction with ID: " + transaction.getId());
+
                 FirestoreManager.updateTransaction(transaction);
-                TransactionsHandler.transactions.remove(editingTransaction);
+
+                // Update local list
+                int index = TransactionsHandler.transactions.indexOf(editingTransaction);
+                if (index != -1) {
+                    TransactionsHandler.transactions.set(index, transaction);
+                }
             } else {
                 // Save new transaction
                 FirestoreManager.saveTransaction(transaction);
