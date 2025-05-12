@@ -121,9 +121,9 @@
                 android:id="@+id/cancel_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#E0F0E0"
+                android:backgroundTint="@color/primary_color"
                 android:text="Cancel"
-                android:textColor="@color/background_color" />
+                android:textColor="@color/white" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
