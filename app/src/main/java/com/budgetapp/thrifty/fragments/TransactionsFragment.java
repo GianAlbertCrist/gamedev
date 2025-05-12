@@ -6,17 +6,21 @@ import android.os.Bundle;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
+
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.PopupWindow;
 import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
+import com.budgetapp.thrifty.transaction.AddExpenseFragment;
+import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.utils.FormatUtils;
 
@@ -24,6 +28,7 @@ import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 
 public class TransactionsFragment extends Fragment {
 
@@ -200,6 +205,55 @@ public class TransactionsFragment extends Fragment {
             category.setText(t.getCategory());
             category.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
 
+            itemView.setOnLongClickListener(v -> {
+                @SuppressLint("InflateParams") View popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_transaction_menu, null);
+                PopupWindow popupWindow = new PopupWindow(
+                        popupView,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        true
+                );
+
+                popupWindow.setElevation(10f);
+                popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.transaction_container));
+                popupWindow.setOutsideTouchable(true);
+                popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+
+                int popupWidth = popupView.getMeasuredWidth();
+                int popupHeight = popupView.getMeasuredHeight();
+
+                int[] location = new int[2];
+                v.getLocationOnScreen(location);
+
+                int xOffset = location[0] + (v.getWidth() / 2) - (popupWidth / 2);
+                int yOffset = location[1] + (v.getHeight() / 2) - (popupHeight / 2);
+
+                popupWindow.showAtLocation(v, Gravity.NO_GRAVITY, xOffset, yOffset);
+
+                // Handle Edit
+                popupView.findViewById(R.id.edit_button).setOnClickListener(btn -> {
+                    TransactionEditDialogFragment dialog = TransactionEditDialogFragment.newInstance(t);
+                    dialog.setOnDismissListener(this::refreshTransactions);
+                    dialog.show(requireActivity().getSupportFragmentManager(), "editDialog");
+                    popupWindow.dismiss();
+                });
+
+                // Handle Delete
+                popupView.findViewById(R.id.delete_button).setOnClickListener(btn -> {
+                    TransactionsHandler.transactions.remove(t);
+                    applyDefaultFilter(); // Refresh the list
+                    ReportsFragment reportsFragment = (ReportsFragment) requireActivity().getSupportFragmentManager()
+                            .findFragmentByTag(ReportsFragment.class.getSimpleName());
+                    if (reportsFragment != null) {
+                        reportsFragment.onResume();
+                    }
+                    popupWindow.dismiss();
+                });
+
+                return true;
+            });
+
+
             // Format amount using FormatUtils
             float rawAmount = t.getRawAmount();
             String displayAmount;
@@ -228,10 +282,15 @@ public class TransactionsFragment extends Fragment {
 
             description.setOnClickListener(v -> {
                 DescriptionDialogFragment descriptionDialogFragment = DescriptionDialogFragment.newInstance(t);
-                descriptionDialogFragment.show(((AppCompatActivity) getActivity()).getSupportFragmentManager(), "descriptionDialog");
+                descriptionDialogFragment.show(requireActivity().getSupportFragmentManager(), "descriptionDialog");
             });
 
             container.addView(itemView);
         }
     }
+
+    public void refreshTransactions() {
+        applyDefaultFilter();  // This method already updates your transaction list
+    }
+
 }

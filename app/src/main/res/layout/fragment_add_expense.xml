@@ -179,6 +179,40 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingTop="16dp"
+            android:paddingBottom="32dp">
+
+            <Button
+                android:id="@+id/cancel_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/poppins"
+                android:text="Cancel"
+                android:backgroundTint="@color/red"
+                android:textColor="@color/white"
+                android:textSize="22sp"/>
+
+            <View android:layout_width="16dp" android:layout_height="0dp" />
+
+            <Button
+                android:id="@+id/confirm_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/poppins"
+                android:text="Confirm"
+                android:backgroundTint="@color/primary_color"
+                android:textColor="@color/white"
+                android:textSize="22sp"/>
+        </LinearLayout>
+
     </LinearLayout>
 
 </ScrollView>

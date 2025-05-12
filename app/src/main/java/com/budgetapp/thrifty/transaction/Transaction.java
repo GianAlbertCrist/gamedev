@@ -55,7 +55,8 @@ public class Transaction implements Parcelable {
         iconID = in.readInt();
         recurring = in.readString();
         description = in.readString();
-        parsedDate = new Date(in.readLong()); // Read the Date as a long
+        long time = in.readLong();
+        parsedDate = time > 0 ? new Date(time) : new Date();  // fallback to now
     }
 
     public static final Creator<Transaction> CREATOR = new Creator<Transaction>() {
@@ -105,7 +106,7 @@ public class Transaction implements Parcelable {
         dest.writeInt(iconID);
         dest.writeString(recurring);
         dest.writeString(description);
-        dest.writeLong(parsedDate.getTime());  // Writing the Date as long
+        dest.writeLong(parsedDate != null ? parsedDate.getTime() : -1L);
     }
 
 
@@ -132,7 +133,8 @@ public class Transaction implements Parcelable {
 
     private String getCurrentDateTime() {
         Calendar calendar = Calendar.getInstance();
-        this.parsedDate = calendar.getTime();
+        Date now = calendar.getTime();
+        this.parsedDate = now != null ? now : new Date();
         SimpleDateFormat format = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault());
         return format.format(parsedDate);
     }

@@ -15,10 +15,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
 import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.fragments.ReportsFragment;
+import com.budgetapp.thrifty.fragments.TransactionsFragment;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
@@ -44,6 +47,13 @@ public class AddIncomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        Transaction editingTransaction;
+        if (getArguments() != null && getArguments().containsKey("transactionToEdit")) {
+            editingTransaction = getArguments().getParcelable("transactionToEdit");
+        } else {
+            editingTransaction = null;
+        }
+
         ConstraintLayout categorySelector = view.findViewById(R.id.category_selector);
         TextView categoryText = view.findViewById(R.id.category_text);
         ImageView categoryIcon = view.findViewById(R.id.category_icon);
@@ -51,8 +61,8 @@ public class AddIncomeFragment extends Fragment {
         descriptionInput = view.findViewById(R.id.income_description);
         ImageButton recurringButton = view.findViewById(R.id.ic_recurring);
 
-        Button confirmBtn = requireActivity().findViewById(R.id.confirm_button);
-        Button cancelBtn = requireActivity().findViewById(R.id.cancel_button);
+        Button confirmBtn = view.findViewById(R.id.confirm_button);
+        Button cancelBtn = view.findViewById(R.id.cancel_button);
 
         // 1. Select all on focus
         numberInput.setOnFocusChangeListener((v, hasFocus) -> {
@@ -181,6 +191,7 @@ public class AddIncomeFragment extends Fragment {
 
             int iconRes = selectedIconResId;
 
+            // Create updated transaction
             Transaction transaction = new Transaction(
                     "Income",
                     category,
@@ -190,23 +201,64 @@ public class AddIncomeFragment extends Fragment {
                     selectedRecurring
             );
 
+            // Remove the old transaction if editing
+            if (editingTransaction != null) {
+                TransactionsHandler.transactions.remove(editingTransaction);
+            }
+
+            // Add the new/updated transaction
             TransactionsHandler.transactions.add(transaction);
-            String notificationTime = KeyboardBehavior.getCurrentTime();
 
             // Create the Notification object with the recurringText value set
+            String notificationTime = KeyboardBehavior.getCurrentTime();
             Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime, selectedRecurring, iconRes);
 
-            // Retrieve the NotificationsFragment instance and add the notification
             NotificationsFragment notificationsFragment = (NotificationsFragment) requireActivity().getSupportFragmentManager()
                     .findFragmentByTag(NotificationsFragment.class.getSimpleName());
 
             if (notificationsFragment != null) {
-                notificationsFragment.addNotification(newNotification);  // Add the notification to the fragment
+                notificationsFragment.addNotification(newNotification);
             }
 
-            requireActivity().finish();
+            ReportsFragment reportsFragment = (ReportsFragment) requireActivity().getSupportFragmentManager()
+                    .findFragmentByTag(ReportsFragment.class.getSimpleName());
+            if (reportsFragment != null) {
+                reportsFragment.onResume();  // Triggers update of charts and values
+            }
+
+            TransactionsFragment transactionsFragment = (TransactionsFragment) requireActivity()
+                    .getSupportFragmentManager()
+                    .findFragmentByTag(TransactionsFragment.class.getSimpleName());
+
+            if (transactionsFragment != null) {
+                transactionsFragment.refreshTransactions();
+            }
+
+            Fragment parent = getParentFragment();
+            if (parent instanceof DialogFragment) {
+                ((DialogFragment) parent).dismiss();
+            } else {
+                requireActivity().finish();
+            }
         });
 
-        cancelBtn.setOnClickListener(v -> requireActivity().finish());
+
+        cancelBtn.setOnClickListener(v -> {
+            Fragment parent = getParentFragment();
+            if (parent instanceof DialogFragment) {
+                ((DialogFragment) parent).dismiss();
+            } else {
+                requireActivity().finish();
+            }
+        });
+
+        if (editingTransaction != null) {
+            categoryText.setText(editingTransaction.getCategory());
+            categoryIcon.setImageResource(editingTransaction.getIconID());
+            numberInput.setText(String.valueOf(editingTransaction.getRawAmount()));
+            descriptionInput.setText(editingTransaction.getDescription());
+            selectedIconResId = editingTransaction.getIconID();
+            selectedRecurring = editingTransaction.getRecurring();
+        }
     }
 }
