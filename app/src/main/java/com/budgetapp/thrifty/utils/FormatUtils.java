@@ -1,32 +1,35 @@
 package com.budgetapp.thrifty.utils;
 
 import android.annotation.SuppressLint;
-
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 public class FormatUtils {
 
     @SuppressLint("DefaultLocale")
     public static String formatAmount(double amount, boolean isIncomeOrExpense) {
         if (isIncomeOrExpense) {
-            if (amount >= 1_000_000) {
-                return (amount % 1_000_000 == 0)
-                        ? String.format("%.0fM", amount / 1_000_000)
-                        : String.format("%.1fM", amount / 1_000_000);
-            } else if (amount >= 200_000) {
-                return (amount % 1_000 == 0)
-                        ? String.format("%.0fK", amount / 1_000)
-                        : String.format("%.1fK", amount / 1_000);
+            // Array of suffixes for different scales
+            String[] suffixes = {"", "K", "M", "B", "T", "Qa", "E", "Z", "Y"};
+            int suffixIndex = 0;
+            double scaledAmount = amount;
+
+            // Scale down the number and determine appropriate suffix
+            while (scaledAmount >= 1000 && suffixIndex < suffixes.length - 1) {
+                scaledAmount /= 1000;
+                suffixIndex++;
             }
-        } else {
-            if (amount >= 1_000_000) {
-                return String.format("%.2fM", amount / 1_000_000);
+
+            // Format with appropriate precision
+            if (suffixIndex > 0) {
+                if (scaledAmount % 1 == 0) {
+                    return String.format("%.0f%s", scaledAmount, suffixes[suffixIndex]);
+                } else {
+                    return String.format("%.1f%s", scaledAmount, suffixes[suffixIndex]);
+                }
             }
         }
 
-        // Fallback: Force .00 if whole number, with commas (e.g. 12,000.00)
+        // Fallback: Format with commas and two decimal places
         DecimalFormat df = new DecimalFormat("#,##0.00");
         return df.format(amount);
     }

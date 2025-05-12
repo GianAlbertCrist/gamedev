@@ -54,29 +54,27 @@
         android:orientation="vertical">
 
         <HorizontalScrollView
-            android:layout_width="wrap_content"
+            android:layout_width="120dp"
             android:layout_height="wrap_content"
-            android:scrollbars="none">
+            android:scrollbars="none"
+            android:fillViewport="true">
 
             <TextView
                 android:id="@+id/transaction_amount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollHorizontally="true"
-                android:singleLine="true"
-                android:text="- ₱500"
-                android:textColor="#FF6B6B"
+                android:gravity="end"
+                android:text="amount"
                 android:textSize="20sp"
                 android:textStyle="bold" />
-
         </HorizontalScrollView>
 
         <TextView
             android:id="@+id/transaction_datetime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="10:50 AM - Apr 8"
+            android:text="time"
             android:textColor="@color/black"
-            android:textSize="12sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 </LinearLayout>

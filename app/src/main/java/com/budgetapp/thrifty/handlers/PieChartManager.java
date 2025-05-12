@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 
 import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.utils.FormatUtils;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;
@@ -52,7 +53,7 @@ public class PieChartManager {
 
         // Calculate balance
         float balance = income - expense;
-        Log.d(TAG, "Calculated balance: " + balance);
+        Log.d(TAG, "Calculated balance: " + FormatUtils.formatAmount(balance, true));
 
         // Set center text color based on balance
         if (balance > 0) {

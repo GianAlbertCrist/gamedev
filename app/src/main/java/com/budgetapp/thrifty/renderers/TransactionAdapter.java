@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.fragments.DescriptionDialogFragment;
+import com.budgetapp.thrifty.utils.FormatUtils;
 
 
 import java.util.List;
@@ -100,21 +101,23 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.category.setTypeface(poppins);
         holder.category.setTextColor(ContextCompat.getColor(context, R.color.black));
 
-        // Display amount with proper formatting
+        // Display amount with proper formatting using FormatUtils
         float amt = t.getRawAmount();
         String displayAmount;
         int color;
 
         if (amt == 0f) {
-            displayAmount = String.format("₱%.2f", amt);
+            displayAmount = "₱0.00";
             color = ContextCompat.getColor(context, R.color.background_color);
         } else {
-            displayAmount = String.format("%s₱%.2f",
-                    "Income".equalsIgnoreCase(t.getType()) ? "+" : "-",
-                    amt
+            boolean isIncome = "Income".equalsIgnoreCase(t.getType());
+            String formattedAmount = FormatUtils.formatAmount(amt, true);
+            displayAmount = String.format("%s₱%s",
+                    isIncome ? "+" : "-",
+                    formattedAmount
             );
             color = ContextCompat.getColor(context,
-                    "Income".equalsIgnoreCase(t.getType()) ? R.color.income_green : R.color.red
+                    isIncome ? R.color.income_green : R.color.red
             );
         }
 

@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.fragments.DescriptionDialogFragment;
+import com.budgetapp.thrifty.utils.FormatUtils;
 
 
 import java.util.ArrayList;
@@ -29,13 +30,11 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingAdapter.ViewHold
     private final List<Transaction> transactions;
     private final Context context;
     private final boolean isIncomeRanking; // true for income, false for expense
-    private final boolean sortHighToLow; // true for high-to-low, false for low-to-high
 
     public RankingAdapter(Context context, List<Transaction> transactions, boolean isIncomeRanking, boolean sortHighToLow) {
         this.context = context;
         this.transactions = filterAndSortTransactions(transactions, isIncomeRanking, sortHighToLow);
         this.isIncomeRanking = isIncomeRanking;
-        this.sortHighToLow = sortHighToLow;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -79,10 +78,14 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingAdapter.ViewHold
         holder.category.setTextColor(ContextCompat.getColor(context, R.color.black));
 
         float amount = transaction.getRawAmount();
-        String displayAmount = String.format("%s₱%.2f",
+
+        // Use FormatUtils to format the amount
+        String formattedAmount = FormatUtils.formatAmount(amount, true);
+        String displayAmount = String.format("%s₱%s",
                 isIncomeRanking ? "+" : "-",
-                amount
+                formattedAmount
         );
+
         int color = ContextCompat.getColor(context, isIncomeRanking ? R.color.income_green : R.color.red);
 
         holder.amount.setText(displayAmount);
@@ -102,7 +105,6 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-
         return transactions.size();
     }
 

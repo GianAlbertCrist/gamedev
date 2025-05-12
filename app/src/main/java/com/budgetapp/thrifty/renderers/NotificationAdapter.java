@@ -5,18 +5,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.model.Notification;
+import com.budgetapp.thrifty.utils.FormatUtils;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
     private List<Notification> notificationList;
+    private static final String TAG = "NotificationAdapter";
 
     public NotificationAdapter(List<Notification> notificationList) {
         this.notificationList = notificationList;
@@ -33,9 +38,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         Notification notification = notificationList.get(position);
 
-        // Set notification title, description, and time
+        // Set notification title
         holder.notificationTitle.setText(notification.getTitle());
-        holder.notificationDescription.setText(notification.getDescription());
+
+        // Format amount in description if it contains a currency value
+        String description = notification.getDescription();
+        String formattedDescription = formatDescriptionAmount(description);
+        holder.notificationDescription.setText(formattedDescription);
+
         holder.notificationTime.setText(notification.getTime());
 
         // Set the recurring type (Daily, Weekly, etc.)
@@ -49,6 +59,34 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         } else {
             holder.notificationIcon.setImageResource(R.drawable.icnotif_transactions); // Default transaction icon
         }
+    }
+
+    /**
+     * Format amount in description if it contains a currency value
+     * Expected format: "Category | ₱amount"
+     */
+    private String formatDescriptionAmount(String description) {
+        try {
+            // Check if description contains a currency amount pattern
+            Pattern pattern = Pattern.compile("(.*\\|\\s*₱)(\\d+(\\.\\d+)?)(.*)");
+            Matcher matcher = pattern.matcher(description);
+
+            if (matcher.find()) {
+                String prefix = matcher.group(1); // "Category | ₱"
+                String amountStr = matcher.group(2); // "1234.56"
+                String suffix = matcher.group(4); // Any text after the amount
+
+                double amount = Double.parseDouble(amountStr);
+                String formattedAmount = FormatUtils.formatAmount(amount, true);
+
+                return prefix + formattedAmount + suffix;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error formatting notification description: " + e.getMessage());
+        }
+
+        // Return original description if no formatting needed or if an error occurred
+        return description;
     }
 
     @Override

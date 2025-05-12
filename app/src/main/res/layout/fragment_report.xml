@@ -72,17 +72,25 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/pieChart" />
 
-            <TextView
-                android:id="@+id/tvBalanceAmount"
+            <HorizontalScrollView
+                android:id="@+id/balanceAmountScrollView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/initial_money"
-                android:textColor="@color/primary_color"
-                android:textSize="@dimen/text_size_xlarge"
-                android:textStyle="bold"
+                android:scrollbars="none"
+                android:fillViewport="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvCurrentBalance" />
+                app:layout_constraintTop_toBottomOf="@id/tvCurrentBalance">
+
+                <TextView
+                    android:id="@+id/tvBalanceAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/initial_money"
+                    android:textColor="@color/primary_color"
+                    android:textSize="@dimen/text_size_xlarge"
+                    android:textStyle="bold" />
+            </HorizontalScrollView>
 
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/verticalGuideline"
@@ -103,20 +111,28 @@
                 android:textSize="@dimen/text_size_medium"
                 app:layout_constraintEnd_toStartOf="@id/verticalGuideline"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvBalanceAmount" />
+                app:layout_constraintTop_toBottomOf="@id/balanceAmountScrollView" />
 
-            <TextView
-                android:id="@+id/tvTotalIncome"
+            <HorizontalScrollView
+                android:id="@+id/totalIncomeScrollView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@string/initial_money"
-                android:textColor="@color/primary_color"
-                android:textSize="@dimen/text_size_large"
-                android:textStyle="bold"
+                android:scrollbars="none"
+                android:fillViewport="true"
                 app:layout_constraintEnd_toStartOf="@id/verticalGuideline"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvIncomeLabel" />
+                app:layout_constraintTop_toBottomOf="@id/tvIncomeLabel">
+
+                <TextView
+                    android:id="@+id/tvTotalIncome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/initial_money"
+                    android:textColor="@color/primary_color"
+                    android:textSize="@dimen/text_size_large"
+                    android:textStyle="bold" />
+            </HorizontalScrollView>
 
             <TextView
                 android:id="@+id/tvExpenseLabel"
@@ -131,18 +147,26 @@
                 app:layout_constraintStart_toEndOf="@id/verticalGuideline"
                 app:layout_constraintTop_toTopOf="@id/tvIncomeLabel" />
 
-            <TextView
-                android:id="@+id/tvTotalExpense"
+            <HorizontalScrollView
+                android:id="@+id/totalExpenseScrollView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@string/initial_money"
-                android:textColor="@color/red"
-                android:textSize="@dimen/text_size_large"
-                android:textStyle="bold"
+                android:scrollbars="none"
+                android:fillViewport="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/verticalGuideline"
-                app:layout_constraintTop_toBottomOf="@id/tvExpenseLabel" />
+                app:layout_constraintTop_toBottomOf="@id/tvExpenseLabel">
+
+                <TextView
+                    android:id="@+id/tvTotalExpense"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/initial_money"
+                    android:textColor="@color/red"
+                    android:textSize="@dimen/text_size_large"
+                    android:textStyle="bold" />
+            </HorizontalScrollView>
 
             <TextView
                 android:id="@+id/trendToggle"
@@ -163,7 +187,7 @@
                 android:textSize="16sp"
                 app:drawableEndCompat="@drawable/category_chooser"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvTotalExpense" />
+                app:layout_constraintTop_toBottomOf="@id/totalExpenseScrollView" />
 
             <com.github.mikephil.charting.charts.BarChart
                 android:id="@+id/barChart"

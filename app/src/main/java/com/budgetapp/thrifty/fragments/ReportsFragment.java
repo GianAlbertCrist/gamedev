@@ -18,6 +18,7 @@ import com.budgetapp.thrifty.handlers.PieChartManager;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.RankingAdapter;
+import com.budgetapp.thrifty.utils.FormatUtils;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 
@@ -150,17 +151,17 @@ public class ReportsFragment extends Fragment {
 
             Log.d(TAG, "Income: " + income + ", Expense: " + expense + ", Balance: " + balance);
 
-            // Update text views
+            // Update text views with formatted values using FormatUtils
             if (tvTotalIncome != null) {
-                tvTotalIncome.setText(String.format(requireContext().getString(R.string.currency_format), income));
+                tvTotalIncome.setText(String.format("₱ %s", FormatUtils.formatAmount(income, true)));
             }
 
             if (tvTotalExpense != null) {
-                tvTotalExpense.setText(String.format(requireContext().getString(R.string.currency_format), expense));
+                tvTotalExpense.setText(String.format("₱ %s", FormatUtils.formatAmount(expense, true)));
             }
 
             if (tvBalanceAmount != null) {
-                tvBalanceAmount.setText(String.format(requireContext().getString(R.string.currency_format), balance));
+                tvBalanceAmount.setText(String.format("₱ %s", FormatUtils.formatAmount(balance, true)));
                 // Set color based on balance value
                 if (balance < 0) {
                     tvCurrentBalance.setTextColor(ContextCompat.getColor(requireContext(), R.color.red));

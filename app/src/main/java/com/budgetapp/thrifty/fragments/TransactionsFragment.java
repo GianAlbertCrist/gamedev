@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.utils.FormatUtils;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
@@ -188,26 +189,30 @@ public class TransactionsFragment extends Fragment {
 
             View itemView = inflater.inflate(R.layout.item_transaction, container, false);
 
+            // Use our adapter's binding logic to set up the item view
             ImageView icon = itemView.findViewById(R.id.transaction_icon);
             TextView category = itemView.findViewById(R.id.transaction_category);
             TextView amount = itemView.findViewById(R.id.transaction_amount);
             TextView date = itemView.findViewById(R.id.transaction_datetime);
+            TextView description = itemView.findViewById(R.id.transaction_description);
 
             icon.setImageResource(t.getIconID());
             category.setText(t.getCategory());
+            category.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
 
+            // Format amount using FormatUtils
             float rawAmount = t.getRawAmount();
             String displayAmount;
             int amountColor;
 
             if (rawAmount == 0f) {
-                displayAmount = String.format("₱%.2f", rawAmount);
+                displayAmount = "₱" + FormatUtils.formatAmount(rawAmount, false);
                 amountColor = ContextCompat.getColor(requireContext(), R.color.black);
             } else if ("Income".equalsIgnoreCase(t.getType())) {
-                displayAmount = String.format("+₱%.2f", rawAmount);
+                displayAmount = "+₱" + FormatUtils.formatAmount(rawAmount, true);
                 amountColor = ContextCompat.getColor(requireContext(), R.color.income_green);
             } else {
-                displayAmount = String.format("-₱%.2f", rawAmount);
+                displayAmount = "-₱" + FormatUtils.formatAmount(rawAmount, true);
                 amountColor = ContextCompat.getColor(requireContext(), R.color.red);
             }
 
@@ -216,19 +221,15 @@ public class TransactionsFragment extends Fragment {
             amount.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
 
             date.setText(t.getDateAndTime());
-            category.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
-            amount.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
             date.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
 
-            TextView description = itemView.findViewById(R.id.transaction_description);
             description.setText(t.getDescription());
-
+            description.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.poppins));
 
             description.setOnClickListener(v -> {
                 DescriptionDialogFragment descriptionDialogFragment = DescriptionDialogFragment.newInstance(t);
                 descriptionDialogFragment.show(((AppCompatActivity) getActivity()).getSupportFragmentManager(), "descriptionDialog");
             });
-
 
             container.addView(itemView);
         }
