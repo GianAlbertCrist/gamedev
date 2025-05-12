@@ -50,6 +50,7 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.25" />
 
+            <!-- Normal profile image (default view) -->
             <ImageView
                 android:id="@+id/profile_image"
                 android:layout_width="0dp"
@@ -63,10 +64,35 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintWidth_percent="0.2" />
 
+            <!-- Circular background for editing mode (initially invisible) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/profile_image_edit_container"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginEnd="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="40dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="4dp"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_percent="0.2">
+
+                <ImageView
+                    android:id="@+id/profile_image_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="3dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/sample_profile" />
+            </androidx.cardview.widget.CardView>
+
             <ImageButton
                 android:id="@+id/edit_profile_image"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="bottom|end"
                 android:background="@drawable/rounded_background"
                 android:backgroundTint="@color/primary_color"
