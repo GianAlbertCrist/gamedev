@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/recurring_popup"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/transaction_container"
+    android:padding="10dp">
+
+    <TextView android:id="@+id/option_none"
+        style="@style/PopupText" android:text="None" android:fontFamily="@font/poppins"/>
+    <TextView android:id="@+id/option_daily"
+        style="@style/PopupText" android:text="Daily" android:fontFamily="@font/poppins"/>
+    <TextView android:id="@+id/option_weekly"
+        style="@style/PopupText" android:text="Weekly" android:fontFamily="@font/poppins"/>
+    <TextView android:id="@+id/option_monthly"
+        style="@style/PopupText" android:text="Monthly" android:fontFamily="@font/poppins"/>
+    <TextView android:id="@+id/option_yearly"
+        style="@style/PopupText" android:text="Yearly" android:fontFamily="@font/poppins"/>
+</LinearLayout>

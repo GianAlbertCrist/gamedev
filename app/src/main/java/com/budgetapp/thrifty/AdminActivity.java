@@ -42,7 +42,6 @@ import java.util.List;
 public class AdminActivity extends AppCompatActivity {
     private UserAdapter adapter;
     private TextView currentPageText;
-    private ImageButton nextBtn, prevBtn;
     private ProgressBar loadingSpinner;
     private TextView totalUsers;
 
@@ -63,8 +62,8 @@ public class AdminActivity extends AppCompatActivity {
         totalUsers = findViewById(R.id.total_users);
 
         currentPageText = findViewById(R.id.current_page);
-        nextBtn = findViewById(R.id.next_btn);
-        prevBtn = findViewById(R.id.previous_btn);
+        ImageButton nextBtn = findViewById(R.id.next_btn);
+        ImageButton prevBtn = findViewById(R.id.previous_btn);
 
         List<User> userList = new ArrayList<>();
         adapter = new UserAdapter(this, userList, new UserAdapter.OnUserActionListener() {

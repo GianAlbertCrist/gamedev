@@ -9,10 +9,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
+import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.ScrollView;
+
+import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
@@ -25,7 +27,6 @@ public class AddIncomeFragment extends Fragment {
 
     private int selectedIconResId = R.drawable.ic_salary;
     private String selectedRecurring = "None";
-    private ScrollView scrollView;
     private EditText descriptionInput;
 
     public AddIncomeFragment() {
@@ -35,14 +36,12 @@ public class AddIncomeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_add_income, container, false);
-        scrollView = (ScrollView) view;
-        return view;
+        return inflater.inflate(R.layout.fragment_add_income, container, false);
     }
 
     @SuppressLint("NonConstantResourceId")
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         ConstraintLayout categorySelector = view.findViewById(R.id.category_selector);
@@ -64,88 +63,112 @@ public class AddIncomeFragment extends Fragment {
 
         // 2. Category recurring
         recurringButton.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(requireContext(), recurringButton, 0, 0, R.style.CustomPopupMenu);
-            popup.getMenuInflater().inflate(R.menu.recurring_menu, popup.getMenu());
+            @SuppressLint("InflateParams") View popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_recurring_menu, null);
+            PopupWindow popupWindow = new PopupWindow(popupView,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    true);
 
-            popup.setOnMenuItemClickListener(item -> {
-                int id = item.getItemId();
+            // Set background and animation (optional)
+            popupWindow.setElevation(10f);
+            popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.transaction_container));
+            popupWindow.setOutsideTouchable(true);
 
-                if (id == R.id.category_none) {
-                    selectedRecurring = "None";
-                } else if (id == R.id.category_daily) {
-                    selectedRecurring = "Daily";
-                } else if (id == R.id.category_weekly) {
-                    selectedRecurring = "Weekly";
-                } else if (id == R.id.category_monthly) {
-                    selectedRecurring = "Montly";
-                } else if (id == R.id.category_yearly) {
-                    selectedRecurring = "Yeary";
-                }
-
-                return true;
+            // Set click listeners
+            popupView.findViewById(R.id.option_none).setOnClickListener(item -> {
+                selectedRecurring = "None";
+                popupWindow.dismiss();
+            });
+            popupView.findViewById(R.id.option_daily).setOnClickListener(item -> {
+                selectedRecurring = "Daily";
+                popupWindow.dismiss();
+            });
+            popupView.findViewById(R.id.option_weekly).setOnClickListener(item -> {
+                selectedRecurring = "Weekly";
+                popupWindow.dismiss();
+            });
+            popupView.findViewById(R.id.option_monthly).setOnClickListener(item -> {
+                selectedRecurring = "Monthly";
+                popupWindow.dismiss();
+            });
+            popupView.findViewById(R.id.option_yearly).setOnClickListener(item -> {
+                selectedRecurring = "Yearly";
+                popupWindow.dismiss();
             });
 
-            popup.show();
+            // Show the popup aligned to the recurring button
+            popupWindow.showAsDropDown(recurringButton);
         });
 
         // 3. Category selection logic
         categorySelector.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(requireContext(), categorySelector, 0, 0, R.style.CustomPopupMenu);
-            popup.getMenuInflater().inflate(R.menu.income_category_menu, popup.getMenu());
+            @SuppressLint("InflateParams") View popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_income_category, null);
+            PopupWindow popupWindow = new PopupWindow(popupView,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    true);
 
-            popup.setOnMenuItemClickListener(item -> {
-                int id = item.getItemId();
+            popupWindow.setElevation(10f);
+            popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.transaction_container));
+            popupWindow.setOutsideTouchable(true);
+
+            // Helper method to attach click behavior
+            @SuppressLint("SetTextI18n") View.OnClickListener assignCategory = clicked -> {
+                int id = clicked.getId();
 
                 if (id == R.id.category_salary) {
                     categoryText.setText("Salary");
                     categoryIcon.setImageResource(R.drawable.ic_salary);
                     selectedIconResId = R.drawable.ic_salary;
-
                 } else if (id == R.id.category_investment) {
                     categoryText.setText("Investment");
                     categoryIcon.setImageResource(R.drawable.ic_investment);
                     selectedIconResId = R.drawable.ic_investment;
-
                 } else if (id == R.id.category_allowance) {
                     categoryText.setText("Allowance");
                     categoryIcon.setImageResource(R.drawable.ic_allowance);
                     selectedIconResId = R.drawable.ic_allowance;
-
                 } else if (id == R.id.category_bonus) {
                     categoryText.setText("Bonus");
                     categoryIcon.setImageResource(R.drawable.ic_bonus);
                     selectedIconResId = R.drawable.ic_bonus;
-
                 } else if (id == R.id.category_award) {
                     categoryText.setText("Award");
                     categoryIcon.setImageResource(R.drawable.ic_award);
                     selectedIconResId = R.drawable.ic_award;
-
                 } else if (id == R.id.category_divident) {
                     categoryText.setText("Divident");
                     categoryIcon.setImageResource(R.drawable.ic_divident);
                     selectedIconResId = R.drawable.ic_divident;
-
                 } else if (id == R.id.category_gambling) {
                     categoryText.setText("Gambling");
                     categoryIcon.setImageResource(R.drawable.ic_gambling);
                     selectedIconResId = R.drawable.ic_gambling;
-
                 } else if (id == R.id.category_tips) {
                     categoryText.setText("Tips");
                     categoryIcon.setImageResource(R.drawable.ic_tip);
                     selectedIconResId = R.drawable.ic_tip;
-
                 } else if (id == R.id.category_others) {
                     categoryText.setText("Others");
                     categoryIcon.setImageResource(R.drawable.ic_others);
                     selectedIconResId = R.drawable.ic_others;
                 }
 
-                return true;
-            });
+                popupWindow.dismiss();
+            };
 
-            popup.show();
+            // Attach listener to each category block
+            popupView.findViewById(R.id.category_salary).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_investment).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_allowance).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_bonus).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_award).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_divident).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_gambling).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_tips).setOnClickListener(assignCategory);
+            popupView.findViewById(R.id.category_others).setOnClickListener(assignCategory);
+
+            popupWindow.showAsDropDown(categorySelector);
         });
 
         // 4. Confirm button logic
@@ -174,7 +197,7 @@ public class AddIncomeFragment extends Fragment {
             Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime, selectedRecurring, iconRes);
 
             // Retrieve the NotificationsFragment instance and add the notification
-            NotificationsFragment notificationsFragment = (NotificationsFragment) getActivity().getSupportFragmentManager()
+            NotificationsFragment notificationsFragment = (NotificationsFragment) requireActivity().getSupportFragmentManager()
                     .findFragmentByTag(NotificationsFragment.class.getSimpleName());
 
             if (notificationsFragment != null) {
