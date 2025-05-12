@@ -42,7 +42,8 @@
             android:id="@+id/picture_najud"
             android:layout_width="70dp"
             android:layout_height="70dp"
-            android:scaleType="centerCrop"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
             android:src="@drawable/sample_profile"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

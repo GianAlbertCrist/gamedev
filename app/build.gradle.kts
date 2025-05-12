@@ -57,5 +57,6 @@ dependencies {
     implementation ("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation ("com.google.firebase:firebase-firestore:24.7.1")
     implementation("com.google.android.material:material:1.5.0")
 }

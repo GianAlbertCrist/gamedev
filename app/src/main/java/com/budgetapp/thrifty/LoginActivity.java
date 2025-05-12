@@ -23,6 +23,7 @@ import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
 
@@ -76,7 +77,6 @@ public class LoginActivity extends AppCompatActivity {
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            // User is already signed in, go to MainActivity
             updateUI(currentUser);
         }
     }
@@ -148,7 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                         updateUI(user);
                     } else {
                         Toast.makeText(LoginActivity.this,
-                                "Authentication failed: " + task.getException().getMessage(),
+                                "Authentication failed: Invalid password or email.",
                                 Toast.LENGTH_SHORT).show();
                         updateUI(null);
                     }
@@ -157,18 +157,33 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            // Save login state
-            SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-            preferences.edit()
-                    .putBoolean("isLoggedIn", true)
-                    .putString("userEmail", user.getEmail())
-                    .putString("userName", user.getDisplayName() != null ?
-                            user.getDisplayName() : user.getEmail())
-                    .apply();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            String uid = user.getUid();
 
-            // Proceed to main activity
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            finish();
+            db.collection("users").document(uid).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        String role = documentSnapshot.getString("role");
+
+                        if ("admin".equalsIgnoreCase(role)) {
+                            // Admin user
+                            startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                        } else {
+                            // Regular user (no doc or role is not admin)
+                            SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                            preferences.edit()
+                                    .putBoolean("isLoggedIn", true)
+                                    .putString("userEmail", user.getEmail())
+                                    .putString("userName", user.getDisplayName() != null ? user.getDisplayName() : user.getEmail())
+                                    .apply();
+
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        }
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to check user role.", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    });
         }
     }
 }
