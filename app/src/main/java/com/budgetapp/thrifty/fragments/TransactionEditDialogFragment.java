@@ -15,9 +15,14 @@ import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 
 public class TransactionEditDialogFragment extends DialogFragment {
     private Runnable onDismissListener;
+
+    public void setOnDismissListener(Runnable listener) {
+        this.onDismissListener = listener;
+    }
 
     public static TransactionEditDialogFragment newInstance(Transaction transaction) {
         TransactionEditDialogFragment dialog = new TransactionEditDialogFragment();
@@ -79,9 +84,6 @@ public class TransactionEditDialogFragment extends DialogFragment {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
     }
-    public void setOnDismissListener(Runnable listener) {
-        this.onDismissListener = listener;
-    }
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
@@ -89,4 +91,11 @@ public class TransactionEditDialogFragment extends DialogFragment {
         if (onDismissListener != null) onDismissListener.run();
     }
 
+    public void updateTransaction(Transaction transaction) {
+        FirestoreManager.updateTransaction(transaction);
+        if (onDismissListener != null) {
+            onDismissListener.run();
+        }
+        dismiss();
+    }
 }

@@ -22,6 +22,7 @@ import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.FormatUtils;
 
 import java.util.ArrayList;
@@ -240,14 +241,40 @@ public class TransactionsFragment extends Fragment {
 
                 // Handle Delete
                 popupView.findViewById(R.id.delete_button).setOnClickListener(btn -> {
-                    TransactionsHandler.transactions.remove(t);
-                    applyDefaultFilter(); // Refresh the list
-                    ReportsFragment reportsFragment = (ReportsFragment) requireActivity().getSupportFragmentManager()
-                            .findFragmentByTag(ReportsFragment.class.getSimpleName());
-                    if (reportsFragment != null) {
-                        reportsFragment.onResume();
-                    }
-                    popupWindow.dismiss();
+                    // Show loading dialog
+                    android.app.AlertDialog loadingDialog = new android.app.AlertDialog.Builder(requireContext())
+                            .setMessage("Deleting transaction...")
+                            .setCancelable(false)
+                            .create();
+                    loadingDialog.show();
+
+                    // Delete from Firestore first
+                    FirestoreManager.deleteTransaction(t.getId(), new FirestoreManager.OnDeleteTransactionListener() {
+                        @Override
+                        public void onSuccess() {
+                            requireActivity().runOnUiThread(() -> {
+                                // Only remove from local list after successful Firestore deletion
+                                TransactionsHandler.transactions.remove(t);
+                                loadingDialog.dismiss();
+                                refreshTransactions(); // Refresh UI
+                                android.widget.Toast.makeText(requireContext(),
+                                        "Transaction deleted successfully",
+                                        android.widget.Toast.LENGTH_SHORT).show();
+                            });
+                            popupWindow.dismiss();
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            requireActivity().runOnUiThread(() -> {
+                                loadingDialog.dismiss();
+                                refreshTransactions(); // Refresh UI
+                                android.widget.Toast.makeText(requireContext(),
+                                        "Failed to delete transaction: " + e.getMessage(),
+                                        android.widget.Toast.LENGTH_LONG).show();
+                            });
+                        }
+                    });
                 });
 
                 return true;
@@ -290,7 +317,7 @@ public class TransactionsFragment extends Fragment {
     }
 
     public void refreshTransactions() {
-        applyDefaultFilter();  // This method already updates your transaction list
+        applyDefaultFilter();
     }
 
 }

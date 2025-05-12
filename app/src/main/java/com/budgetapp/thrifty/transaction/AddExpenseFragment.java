@@ -185,12 +185,17 @@ public class AddExpenseFragment extends Fragment {
             String category = categoryText.getText().toString();
             String description = descriptionInput.getText().toString();
 
+            // Validate amount
             String amountStr = numberInput.getText().toString().trim();
-            float amount = amountStr.isEmpty() ? 0 : Float.parseFloat(amountStr);
+            if (amountStr.isEmpty()) {
+                numberInput.setError("Amount is required");
+                return;
+            }
+            float amount = Float.parseFloat(amountStr);
 
             int iconRes = selectedIconResId;
 
-            // Create updated transaction
+            // Create transaction
             Transaction transaction = new Transaction(
                     "Expense",
                     category,
@@ -200,18 +205,20 @@ public class AddExpenseFragment extends Fragment {
                     selectedRecurring
             );
 
-            // Remove old transaction if editing
             if (editingTransaction != null) {
+                // Update existing transaction
+                transaction.setId(editingTransaction.getId());
+                FirestoreManager.updateTransaction(transaction);
                 TransactionsHandler.transactions.remove(editingTransaction);
+            } else {
+                // Save new transaction
+                FirestoreManager.saveTransaction(transaction);
             }
 
-            // Add the new/edited transaction
+            // Add to local list
             TransactionsHandler.transactions.add(transaction);
 
-            // Save to Firestore
-            FirestoreManager.saveTransaction(transaction);
-
-            // Create and save notification if recurring
+            // Handle recurring notification
             if (!selectedRecurring.equals("None")) {
                 String notificationTime = KeyboardBehavior.getCurrentTime();
                 Notification newNotification = new Notification(
@@ -221,34 +228,18 @@ public class AddExpenseFragment extends Fragment {
                         selectedRecurring,
                         iconRes
                 );
-
                 FirestoreManager.saveNotification(newNotification, transaction.getId());
             }
 
-            ReportsFragment reportsFragment = (ReportsFragment) requireActivity().getSupportFragmentManager()
+            // Update reports
+            ReportsFragment reportsFragment = (ReportsFragment) requireActivity()
+                    .getSupportFragmentManager()
                     .findFragmentByTag(ReportsFragment.class.getSimpleName());
             if (reportsFragment != null) {
-                reportsFragment.onResume();  // Triggers update of charts and values
+                reportsFragment.onResume();
             }
 
-            TransactionsFragment transactionsFragment = (TransactionsFragment) requireActivity()
-                    .getSupportFragmentManager()
-                    .findFragmentByTag(TransactionsFragment.class.getSimpleName());
-
-            if (transactionsFragment != null) {
-                transactionsFragment.refreshTransactions();
-            }
-
-            Fragment parent = getParentFragment();
-            if (parent instanceof DialogFragment) {
-                ((DialogFragment) parent).dismiss();
-            } else {
-                requireActivity().finish();
-            }
-        });
-
-
-        cancelBtn.setOnClickListener(v -> {
+            // Close dialog/activity
             Fragment parent = getParentFragment();
             if (parent instanceof DialogFragment) {
                 ((DialogFragment) parent).dismiss();

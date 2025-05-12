@@ -187,57 +187,58 @@ public class AddIncomeFragment extends Fragment {
             String category = categoryText.getText().toString();
             String description = descriptionInput.getText().toString();
 
-            // Get and validate amount
+            // Validate amount
             String amountStr = numberInput.getText().toString().trim();
-            float amount = amountStr.isEmpty() ? 0 : Float.parseFloat(amountStr);
+            if (amountStr.isEmpty()) {
+                numberInput.setError("Amount is required");
+                return;
+            }
+            float amount = Float.parseFloat(amountStr);
 
-            // Create transaction object
+            int iconRes = selectedIconResId;
+
+            // Create transaction
             Transaction transaction = new Transaction(
-                    "Income",  // Set type as Income
+                    "Income",
                     category,
                     amount,
-                    selectedIconResId,
+                    iconRes,
                     description,
                     selectedRecurring
             );
 
-            // Remove old transaction if editing
             if (editingTransaction != null) {
+                // Update existing transaction
+                transaction.setId(editingTransaction.getId());
+                FirestoreManager.updateTransaction(transaction);
                 TransactionsHandler.transactions.remove(editingTransaction);
+            } else {
+                // Save new transaction
+                FirestoreManager.saveTransaction(transaction);
             }
 
-            // Add new transaction
+            // Add to local list
             TransactionsHandler.transactions.add(transaction);
 
-            // Save to Firestore
-            FirestoreManager.saveTransaction(transaction);
-
-            // Create notification if recurring transaction
+            // Handle recurring notification
             if (!selectedRecurring.equals("None")) {
-                Notification notification = new Notification(
+                String notificationTime = KeyboardBehavior.getCurrentTime();
+                Notification newNotification = new Notification(
                         "Transaction",
                         category + " | ₱" + amount,
-                        KeyboardBehavior.getCurrentTime(),
+                        notificationTime,
                         selectedRecurring,
-                        selectedIconResId
+                        iconRes
                 );
-
-                FirestoreManager.saveNotification(notification, transaction.getId());
+                FirestoreManager.saveNotification(newNotification, transaction.getId());
             }
 
-            // Refresh UI
+            // Update reports
             ReportsFragment reportsFragment = (ReportsFragment) requireActivity()
                     .getSupportFragmentManager()
                     .findFragmentByTag(ReportsFragment.class.getSimpleName());
             if (reportsFragment != null) {
                 reportsFragment.onResume();
-            }
-
-            TransactionsFragment transactionsFragment = (TransactionsFragment) requireActivity()
-                    .getSupportFragmentManager()
-                    .findFragmentByTag(TransactionsFragment.class.getSimpleName());
-            if (transactionsFragment != null) {
-                transactionsFragment.refreshTransactions();
             }
 
             // Close dialog/activity

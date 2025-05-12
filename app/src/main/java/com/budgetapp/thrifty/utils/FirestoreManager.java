@@ -4,7 +4,9 @@ import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
@@ -16,8 +18,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class FirestoreManager {
+    private static final String TAG = "FirestoreManager";
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private static final FirebaseAuth auth = FirebaseAuth.getInstance();
 
@@ -37,7 +41,7 @@ public class FirestoreManager {
                 .collection("profile")
                 .document("info")
                 .set(userData, SetOptions.merge())
-                .addOnFailureListener(e -> Log.e("FirestoreManager", "Error saving user profile", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving user profile", e));
     }
 
     // Save a transaction
@@ -64,7 +68,7 @@ public class FirestoreManager {
                 .collection("transactions")
                 .document(transactionId)
                 .set(transactionData)
-                .addOnFailureListener(e -> Log.e("FirestoreManager", "Error saving transaction", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving transaction", e));
     }
 
     // Save a notification
@@ -85,7 +89,7 @@ public class FirestoreManager {
                 .collection("notifications")
                 .document()
                 .set(notificationData)
-                .addOnFailureListener(e -> Log.e("FirestoreManager", "Error saving notification", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
     }
 
     // Load user profile data
@@ -103,7 +107,7 @@ public class FirestoreManager {
                         listener.onProfileLoaded(document.getData());
                     }
                 })
-                .addOnFailureListener(e -> Log.e("FirestoreManager", "Error loading profile", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Error loading profile", e));
     }
 
     // Load user transactions
@@ -138,14 +142,119 @@ public class FirestoreManager {
 
                             transactions.add(transaction);
                         } catch (Exception e) {
-                            Log.e("FirestoreManager", "Error converting document: " + doc.getId(), e);
+                            Log.e(TAG, "Error converting document: " + doc.getId(), e);
                         }
                     }
                     listener.onTransactionsLoaded(transactions);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("FirestoreManager", "Error loading transactions", e);
+                    Log.e(TAG, "Error loading transactions", e);
                     listener.onTransactionsLoaded(new ArrayList<>()); // Return empty list on error
+                });
+    }
+
+    public static void updateTransaction(Transaction transaction) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        Map<String, Object> transactionData = new HashMap<>();
+        transactionData.put("type", transaction.getType());
+        transactionData.put("category", transaction.getCategory());
+        transactionData.put("amount", transaction.getRawAmount());
+        transactionData.put("dateTime", transaction.getParsedDate());
+        transactionData.put("iconID", transaction.getIconID());
+        transactionData.put("recurring", transaction.getRecurring());
+        transactionData.put("description", transaction.getDescription());
+
+        db.collection("users")
+                .document(currentUser.getUid())
+                .collection("transactions")
+                .document(transaction.getId())
+                .set(transactionData)
+                .addOnSuccessListener(unused -> Log.d(TAG, "Transaction updated successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "Error updating transaction", e));
+    }
+
+    public interface OnDeleteTransactionListener {
+        void onSuccess();
+        void onFailure(Exception e);
+    }
+
+    // Delete a transaction and its associated notifications
+    public static void deleteTransaction(String transactionId, OnDeleteTransactionListener listener) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            if (listener != null) listener.onFailure(new Exception("User not logged in"));
+            return;
+        }
+
+        String userId = currentUser.getUid();
+        DocumentReference transactionRef = db.collection("users")
+                .document(userId)
+                .collection("transactions")
+                .document(transactionId);
+
+        // Add debug logging
+        Log.d(TAG, "Attempting to delete transaction: " + transactionId);
+        Log.d(TAG, "Full path: users/" + userId + "/transactions/" + transactionId);
+
+        transactionRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        Log.e(TAG, "Transaction document not found at path: users/" + userId + "/transactions/" + transactionId);
+                        if (listener != null) listener.onFailure(new Exception("Transaction not found"));
+                        return;
+                    }
+
+                    // Document exists, log its data
+                    Log.d(TAG, "Found transaction data: " + documentSnapshot.getData());
+
+                    transactionRef.delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "Transaction document deleted successfully");
+                                deleteAssociatedNotifications(userId, transactionId, listener);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error deleting transaction document", e);
+                                if (listener != null) listener.onFailure(e);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error checking transaction existence", e);
+                    if (listener != null) listener.onFailure(e);
+                });
+    }
+
+    private static void deleteAssociatedNotifications(String userId, String transactionId, OnDeleteTransactionListener listener) {
+        db.collection("users")
+                .document(userId)
+                .collection("notifications")
+                .whereEqualTo("transactionId", transactionId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (querySnapshot.isEmpty()) {
+                        if (listener != null) listener.onSuccess();
+                        return;
+                    }
+
+                    com.google.firebase.firestore.WriteBatch batch = db.batch();
+                    for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                        batch.delete(document.getReference());
+                    }
+
+                    batch.commit()
+                            .addOnSuccessListener(batchResult -> {
+                                Log.d(TAG, "Associated notifications successfully deleted");
+                                if (listener != null) listener.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error deleting notifications", e);
+                                if (listener != null) listener.onSuccess();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error finding notifications for transaction", e);
+                    if (listener != null) listener.onSuccess();
                 });
     }
 
