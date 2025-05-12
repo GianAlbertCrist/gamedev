@@ -32,15 +32,22 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     @Override
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         Notification notification = notificationList.get(position);
+
+        // Set notification title, description, and time
         holder.notificationTitle.setText(notification.getTitle());
         holder.notificationDescription.setText(notification.getDescription());
         holder.notificationTime.setText(notification.getTime());
 
+        // Set the recurring type (Daily, Weekly, etc.)
+        holder.notificationRecurring.setText(notification.getRecurringText());  // Set recurring type dynamically
 
-        if (notification.getTitle().equals("Transactions")) {
-            holder.notificationIcon.setImageResource(R.drawable.icnotif_transactions);
-        } else if (notification.getTitle().equals("Reminder")) {
-            holder.notificationIcon.setImageResource(R.drawable.icnotif_reminder);
+        // Set the appropriate icon based on transaction type (Income/Expense)
+        if ("Income".equalsIgnoreCase(notification.getDescription())) {
+            holder.notificationIcon.setImageResource(R.drawable.ic_income); // Set income icon
+        } else if ("Expense".equalsIgnoreCase(notification.getDescription())) {
+            holder.notificationIcon.setImageResource(R.drawable.ic_expense); // Set expense icon
+        } else {
+            holder.notificationIcon.setImageResource(R.drawable.icnotif_transactions); // Default transaction icon
         }
     }
 
@@ -50,7 +57,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
-        TextView notificationTitle, notificationDescription, notificationTime;
+        TextView notificationTitle, notificationDescription, notificationTime, notificationRecurring; // Added notificationRecurring
         ImageView notificationIcon;
 
         public NotificationViewHolder(@NonNull View itemView) {
@@ -59,6 +66,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             notificationDescription = itemView.findViewById(R.id.notificationDescription);
             notificationTime = itemView.findViewById(R.id.notificationTime);
             notificationIcon = itemView.findViewById(R.id.notificationIcon);
+            notificationRecurring = itemView.findViewById(R.id.notificationRecurring);  // Initialize the recurring TextView
         }
     }
 }

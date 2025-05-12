@@ -70,6 +70,25 @@ public class Transaction implements Parcelable {
         }
     };
 
+    // Method to check if this transaction is due for notification
+    public boolean isDueForNotification() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(parsedDate); // Set the calendar to the transaction date
+
+        switch (recurring) {
+            case "Daily":
+                return calendar.get(Calendar.DAY_OF_YEAR) == Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+            case "Weekly":
+                return calendar.get(Calendar.WEEK_OF_YEAR) == Calendar.getInstance().get(Calendar.WEEK_OF_YEAR);
+            case "Monthly":
+                return calendar.get(Calendar.MONTH) == Calendar.getInstance().get(Calendar.MONTH);
+            case "Yearly":
+                return calendar.get(Calendar.YEAR) == Calendar.getInstance().get(Calendar.YEAR);
+            default:
+                return false;
+        }
+    }
+
 
     @Override
     public int describeContents() {
@@ -88,7 +107,6 @@ public class Transaction implements Parcelable {
         dest.writeString(description);
         dest.writeLong(parsedDate.getTime());  // Writing the Date as long
     }
-
 
 
     public String getType() {
@@ -159,3 +177,5 @@ public class Transaction implements Parcelable {
         return amount;
     }
 }
+
+

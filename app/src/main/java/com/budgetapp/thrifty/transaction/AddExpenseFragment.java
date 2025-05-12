@@ -29,15 +29,14 @@ public class AddExpenseFragment extends Fragment {
     private ScrollView scrollView;
     private EditText descriptionInput;
 
-    public AddExpenseFragment() {
-
-    }
+    public AddExpenseFragment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        return inflater.inflate(R.layout.fragment_add_expense, container, false);
+        View view = inflater.inflate(R.layout.fragment_add_expense, container, false);
+        scrollView = (ScrollView) view;
+        return view;
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -77,9 +76,9 @@ public class AddExpenseFragment extends Fragment {
                 } else if (id == R.id.category_weekly) {
                     selectedRecurring = "Weekly";
                 } else if (id == R.id.category_monthly) {
-                    selectedRecurring = "Montly";
+                    selectedRecurring = "Monthly";
                 } else if (id == R.id.category_yearly) {
-                    selectedRecurring = "Yeary";
+                    selectedRecurring = "Yearly";
                 }
 
                 return true;
@@ -158,6 +157,7 @@ public class AddExpenseFragment extends Fragment {
 
             int iconRes = selectedIconResId;
 
+            // Create the Transaction object
             Transaction transaction = new Transaction(
                     "Expense",
                     category,
@@ -170,13 +170,19 @@ public class AddExpenseFragment extends Fragment {
             TransactionsHandler.transactions.add(transaction);
             String notificationTime = KeyboardBehavior.getCurrentTime();
 
-            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime);
+            // Create the Notification object with the recurringText value set
+            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime, selectedRecurring, iconRes);
 
-            NotificationsFragment.addNotification(newNotification);
+            // Retrieve the NotificationsFragment instance and add the notification
+            NotificationsFragment notificationsFragment = (NotificationsFragment) getActivity().getSupportFragmentManager()
+                    .findFragmentByTag(NotificationsFragment.class.getSimpleName());
+
+            if (notificationsFragment != null) {
+                notificationsFragment.addNotification(newNotification);
+            }
 
             requireActivity().finish();
         });
-
 
         cancelBtn.setOnClickListener(v -> requireActivity().finish());
     }

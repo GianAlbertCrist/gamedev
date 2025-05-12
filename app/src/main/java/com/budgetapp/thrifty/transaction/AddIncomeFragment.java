@@ -62,16 +62,6 @@ public class AddIncomeFragment extends Fragment {
             }
         });
 
-        // Setup description input focus listener to scroll to it when focused
-        descriptionInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                // Post with a delay to ensure keyboard is visible
-                v.postDelayed(() -> {
-                    scrollView.smoothScrollTo(0, descriptionInput.getBottom());
-                }, 300);
-            }
-        });
-
         // 2. Category recurring
         recurringButton.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(requireContext(), recurringButton, 0, 0, R.style.CustomPopupMenu);
@@ -180,13 +170,19 @@ public class AddIncomeFragment extends Fragment {
             TransactionsHandler.transactions.add(transaction);
             String notificationTime = KeyboardBehavior.getCurrentTime();
 
-            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime);
+            // Create the Notification object with the recurringText value set
+            Notification newNotification = new Notification("Transaction", category + " | ₱" + amount, notificationTime, selectedRecurring, iconRes);
 
-            NotificationsFragment.addNotification(newNotification);
+            // Retrieve the NotificationsFragment instance and add the notification
+            NotificationsFragment notificationsFragment = (NotificationsFragment) getActivity().getSupportFragmentManager()
+                    .findFragmentByTag(NotificationsFragment.class.getSimpleName());
+
+            if (notificationsFragment != null) {
+                notificationsFragment.addNotification(newNotification);  // Add the notification to the fragment
+            }
 
             requireActivity().finish();
         });
-
 
         cancelBtn.setOnClickListener(v -> requireActivity().finish());
     }

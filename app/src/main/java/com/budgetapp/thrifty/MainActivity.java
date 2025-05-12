@@ -21,7 +21,9 @@ import com.budgetapp.thrifty.fragments.HomeFragment;
 import com.budgetapp.thrifty.fragments.ProfileFragment;
 import com.budgetapp.thrifty.fragments.ReportsFragment;
 import com.budgetapp.thrifty.fragments.TransactionsFragment;
+import com.budgetapp.thrifty.fragments.NotificationsFragment;
 import com.budgetapp.thrifty.utils.ThemeSync;
+import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
@@ -34,17 +36,21 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Sync the notification bar color with the theme
         ThemeSync.syncNotificationBarColor(getWindow(), this);
         themeSync();
 
+        // Default fragment - HomeFragment
         replaceFragment(new HomeFragment());
         binding.bottomNav.setBackground(null);
 
+        // Floating Action Button (FAB) for adding a new entry
         binding.fabAddEntry.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, AddEntryActivity.class);
             startActivity(intent);
         });
 
+        // Bottom navigation item selection listener
         binding.bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -68,16 +74,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Handle profile navigation from other activities/fragments (if any)
         String navigateTo = getIntent().getStringExtra("navigate_to");
-        if (navigateTo != null) {
-            if (navigateTo.equals("profile")) {
-                navigateToProfileFragment();
-            }
+        if (navigateTo != null && navigateTo.equals("profile")) {
+            navigateToProfileFragment();
         }
 
-        // Register for profile updates
+        // Register for profile updates to update the UI
         getSharedPreferences("UserPrefs", MODE_PRIVATE)
                 .registerOnSharedPreferenceChangeListener(prefsListener);
+
+        // Get the NotificationsFragment instance and pass it to TransactionsHandler
+        NotificationsFragment notificationsFragment = (NotificationsFragment) getSupportFragmentManager().findFragmentByTag(NotificationsFragment.class.getSimpleName());
+        if (notificationsFragment != null) {
+            TransactionsHandler.checkRecurringTransactions(notificationsFragment);  // Pass the fragment to the handler
+        }
     }
 
     private SharedPreferences.OnSharedPreferenceChangeListener prefsListener =
@@ -111,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
         replaceFragment(new ProfileFragment());
     }
 
+    // Replace current fragment with the new fragment
     public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -118,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commitNow();
     }
 
+    // Sync bottom navigation icon colors with the current theme (Day/Night mode)
     public void themeSync() {
         boolean isDarkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 

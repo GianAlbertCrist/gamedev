@@ -1,6 +1,9 @@
 package com.budgetapp.thrifty.handlers;
 
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.model.Notification;
+import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.fragments.NotificationsFragment;
 
 import java.util.Calendar;
 import java.util.ArrayList;
@@ -9,32 +12,9 @@ public class TransactionsHandler {
 
     public static ArrayList<Transaction> transactions = new ArrayList<>();
 
+    // Add transaction to the list
     public void addTransaction(Transaction transaction) {
         transactions.add(transaction);
-    }
-
-    public static float getTotalIncome() {
-        float total = 0f;
-        for (Transaction t : transactions) {
-            if ("Income".equalsIgnoreCase(t.getType())) {
-                total += t.getRawAmount();
-            }
-        }
-        return total;
-    }
-
-    public static float getTotalExpense() {
-        float total = 0f;
-        for (Transaction t : transactions) {
-            if ("Expense".equalsIgnoreCase(t.getType())) {
-                total += t.getRawAmount();
-            }
-        }
-        return total;
-    }
-
-    public static float getBalance() {
-        return getTotalIncome() - getTotalExpense();
     }
 
     public static ArrayList<Transaction> getFilteredTransactions(String filterType) {
@@ -53,30 +33,111 @@ public class TransactionsHandler {
                     }
                     break;
                 case "Days":
-                    now.add(Calendar.DAY_OF_YEAR, -7);
+                    now.add(Calendar.DAY_OF_YEAR, -7);  // Filter for the last 7 days
                     if (t.getParsedDate().after(now.getTime())) {
                         filtered.add(t);
                     }
-                    now.add(Calendar.DAY_OF_YEAR, 7); // reset
+                    now.add(Calendar.DAY_OF_YEAR, 7); // Reset to the current date
                     break;
                 case "Weeks":
-                    now.add(Calendar.WEEK_OF_YEAR, -4);
+                    now.add(Calendar.WEEK_OF_YEAR, -4);  // Filter for the last 4 weeks
                     if (t.getParsedDate().after(now.getTime())) {
                         filtered.add(t);
                     }
-                    now.add(Calendar.WEEK_OF_YEAR, 4); // reset
+                    now.add(Calendar.WEEK_OF_YEAR, 4); // Reset to the current date
                     break;
                 case "Months":
-                    now.add(Calendar.MONTH, -1);
+                    now.add(Calendar.MONTH, -1);  // Filter for the last 1 month
                     if (t.getParsedDate().after(now.getTime())) {
                         filtered.add(t);
                     }
-                    now.add(Calendar.MONTH, 1); // reset
+                    now.add(Calendar.MONTH, 1); // Reset to the current date
                     break;
             }
         }
 
         return filtered;
     }
-}
 
+    public static float getTotalIncome() {
+        float total = 0f;
+        for (Transaction t : transactions) {
+            if ("Income".equalsIgnoreCase(t.getType())) {
+                total += t.getRawAmount();
+            }
+        }
+        return total;
+    }
+
+    public static float getBalance() {
+        return getTotalIncome() - getTotalExpense();  // Call the static methods for total income and total expense
+    }
+
+    // Static method to get total expense
+    public static float getTotalExpense() {
+        float total = 0f;
+        for (Transaction t : transactions) {
+            if ("Expense".equalsIgnoreCase(t.getType())) {
+                total += t.getRawAmount();
+            }
+        }
+        return total;
+    }
+
+    // Method to check recurring transactions and trigger notifications
+    public static void checkRecurringTransactions(NotificationsFragment notificationsFragment) {
+        for (Transaction transaction : transactions) {
+            if (transaction.isDueForNotification()) {
+                // Create notification message
+                String notificationMessage = createNotificationMessage(transaction);
+
+                // Get the corresponding notification icon for the recurring type
+                int iconResId = getNotificationIcon(transaction.getRecurring());
+
+                // Create the notification
+                Notification notification = new Notification("Expense Reminder", notificationMessage, getCurrentTime(), transaction.getRecurring(), iconResId);
+
+                // Add notification to the NotificationsFragment
+                notificationsFragment.addNotification(notification);  // Call the non-static method of the fragment
+            }
+        }
+    }
+
+    // Helper method to create a formatted notification message
+    private static String createNotificationMessage(Transaction transaction) {
+        // Check if the transaction type is Income or Expense
+        if ("Income".equalsIgnoreCase(transaction.getType())) {
+            // Income notification format
+            return String.format("%s income reminder: ₱%.2f - {%s} is due today.", transaction.getRecurring(), transaction.getRawAmount(), transaction.getDescription());
+
+        } else {
+            // Expense notification format
+            return String.format("%s expense reminder: ₱%.2f - {%s} is due today.",
+                    transaction.getRecurring(),  // Recurring type (Daily, Weekly, etc.)
+                    transaction.getRawAmount(),
+                    transaction.getDescription()); // Transaction description
+        }
+    }
+
+    // Helper method to get the notification icon based on transaction type (Income/Expense)
+    private static int getNotificationIcon(String recurring) {
+        switch (recurring) {
+            case "Daily":
+                return R.drawable.icnotif_transactions;
+            case "Weekly":
+                return R.drawable.icnotif_transactions;
+            case "Monthly":
+                return R.drawable.icnotif_transactions;
+            case "Yearly":
+                return R.drawable.icnotif_transactions;
+            default:
+                return R.drawable.icnotif_transactions;
+        }
+    }
+
+    // Helper method to get the current time in string format
+    private static String getCurrentTime() {
+        Calendar calendar = Calendar.getInstance();
+        return calendar.getTime().toString();
+    }
+}
