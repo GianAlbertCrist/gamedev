@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:fontFamily="@font/poppins"
-            android:text="Hello, Mak!"
+            android:text="Hello, ?!"
             android:textColor="@color/white"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="@+id/ic_profile"

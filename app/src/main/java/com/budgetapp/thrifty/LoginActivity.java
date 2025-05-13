@@ -34,6 +34,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private ActivityLoginBinding binding;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     private static final String TAG = "LoginActivity";
 
     private TextInputLayout emailLayout;
@@ -47,7 +48,9 @@ public class LoginActivity extends AppCompatActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         ThemeSync.syncNotificationBarColor(getWindow(), this);
+
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Initialize input fields
         emailLayout = findViewById(R.id.enter_email);
@@ -77,7 +80,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             updateUI(currentUser);
@@ -161,29 +163,20 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            Log.d("LoginActivity", "Checking user role...");
+            Log.d(TAG, "Checking user role...");
 
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-            // ✅ First check: Does user have a top-level role field? (Admin-style structure)
+            // Check for admin role in users collection
             db.collection("users")
                     .document(user.getUid())
                     .get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists() && "admin".equalsIgnoreCase(doc.getString("role"))) {
-                            // ✅ Admin detected
-                            SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                            preferences.edit()
-                                    .putBoolean("isLoggedIn", true)
-                                    .putString("userEmail", user.getEmail())
-                                    .putString("userName", "Admin") // or any fallback
-                                    .apply();
-
-                            Log.d("LoginActivity", "Admin detected. Redirecting...");
+                            // Admin user detected
+                            Log.d(TAG, "Admin detected. Redirecting...");
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                             finish();
                         } else {
-                            // ✅ Regular user: check profile/info
+                            // Regular user
                             db.collection("users")
                                     .document(user.getUid())
                                     .collection("profile")
@@ -193,15 +186,7 @@ public class LoginActivity extends AppCompatActivity {
                                         if (documentSnapshot.exists()) {
                                             String role = documentSnapshot.getString("role");
 
-                                            SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                                            preferences.edit()
-                                                    .putBoolean("isLoggedIn", true)
-                                                    .putString("userEmail", user.getEmail())
-                                                    .putString("userName", documentSnapshot.getString("displayName"))
-                                                    .apply();
-
                                             if ("admin".equalsIgnoreCase(role)) {
-                                                // Just in case admin is stored this way
                                                 startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                                             } else {
                                                 FirestoreManager.loadTransactions(transactions -> {
@@ -210,7 +195,6 @@ public class LoginActivity extends AppCompatActivity {
                                                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                                 });
                                             }
-
                                             finish();
                                         } else {
                                             Toast.makeText(this, "User profile not found", Toast.LENGTH_SHORT).show();
@@ -218,13 +202,13 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                     })
                                     .addOnFailureListener(e -> {
-                                        Log.e("LoginActivity", "Failed to load profile", e);
+                                        Log.e(TAG, "Failed to load profile", e);
                                         Toast.makeText(this, "Failed to load user profile", Toast.LENGTH_SHORT).show();
                                     });
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e("LoginActivity", "Error checking role", e);
+                        Log.e(TAG, "Error checking role", e);
                         Toast.makeText(this, "Login error. Please try again.", Toast.LENGTH_SHORT).show();
                     });
         }
