@@ -2,6 +2,7 @@ package com.budgetapp.thrifty;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -16,17 +17,28 @@ public class FirstActivity extends AppCompatActivity {
 
     private Button registerButton, signInButton;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private static final String TAG = "FirstActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_first);
 
-        ThemeSync.syncNotificationBarColor(getWindow(), this);
-
-        // Initialize Firebase Auth
+        // Check if user is already logged in before setting up UI
         mAuth = FirebaseAuth.getInstance();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            Log.d(TAG, "User already logged in, checking admin status");
+            // User already logged in, go directly to MainActivity/AdminActivity
+            checkAdminStatusAndRedirect(currentUser);
+            return; // Skip UI setup
+        }
+
+        // Only set up UI if not already logged in
+        setContentView(R.layout.activity_first);
+        ThemeSync.syncNotificationBarColor(getWindow(), this);
 
         // Find views using correct type (Button)
         signInButton = findViewById(R.id.sign_in_button);
@@ -46,26 +58,47 @@ public class FirstActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        // onStart no longer needs to check authentication status
+        // as we do it in onCreate before setting up the UI
+    }
 
-        if (currentUser != null) {
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            String uid = currentUser.getUid();
-
-            db.collection("users").document(uid).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists() && "admin".equalsIgnoreCase(documentSnapshot.getString("role"))) {
-                            // Admin user
-                            startActivity(new Intent(this, AdminActivity.class));
-                        } else {
-                            // Regular user — allow access even if no Firestore doc exists
-                            startActivity(new Intent(this, MainActivity.class));
-                        }
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to check role.", Toast.LENGTH_SHORT).show();
-                    });
-        }
+    private void checkAdminStatusAndRedirect(FirebaseUser currentUser) {
+        // Check for admin role in profile/info document
+        db.collection("users")
+                .document(currentUser.getUid())
+                .collection("profile")
+                .document("info")
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists() && "admin".equalsIgnoreCase(documentSnapshot.getString("role"))) {
+                        // Admin user
+                        startActivity(new Intent(this, AdminActivity.class));
+                    } else {
+                        // Regular user
+                        startActivity(new Intent(this, MainActivity.class));
+                    }
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    // If we can't check the role, fall back to checking the root document
+                    db.collection("users").document(currentUser.getUid())
+                            .get()
+                            .addOnSuccessListener(rootDoc -> {
+                                if (rootDoc.exists() && "admin".equalsIgnoreCase(rootDoc.getString("role"))) {
+                                    // Admin user
+                                    startActivity(new Intent(this, AdminActivity.class));
+                                } else {
+                                    // Regular user
+                                    startActivity(new Intent(this, MainActivity.class));
+                                }
+                                finish();
+                            })
+                            .addOnFailureListener(error -> {
+                                // If all checks fail, just go to MainActivity as regular user
+                                startActivity(new Intent(this, MainActivity.class));
+                                finish();
+                                Toast.makeText(this, "Failed to check role.", Toast.LENGTH_SHORT).show();
+                            });
+                });
     }
 }

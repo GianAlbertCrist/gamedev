@@ -1,12 +1,14 @@
 package com.budgetapp.thrifty;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -33,6 +35,7 @@ public class AddEntryActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private TextView userGreet;
+    private ImageView profileIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,8 @@ public class AddEntryActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         userGreet = findViewById(R.id.user_greet);
+        profileIcon = findViewById(R.id.ic_profile);
+
         // Load initial fragment
         getSupportFragmentManager()
                 .beginTransaction()
@@ -66,7 +71,7 @@ public class AddEntryActivity extends AppCompatActivity {
 
         // Initialize TabLayout
         tabLayout = findViewById(R.id.tabLayout);
-        loadUserName();
+        loadUserData();
 
         ImageButton smallThrifty = findViewById(R.id.small_thrifty);
         smallThrifty.setOnClickListener(view -> {
@@ -131,25 +136,132 @@ public class AddEntryActivity extends AppCompatActivity {
             public void onTabReselected(TabLayout.Tab tab) {}
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserData();
+    }
+
+    private void loadUserData() {
+        // Load user name and avatar
+        loadUserName();
+        loadUserAvatar();
+    }
+
     private void loadUserName() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
-            db.collection("users").document(user.getUid())
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            String name = task.getResult().getString("name");
-                            userGreet.setText(name != null ?
-                                    "Hello, " + name :
-                                    "Hello, User");
-                        } else {
-                            userGreet.setText("Hello, User");
-                            Log.e("Firestore", "Error loading user", task.getException());
-                        }
-                    });
+            // First try to get the name from SharedPreferences for faster loading
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            String cachedUsername = prefs.getString("username", null);
+
+            if (cachedUsername != null) {
+                userGreet.setText("Hello, " + cachedUsername + "!");
+            } else {
+                // If not in SharedPreferences, try to get from Firebase Auth display name
+                String displayName = user.getDisplayName();
+                if (displayName != null && displayName.contains("|")) {
+                    String username = displayName.split("\\|")[0];
+                    userGreet.setText("Hello, " + username + "!");
+                } else {
+                    // As a last resort, fetch from Firestore
+                    db.collection("users").document(user.getUid())
+                            .collection("profile").document("info")
+                            .get()
+                            .addOnCompleteListener(task -> {
+                                if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                                    String name = task.getResult().getString("username");
+                                    userGreet.setText(name != null ?
+                                            "Hello, " + name + "!" :
+                                            "Hello, User!");
+
+                                    // Cache the username for future use
+                                    if (name != null) {
+                                        getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                                                .edit()
+                                                .putString("username", name)
+                                                .apply();
+                                    }
+                                } else {
+                                    // If profile/info doesn't exist, check the root document
+                                    db.collection("users").document(user.getUid())
+                                            .get()
+                                            .addOnCompleteListener(rootTask -> {
+                                                if (rootTask.isSuccessful() && rootTask.getResult() != null && rootTask.getResult().exists()) {
+                                                    String name = rootTask.getResult().getString("username");
+                                                    userGreet.setText(name != null ?
+                                                            "Hello, " + name + "!" :
+                                                            "Hello, User!");
+                                                } else {
+                                                    userGreet.setText("Hello, User!");
+                                                    Log.e("Firestore", "Error loading user", task.getException());
+                                                }
+                                            });
+                                }
+                            });
+                }
+            }
         } else {
-            userGreet.setText("Hello, Guest");
+            userGreet.setText("Hello, Guest!");
         }
+    }
+
+    private void loadUserAvatar() {
+        // First try to get avatar from SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        int avatarId = prefs.getInt("avatarId", 0);
+
+        if (avatarId > 0) {
+            updateAvatarImage(profileIcon, avatarId);
+        } else {
+            // If not in SharedPreferences, fetch from Firestore
+            FirebaseUser user = auth.getCurrentUser();
+            if (user != null) {
+                db.collection("users").document(user.getUid())
+                        .collection("profile").document("info")
+                        .get()
+                        .addOnSuccessListener(document -> {
+                            if (document.exists()) {
+                                Long avatarIdLong = document.getLong("avatarId");
+                                if (avatarIdLong != null) {
+                                    int newAvatarId = avatarIdLong.intValue();
+                                    updateAvatarImage(profileIcon, newAvatarId);
+
+                                    // Cache for future use
+                                    prefs.edit().putInt("avatarId", newAvatarId).apply();
+                                }
+                            } else {
+                                // If profile/info doesn't exist, check the root document
+                                db.collection("users").document(user.getUid())
+                                        .get()
+                                        .addOnSuccessListener(rootDoc -> {
+                                            if (rootDoc.exists()) {
+                                                Long avatarIdLong = rootDoc.getLong("avatarId");
+                                                if (avatarIdLong != null) {
+                                                    int newAvatarId = avatarIdLong.intValue();
+                                                    updateAvatarImage(profileIcon, newAvatarId);
+                                                }
+                                            }
+                                        });
+                            }
+                        });
+            }
+        }
+    }
+
+    private void updateAvatarImage(ImageView imageView, int avatarId) {
+        int resourceId;
+        switch (avatarId) {
+            case 1: resourceId = R.drawable.profile2; break;
+            case 2: resourceId = R.drawable.profile3; break;
+            case 3: resourceId = R.drawable.profile4; break;
+            case 4: resourceId = R.drawable.profile5; break;
+            case 5: resourceId = R.drawable.profile6; break;
+            case 6: resourceId = R.drawable.profile7; break;
+            default: resourceId = R.drawable.sample_profile; break;
+        }
+        imageView.setImageResource(resourceId);
     }
 
     private void setupTouchOutsideToDismissKeyboard() {

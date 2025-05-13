@@ -29,6 +29,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONArray;
@@ -128,12 +129,10 @@ public class AdminActivity extends AppCompatActivity {
         findViewById(R.id.logout_admin).setOnClickListener(v -> showLogoutDialog());
 
         try {
-            fetchUsersFromServer(userList);
+            fetchUsersFromFirestore();
         } catch (Exception e) {
             Log.e("AdminActivity", "Error fetching users: " + e.getMessage(), e);
-            runOnUiThread(() ->
-                    Toast.makeText(this, "Failed to fetch users: " + e.getMessage(), Toast.LENGTH_LONG).show()
-            );
+            Toast.makeText(this, "Failed to fetch users: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -168,62 +167,38 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    private void fetchUsersFromServer(List<User> userList) {
-        runOnUiThread(() -> loadingSpinner.setVisibility(View.VISIBLE));
+    private void fetchUsersFromFirestore() {
+        loadingSpinner.setVisibility(View.VISIBLE);
 
-        new Thread(() -> {
-            try {
-                URL url = new URL("http://192.168.1.35:3000/api/users");
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
+        mFirestore.collection("users")
+                .whereNotEqualTo("role", "admin")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<User> filteredList = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        String uid = document.getId();
+                        String email = document.getString("email");
+                        String displayName = document.getString("username");
+                        if (document.getString("fullname") != null) {
+                            displayName = displayName + "|" + document.getString("fullname");
+                        }
+                        boolean disabled = document.getBoolean("disabled") != null && document.getBoolean("disabled");
 
-                int responseCode = conn.getResponseCode();
-
-                if (responseCode != 200) {
-                    throw new Exception("Unexpected HTTP code: " + responseCode);
-                }
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                StringBuilder result = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    result.append(line);
-                }
-
-                JSONArray array = new JSONArray(result.toString());
-                List<User> filteredList = new ArrayList<>();
-                for (int i = 0; i < array.length(); i++) {
-                    JSONObject obj = array.getJSONObject(i);
-                    String role = obj.optString("role", "");
-                    if (!"admin".equalsIgnoreCase(role)) {
-                        User user = new User(
-                                obj.getString("uid"),
-                                obj.getString("email"),
-                                obj.optString("displayName", ""),
-                                obj.optBoolean("disabled", false)
-                        );
+                        User user = new User(uid, email, displayName, disabled);
                         filteredList.add(user);
                     }
-                }
 
-                String label = filteredList.size() == 1 ? "user" : "users";
-
-                runOnUiThread(() -> {
+                    String label = filteredList.size() == 1 ? "user" : "users";
                     adapter.updateData(filteredList);
                     updatePageNumberDisplay();
                     loadingSpinner.setVisibility(View.GONE);
                     totalUsers.setText("Total " + label + ": " + filteredList.size());
-                });
-
-            } catch (Exception e) {
-                runOnUiThread(() -> {
+                })
+                .addOnFailureListener(e -> {
                     loadingSpinner.setVisibility(View.GONE);
                     Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e("AdminActivity", "Error fetching users", e);
                 });
-            }
-        }).start();
     }
 
     private void showDeleteDialog(User user) {
@@ -234,7 +209,7 @@ public class AdminActivity extends AppCompatActivity {
 
         dialogView.findViewById(R.id.btn_delete_yes).setOnClickListener(v -> {
             dialog.dismiss();
-            deleteUserFromServer(user.getUid());
+            deleteUserFromFirestore(user.getUid());
         });
 
         dialogView.findViewById(R.id.btn_delete_no).setOnClickListener(v -> dialog.dismiss());
@@ -248,34 +223,27 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    private void deleteUserFromServer(String uid) {
-        new Thread(() -> {
-            try {
-                URL url = new URL("http://192.168.1.35:3000/api/user/" + uid);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("DELETE");
+    private void deleteUserFromFirestore(String uid) {
+        // Delete user document from Firestore
+        mFirestore.collection("users").document(uid)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Also delete user from Firebase Auth (requires Admin SDK on server)
+                    // For now, just update the UI
+                    Toast.makeText(this, "User deleted from database", Toast.LENGTH_SHORT).show();
+                    adapter.removeUserById(uid);
 
-                int responseCode = conn.getResponseCode();
-                if (responseCode == 200) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, "User deleted", Toast.LENGTH_SHORT).show();
-                        adapter.removeUserById(uid);
+                    if (adapter.getCurrentPage() >= adapter.getTotalPages()) {
+                        adapter.setPage(Math.max(0, adapter.getTotalPages() - 1));
+                    }
 
-                        if (adapter.getCurrentPage() >= adapter.getTotalPages()) {
-                            adapter.setPage(Math.max(0, adapter.getTotalPages() - 1));
-                        }
-
-                        updatePageNumberDisplay();
-                        totalUsers.setText("Total users: " + adapter.getTotalUserCount());
-                    });
-
-                } else {
-                    runOnUiThread(() -> Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+                    updatePageNumberDisplay();
+                    totalUsers.setText("Total users: " + adapter.getTotalUserCount());
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Delete failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("AdminActivity", "Error deleting user", e);
+                });
     }
 
     private void showEditUserDialog(User user) {
@@ -350,40 +318,41 @@ public class AdminActivity extends AppCompatActivity {
                 }
             }
 
-            new Thread(() -> {
-                try {
-                    URL url = new URL("http://192.168.1.35:3000/api/user/" + user.getUid());
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("PUT");
-                    conn.setRequestProperty("Content-Type", "application/json");
-                    conn.setDoOutput(true);
+            // Update user in Firestore
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("username", firstName);
+            updates.put("fullname", firstName + " " + surname);
+            updates.put("email", email);
 
-                    JSONObject payload = new JSONObject();
-                    payload.put("displayName", displayName);
-                    if (!email.equals(user.getEmail())) {
-                        payload.put("email", email);
-                    }
-                    if (!password.isEmpty()) {
-                        payload.put("password", password);
-                    }
+            mFirestore.collection("users").document(user.getUid())
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> {
+                        // Update Firebase Auth profile
+                        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                        if (firebaseUser != null && firebaseUser.getUid().equals(user.getUid())) {
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(displayName)
+                                    .build();
 
-                    conn.getOutputStream().write(payload.toString().getBytes());
+                            firebaseUser.updateProfile(profileUpdates);
 
-                    int responseCode = conn.getResponseCode();
-                    if (responseCode == 200) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(this, "User updated successfully", Toast.LENGTH_SHORT).show();
-                            dialog.dismiss();
-                            fetchUsersFromServer(new ArrayList<>());
-                        });
-                    } else {
-                        runOnUiThread(() -> Toast.makeText(this, "Failed to update user", Toast.LENGTH_SHORT).show());
-                    }
-                } catch (Exception e) {
-                    runOnUiThread(() -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
-                    e.printStackTrace();
-                }
-            }).start();
+                            if (!email.equals(user.getEmail())) {
+                                firebaseUser.updateEmail(email);
+                            }
+
+                            if (!password.isEmpty()) {
+                                firebaseUser.updatePassword(password);
+                            }
+                        }
+
+                        Toast.makeText(this, "User updated successfully", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        fetchUsersFromFirestore();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Log.e("AdminActivity", "Error updating user", e);
+                    });
         });
     }
 
@@ -470,7 +439,7 @@ public class AdminActivity extends AppCompatActivity {
                                                         .addOnSuccessListener(aVoid -> {
                                                             Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
                                                             dialog.dismiss();
-                                                            fetchUsersFromServer(new ArrayList<>());
+                                                            fetchUsersFromFirestore();
                                                         })
                                                         .addOnFailureListener(e -> {
                                                             Toast.makeText(this, "Profile creation failed", Toast.LENGTH_SHORT).show();

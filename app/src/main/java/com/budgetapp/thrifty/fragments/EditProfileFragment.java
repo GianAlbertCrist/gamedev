@@ -21,7 +21,10 @@ import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,24 +95,68 @@ public class EditProfileFragment extends Fragment {
 
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null && user.getDisplayName() != null) {
-            String[] userData = user.getDisplayName().split("\\|");
+        if (user != null) {
             String userEmail = user.getEmail();
-            String username = userData[0];
-            String fullName = userData[1];
-
-            profileName.setText(username);
-            profileFullName.setText(fullName.toUpperCase());
-            usernameInput.setText(username);
-            fullnameInput.setText(fullName);
             emailInput.setText(userEmail);
 
-            // Get avatar ID from arguments if available
-            Bundle args = getArguments();
-            if (args != null) {
-                currentAvatarId = args.getInt("avatarId", 0);
-                updateProfileImage(currentAvatarId);
+            // First try to get data from Firebase Auth display name
+            if (user.getDisplayName() != null) {
+                String[] userData = user.getDisplayName().split("\\|");
+                String username = userData[0];
+                String fullName = userData.length > 1 ? userData[1] : username;
+
+                profileName.setText(username);
+                profileFullName.setText(fullName.toUpperCase());
+                usernameInput.setText(username);
+                fullnameInput.setText(fullName);
             }
+
+            // Then load from Firestore to get the most up-to-date data
+            mFirestore.collection("users").document(user.getUid())
+                    .collection("profile").document("info")
+                    .get()
+                    .addOnSuccessListener(document -> {
+                        if (document.exists()) {
+                            String username = document.getString("username");
+                            String fullname = document.getString("fullname");
+                            Long avatarIdLong = document.getLong("avatarId");
+
+                            if (username != null) {
+                                profileName.setText(username);
+                                usernameInput.setText(username);
+                            }
+
+                            if (fullname != null) {
+                                profileFullName.setText(fullname.toUpperCase());
+                                fullnameInput.setText(fullname);
+                            }
+
+                            if (avatarIdLong != null) {
+                                currentAvatarId = avatarIdLong.intValue();
+                                updateProfileImage(currentAvatarId);
+                            } else {
+                                // Get avatar ID from arguments if available
+                                Bundle args = getArguments();
+                                if (args != null) {
+                                    currentAvatarId = args.getInt("avatarId", 0);
+                                    updateProfileImage(currentAvatarId);
+                                }
+                            }
+                        } else {
+                            // If profile/info doesn't exist, check the root document
+                            mFirestore.collection("users").document(user.getUid())
+                                    .get()
+                                    .addOnSuccessListener(rootDoc -> {
+                                        if (rootDoc.exists()) {
+                                            Long avatarIdLong = rootDoc.getLong("avatarId");
+                                            if (avatarIdLong != null) {
+                                                currentAvatarId = avatarIdLong.intValue();
+                                                updateProfileImage(currentAvatarId);
+                                            }
+                                        }
+                                    });
+                        }
+                    });
         }
     }
 
@@ -247,6 +294,7 @@ public class EditProfileFragment extends Fragment {
             String userId = user.getUid();
             Log.d(TAG, "Updating profile for user: " + userId);
 
+            // Update Firebase Auth display name
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(newUsername + "|" + newFullName)
                     .build();
@@ -255,16 +303,23 @@ public class EditProfileFragment extends Fragment {
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Firebase Auth profile updated successfully");
 
-                        // Update Firestore
-                        Map<String, Object> updates = new HashMap<>();
-                        updates.put("username", newUsername);
-                        updates.put("fullname", newFullName);
-                        updates.put("avatarId", currentAvatarId);
+                        // Create profile data map
+                        Map<String, Object> profileData = new HashMap<>();
+                        profileData.put("username", newUsername);
+                        profileData.put("fullname", newFullName);
+                        profileData.put("avatarId", currentAvatarId);
+                        profileData.put("email", user.getEmail());
+                        profileData.put("role", "user");
 
-                        mFirestore.collection("users").document(userId).update(updates)
+                        // Update Firestore - update only the profile/info document
+                        DocumentReference profileRef = mFirestore.collection("users")
+                                .document(userId)
+                                .collection("profile")
+                                .document("info");
+
+                        profileRef.set(profileData, SetOptions.merge())
                                 .addOnSuccessListener(aVoid1 -> {
-                                    Log.d(TAG, "Firestore updated successfully");
-                                    Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                                    Log.d(TAG, "Firestore profile/info updated successfully");
 
                                     // Save to SharedPreferences for immediate access
                                     SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
@@ -274,6 +329,8 @@ public class EditProfileFragment extends Fragment {
                                     editor.putString("fullname", newFullName);
                                     editor.putInt("avatarId", currentAvatarId);
                                     editor.apply();
+
+                                    Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
 
                                     // Set fragment result to notify ProfileFragment
                                     Bundle result = new Bundle();
@@ -285,6 +342,7 @@ public class EditProfileFragment extends Fragment {
                                     // Refresh MainActivity to update all fragments
                                     if (getActivity() instanceof MainActivity) {
                                         ((MainActivity) getActivity()).refreshAllFragments();
+                                        ((MainActivity) getActivity()).updateAvatarEverywhere(currentAvatarId);
                                     }
 
                                     // Navigate back to ProfileFragment

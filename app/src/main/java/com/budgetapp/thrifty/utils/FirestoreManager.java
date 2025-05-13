@@ -1,7 +1,15 @@
 package com.budgetapp.thrifty.utils;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.budgetapp.thrifty.model.Notification;
+import com.budgetapp.thrifty.transaction.Transaction;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -9,15 +17,18 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
-import com.budgetapp.thrifty.model.Notification;
-import com.budgetapp.thrifty.transaction.Transaction;
 import com.google.firebase.firestore.WriteBatch;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,18 +42,64 @@ public class FirestoreManager {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
 
+        String uid = currentUser.getUid();
+        String[] nameParts = displayName.split("\\|");
+        String username = nameParts[0];
+        String fullname = nameParts.length > 1 ? nameParts[1] : username;
+
         Map<String, Object> userData = new HashMap<>();
-        userData.put("displayName", displayName);
+        userData.put("username", username);
+        userData.put("fullname", fullname);
         userData.put("email", email);
         userData.put("avatarId", avatarId);
         userData.put("role", "user");
 
-        db.collection("users")
-                .document(currentUser.getUid())
-                .collection("profile")
-                .document("info")
+        // Save only to profile/info document
+        db.collection("users").document(uid)
+                .collection("profile").document("info")
                 .set(userData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "User profile/info saved successfully");
+
+                    // Save to SharedPreferences for faster access
+                    SharedPreferences prefs = FirebaseAuth.getInstance().getApp().getApplicationContext()
+                            .getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                    prefs.edit()
+                            .putString("username", username)
+                            .putString("fullname", fullname)
+                            .putInt("avatarId", avatarId)
+                            .apply();
+                })
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving user profile", e));
+    }
+
+    // Migrate data from root to profile/info structure
+    public static void migrateUserDataToProfileInfo() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String uid = currentUser.getUid();
+
+        // Get data from root document
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Map<String, Object> data = documentSnapshot.getData();
+                        if (data != null) {
+                            // Save data to profile/info document
+                            db.collection("users").document(uid)
+                                    .collection("profile").document("info")
+                                    .set(data, SetOptions.merge())
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d(TAG, "Data migrated from root to profile/info successfully");
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Log.e(TAG, "Error migrating data to profile/info", e));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error getting root document data", e));
     }
 
     // Save a transaction
@@ -50,6 +107,7 @@ public class FirestoreManager {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
 
+        String uid = currentUser.getUid();
         Map<String, Object> transactionData = new HashMap<>();
         transactionData.put("type", transaction.getType());
         transactionData.put("category", transaction.getCategory());
@@ -61,7 +119,7 @@ public class FirestoreManager {
 
         // Generate a new document ID
         DocumentReference newTransactionRef = db.collection("users")
-                .document(currentUser.getUid())
+                .document(uid)
                 .collection("transactions")
                 .document();
 
@@ -115,6 +173,18 @@ public class FirestoreManager {
                 .addOnSuccessListener(document -> {
                     if (document.exists()) {
                         listener.onProfileLoaded(document.getData());
+                    } else {
+                        // If profile/info doesn't exist, check the root document
+                        db.collection("users").document(currentUser.getUid())
+                                .get()
+                                .addOnSuccessListener(rootDoc -> {
+                                    if (rootDoc.exists()) {
+                                        listener.onProfileLoaded(rootDoc.getData());
+                                        // Migrate data to the correct structure
+                                        migrateUserDataToProfileInfo();
+                                    }
+                                })
+                                .addOnFailureListener(e -> Log.e(TAG, "Error loading root document", e));
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error loading profile", e));
@@ -123,7 +193,10 @@ public class FirestoreManager {
     // Load user transactions
     public static void loadTransactions(OnTransactionsLoadedListener listener) {
         FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) return;
+        if (currentUser == null) {
+            listener.onTransactionsLoaded(new ArrayList<>());
+            return;
+        }
 
         db.collection("users")
                 .document(currentUser.getUid())
@@ -296,7 +369,7 @@ public class FirestoreManager {
                     }
 
                     Log.d(TAG, "Found " + querySnapshot.size() + " notifications to delete");
-                    com.google.firebase.firestore.WriteBatch batch = db.batch();
+                    WriteBatch batch = db.batch();
                     for (DocumentSnapshot document : querySnapshot.getDocuments()) {
                         batch.delete(document.getReference());
                     }
@@ -416,6 +489,5 @@ public class FirestoreManager {
 
     public interface OnTransactionsLoadedListener {
         void onTransactionsLoaded(List<Transaction> transactions);
-
     }
 }

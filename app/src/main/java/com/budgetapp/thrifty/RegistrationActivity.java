@@ -1,6 +1,7 @@
 package com.budgetapp.thrifty;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -21,10 +22,16 @@ import androidx.core.content.ContextCompat;
 
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -137,6 +144,7 @@ public class RegistrationActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             String fullName = firstName + " " + surname;
+                            String username = firstName; // Using first name as username for simplicity
                             String displayNameWithFullName = firstName + "|" + fullName;
 
                             // Update Firebase Auth profile
@@ -147,6 +155,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             user.updateProfile(profileUpdates)
                                     .addOnCompleteListener(profileTask -> {
                                         if (profileTask.isSuccessful()) {
+                                            saveUserToFirestore(user, username, fullName, 0);
                                             FirestoreManager.saveUserProfile(displayNameWithFullName, email, 0);
                                             mAuth.signOut();
                                             Toast.makeText(RegistrationActivity.this,
@@ -157,7 +166,48 @@ public class RegistrationActivity extends AppCompatActivity {
                                         }
                                     });
                         }
+                    } else {
+                        // If registration fails, display a message to the user
+                        if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                            Toast.makeText(RegistrationActivity.this,
+                                    "An account may already exist with these credentials.",
+                                    Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(RegistrationActivity.this,
+                                    "Registration failed: " + task.getException().getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
+    }
+
+    private void saveUserToFirestore(FirebaseUser user, String username, String fullName, int avatarId) {
+        if (user == null) return;
+
+        String email = user.getEmail();
+
+        // Save to Firestore profile/info document
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("username", username);
+        userData.put("fullname", fullName);
+        userData.put("email", email);
+        userData.put("avatarId", avatarId);
+        userData.put("role", "user");
+
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                .collection("profile").document("info")
+                .set(userData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Registration", "User profile saved to Firestore");
+
+                    // Save to SharedPreferences
+                    SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                    prefs.edit()
+                            .putString("username", username)
+                            .putString("fullname", fullName)
+                            .putInt("avatarId", avatarId)
+                            .apply();
+                })
+                .addOnFailureListener(e -> Log.e("Registration", "Error saving user to Firestore", e));
     }
 }

@@ -5,12 +5,15 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import android.content.SharedPreferences;
 
 import com.budgetapp.thrifty.databinding.ActivityMainBinding;
 import com.budgetapp.thrifty.fragments.HomeFragment;
@@ -94,6 +97,9 @@ public class MainActivity extends AppCompatActivity {
         if (!dataLoaded) {
             loadUserData();
         }
+
+        // Update avatar in bottom navigation
+        updateBottomNavAvatar();
     }
 
     private void attachFirestoreListeners() {
@@ -101,9 +107,11 @@ public class MainActivity extends AppCompatActivity {
         if (user != null) {
             String userId = user.getUid();
 
-            // Listen for profile changes
+            // Listen for profile changes in the profile/info document
             profileListener = db.collection("users")
                     .document(userId)
+                    .collection("profile")
+                    .document("info")
                     .addSnapshotListener((document, error) -> {
                         if (error != null) {
                             Log.e(TAG, "Error listening to profile changes", error);
@@ -112,7 +120,15 @@ public class MainActivity extends AppCompatActivity {
 
                         if (document != null && document.exists()) {
                             String username = document.getString("username");
+                            Long avatarIdLong = document.getLong("avatarId");
+
                             updateGreetingInFragments(username);
+
+                            if (avatarIdLong != null) {
+                                int avatarId = avatarIdLong.intValue();
+                                updateAvatarEverywhere(avatarId);
+                            }
+
                             Log.d(TAG, "Profile data updated: username = " + username);
                         }
                     });
@@ -148,6 +164,55 @@ public class MainActivity extends AppCompatActivity {
             // Refresh fragments with new data
             refreshAllFragments();
         });
+
+        // Load user profile data
+        db.collection("users")
+                .document(user.getUid())
+                .collection("profile")
+                .document("info")
+                .get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        String username = document.getString("username");
+                        Long avatarIdLong = document.getLong("avatarId");
+
+                        if (username != null) {
+                            updateGreetingInFragments(username);
+
+                            // Save to SharedPreferences
+                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                            prefs.edit().putString("username", username).apply();
+                        }
+
+                        if (avatarIdLong != null) {
+                            int avatarId = avatarIdLong.intValue();
+                            updateAvatarEverywhere(avatarId);
+
+                            // Save to SharedPreferences
+                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                            prefs.edit().putInt("avatarId", avatarId).apply();
+                        }
+                    } else {
+                        // If profile/info doesn't exist, check the root document
+                        db.collection("users").document(user.getUid())
+                                .get()
+                                .addOnSuccessListener(rootDoc -> {
+                                    if (rootDoc.exists()) {
+                                        String username = rootDoc.getString("username");
+                                        Long avatarIdLong = rootDoc.getLong("avatarId");
+
+                                        if (username != null) {
+                                            updateGreetingInFragments(username);
+                                        }
+
+                                        if (avatarIdLong != null) {
+                                            int avatarId = avatarIdLong.intValue();
+                                            updateAvatarEverywhere(avatarId);
+                                        }
+                                    }
+                                });
+                    }
+                });
     }
 
     private void setupBottomNavigation() {
@@ -246,13 +311,73 @@ public class MainActivity extends AppCompatActivity {
             String userId = user.getUid();
             db.collection("users")
                     .document(userId)
+                    .collection("profile")
+                    .document("info")
                     .get()
                     .addOnSuccessListener(document -> {
                         if (document.exists()) {
                             String username = document.getString("username");
-                            updateGreetingInFragments(username);
+                            Long avatarIdLong = document.getLong("avatarId");
+
+                            if (username != null) {
+                                updateGreetingInFragments(username);
+                            }
+
+                            if (avatarIdLong != null) {
+                                int avatarId = avatarIdLong.intValue();
+                                updateAvatarEverywhere(avatarId);
+                            }
                         }
                     });
         }
+    }
+
+    public void updateAvatarEverywhere(int avatarId) {
+        // Update SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        prefs.edit().putInt("avatarId", avatarId).apply();
+
+        Log.d(TAG, "Updating avatar everywhere to: " + avatarId);
+
+        // Update bottom navigation avatar
+        updateBottomNavAvatar();
+
+        // Update current fragment if it's HomeFragment
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+        if (currentFragment instanceof HomeFragment) {
+            View fragmentView = currentFragment.getView();
+            if (fragmentView != null) {
+                ImageView profileIcon = fragmentView.findViewById(R.id.ic_profile);
+                if (profileIcon != null) {
+                    updateAvatarImage(profileIcon, avatarId);
+                }
+            }
+        }
+    }
+
+    private void updateBottomNavAvatar() {
+        // Get avatar ID from SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        int avatarId = prefs.getInt("avatarId", 0);
+
+        // Find the profile icon in the bottom navigation
+        View profileItem = binding.bottomNav.findViewById(R.id.ic_profile);
+        if (profileItem != null && profileItem instanceof ImageView) {
+            updateAvatarImage((ImageView) profileItem, avatarId);
+        }
+    }
+
+    private void updateAvatarImage(ImageView imageView, int avatarId) {
+        int resourceId;
+        switch (avatarId) {
+            case 1: resourceId = R.drawable.profile2; break;
+            case 2: resourceId = R.drawable.profile3; break;
+            case 3: resourceId = R.drawable.profile4; break;
+            case 4: resourceId = R.drawable.profile5; break;
+            case 5: resourceId = R.drawable.profile6; break;
+            case 6: resourceId = R.drawable.profile7; break;
+            default: resourceId = R.drawable.sample_profile; break;
+        }
+        imageView.setImageResource(resourceId);
     }
 }

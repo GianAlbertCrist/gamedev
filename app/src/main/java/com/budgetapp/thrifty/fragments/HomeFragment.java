@@ -1,11 +1,13 @@
 package com.budgetapp.thrifty.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -29,6 +31,7 @@ public class HomeFragment extends Fragment {
     private RecyclerView recyclerView;
     private TextView emptyMessage;
     private TextView userGreet;
+    private ImageView profileIcon;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private ListenerRegistration profileListener;
@@ -45,9 +48,11 @@ public class HomeFragment extends Fragment {
         recyclerView = rootView.findViewById(R.id.home_transactions);
         emptyMessage = rootView.findViewById(R.id.empty_message);
         userGreet = rootView.findViewById(R.id.user_greet);
+        profileIcon = rootView.findViewById(R.id.ic_profile);
 
         ImageButton notificationButton = rootView.findViewById(R.id.ic_notifications);
         notificationButton.setOnClickListener(v -> openNotificationsFragment());
+
         ImageButton profileButton = rootView.findViewById(R.id.ic_profile);
         profileButton.setOnClickListener(v -> openProfileFragment());
 
@@ -58,29 +63,68 @@ public class HomeFragment extends Fragment {
     }
 
     public void refreshUserGreeting() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null && user.getDisplayName() != null) {
-            String[] userData = user.getDisplayName().split("\\|");
-            String username = userData[0];
-            TextView userGreet = rootView.findViewById(R.id.user_greet);
+        // First try to get from SharedPreferences
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                requireActivity().MODE_PRIVATE);
+        String username = prefs.getString("username", null);
+
+        if (username != null) {
             userGreet.setText("Hello, " + username + "!");
+        } else {
+            // If not in SharedPreferences, try Firebase Auth
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null && user.getDisplayName() != null) {
+                String[] userData = user.getDisplayName().split("\\|");
+                username = userData[0];
+                userGreet.setText("Hello, " + username + "!");
+            }
         }
     }
 
     private void loadUserProfile() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            db.collection("users")
-                    .document(user.getUid())
-                    .get()
-                    .addOnSuccessListener(document -> {
-                        if (document.exists()) {
-                            String username = document.getString("username");
-                            if (username != null) {
-                                userGreet.setText("Hello, " + username + "!");
+        // Load username
+        refreshUserGreeting();
+
+        // Load avatar
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                requireActivity().MODE_PRIVATE);
+        int avatarId = prefs.getInt("avatarId", 0);
+
+        if (avatarId > 0) {
+            updateAvatarImage(profileIcon, avatarId);
+        } else {
+            // If not in SharedPreferences, fetch from Firestore
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null) {
+                db.collection("users").document(user.getUid())
+                        .collection("profile").document("info")
+                        .get()
+                        .addOnSuccessListener(document -> {
+                            if (document.exists()) {
+                                Long avatarIdLong = document.getLong("avatarId");
+                                if (avatarIdLong != null) {
+                                    int newAvatarId = avatarIdLong.intValue();
+                                    updateAvatarImage(profileIcon, newAvatarId);
+
+                                    // Cache for future use
+                                    prefs.edit().putInt("avatarId", newAvatarId).apply();
+                                }
+                            } else {
+                                // If profile/info doesn't exist, check the root document
+                                db.collection("users").document(user.getUid())
+                                        .get()
+                                        .addOnSuccessListener(rootDoc -> {
+                                            if (rootDoc.exists()) {
+                                                Long avatarIdLong = rootDoc.getLong("avatarId");
+                                                if (avatarIdLong != null) {
+                                                    int newAvatarId = avatarIdLong.intValue();
+                                                    updateAvatarImage(profileIcon, newAvatarId);
+                                                }
+                                            }
+                                        });
                             }
-                        }
-                    });
+                        });
+            }
         }
     }
 
@@ -90,6 +134,14 @@ public class HomeFragment extends Fragment {
         loadTransactions();
         updateBalances();
         refreshUserGreeting(); // Refresh the greeting when returning to this fragment
+
+        // Also refresh avatar
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                requireActivity().MODE_PRIVATE);
+        int avatarId = prefs.getInt("avatarId", 0);
+        if (avatarId > 0) {
+            updateAvatarImage(profileIcon, avatarId);
+        }
     }
 
     @Override
@@ -151,5 +203,32 @@ public class HomeFragment extends Fragment {
         fragmentTransaction.replace(R.id.frame_layout, profileFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
+    }
+
+    public void refreshUserData() {
+        // Refresh user greeting
+        refreshUserGreeting();
+
+        // Refresh avatar
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                requireActivity().MODE_PRIVATE);
+        int avatarId = prefs.getInt("avatarId", 0);
+        if (avatarId > 0) {
+            updateAvatarImage(profileIcon, avatarId);
+        }
+    }
+
+    private void updateAvatarImage(ImageView imageView, int avatarId) {
+        int resourceId;
+        switch (avatarId) {
+            case 1: resourceId = R.drawable.profile2; break;
+            case 2: resourceId = R.drawable.profile3; break;
+            case 3: resourceId = R.drawable.profile4; break;
+            case 4: resourceId = R.drawable.profile5; break;
+            case 5: resourceId = R.drawable.profile6; break;
+            case 6: resourceId = R.drawable.profile7; break;
+            default: resourceId = R.drawable.sample_profile; break;
+        }
+        imageView.setImageResource(resourceId);
     }
 }

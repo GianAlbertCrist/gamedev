@@ -26,6 +26,7 @@ import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
@@ -151,6 +152,7 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
+                        saveUserDataToFirestore(user);
                         updateUI(user);
                     } else {
                         Toast.makeText(LoginActivity.this,
@@ -165,52 +167,73 @@ public class LoginActivity extends AppCompatActivity {
         if (user != null) {
             Log.d(TAG, "Checking user role...");
 
-            // Check for admin role in users collection
+            // Check for admin role in profile/info document
             db.collection("users")
                     .document(user.getUid())
+                    .collection("profile")
+                    .document("info")
                     .get()
-                    .addOnSuccessListener(doc -> {
-                        if (doc.exists() && "admin".equalsIgnoreCase(doc.getString("role"))) {
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists() && "admin".equalsIgnoreCase(documentSnapshot.getString("role"))) {
                             // Admin user detected
                             Log.d(TAG, "Admin detected. Redirecting...");
                             startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                             finish();
                         } else {
-                            // Regular user
-                            db.collection("users")
-                                    .document(user.getUid())
-                                    .collection("profile")
-                                    .document("info")
-                                    .get()
-                                    .addOnSuccessListener(documentSnapshot -> {
-                                        if (documentSnapshot.exists()) {
-                                            String role = documentSnapshot.getString("role");
+                            // Regular user - go directly to MainActivity
+                            Log.d(TAG, "Regular user detected. Going directly to MainActivity...");
 
-                                            if ("admin".equalsIgnoreCase(role)) {
-                                                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-                                            } else {
-                                                FirestoreManager.loadTransactions(transactions -> {
-                                                    TransactionsHandler.transactions.clear();
-                                                    TransactionsHandler.transactions.addAll(transactions);
-                                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                                });
-                                            }
-                                            finish();
-                                        } else {
-                                            Toast.makeText(this, "User profile not found", Toast.LENGTH_SHORT).show();
-                                            FirebaseAuth.getInstance().signOut();
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e(TAG, "Failed to load profile", e);
-                                        Toast.makeText(this, "Failed to load user profile", Toast.LENGTH_SHORT).show();
-                                    });
+                            // Save user data to SharedPreferences for faster access
+                            saveUserDataToSharedPreferences(documentSnapshot);
+
+                            // Load transactions and go to MainActivity
+                            FirestoreManager.loadTransactions(transactions -> {
+                                TransactionsHandler.transactions.clear();
+                                TransactionsHandler.transactions.addAll(transactions);
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            });
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error checking role", e);
-                        Toast.makeText(this, "Login error. Please try again.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Failed to load profile", e);
+                        Toast.makeText(this, "Failed to load user profile", Toast.LENGTH_SHORT).show();
                     });
         }
+    }
+
+    private void saveUserDataToSharedPreferences(DocumentSnapshot documentSnapshot) {
+        if (documentSnapshot != null && documentSnapshot.exists()) {
+            String username = documentSnapshot.getString("username");
+            String fullname = documentSnapshot.getString("fullname");
+            Long avatarIdLong = documentSnapshot.getLong("avatarId");
+            int avatarId = avatarIdLong != null ? avatarIdLong.intValue() : 0;
+
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            if (username != null) editor.putString("username", username);
+            if (fullname != null) editor.putString("fullname", fullname);
+            editor.putInt("avatarId", avatarId);
+            editor.apply();
+        }
+    }
+
+    private void saveUserDataToFirestore(FirebaseUser user) {
+        if (user == null) return;
+
+        String displayName = user.getDisplayName();
+        String email = user.getEmail();
+
+        // Default avatar ID
+        int avatarId = 0;
+
+        // Get cached avatar ID if available
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        if (prefs.contains("avatarId")) {
+            avatarId = prefs.getInt("avatarId", 0);
+        }
+
+        // Save to Firestore
+        FirestoreManager.saveUserProfile(displayName, email, avatarId);
     }
 }
