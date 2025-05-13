@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomeFragment extends Fragment {
 
@@ -31,7 +32,7 @@ public class HomeFragment extends Fragment {
     private TextView emptyMessage;
     private TextView userGreet;
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private FirebaseFirestore db;
     private ValueEventListener profileListener;
 
     @Override
@@ -40,7 +41,7 @@ public class HomeFragment extends Fragment {
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        db = FirebaseFirestore.getInstance();
 
         // Initialize UI components
         recyclerView = rootView.findViewById(R.id.home_transactions);
@@ -70,12 +71,18 @@ public class HomeFragment extends Fragment {
 
     private void loadUserProfile() {
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null && user.getDisplayName() != null) {
-            String[] userData = user.getDisplayName().split("\\|");
-            String username = userData[0];
-            userGreet.setText("Hello, " + username + "!");
-        } else {
-            userGreet.setText("Hello, User!");
+        if (user != null) {
+            db.collection("users")
+                    .document(user.getUid())
+                    .get()
+                    .addOnSuccessListener(document -> {
+                        if (document.exists()) {
+                            String username = document.getString("username");
+                            if (username != null) {
+                                userGreet.setText("Hello, " + username + "!");
+                            }
+                        }
+                    });
         }
     }
 

@@ -43,7 +43,7 @@ public class HomeFragment extends Fragment {
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase = FirebaseFirestore.getInstance().getReference();
 
         // Initialize UI components
         recyclerView = rootView.findViewById(R.id.home_transactions);
@@ -79,7 +79,7 @@ public class HomeFragment extends Fragment {
         super.onResume();
         loadTransactions();
         updateBalances();
-        refreshUserGreeting(); // Refresh the greeting when returning to this fragment
+        refreshUserGreeting();
     }
 
     @Override

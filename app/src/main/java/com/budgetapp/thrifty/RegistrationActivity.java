@@ -162,18 +162,4 @@ public class RegistrationActivity extends AppCompatActivity {
                     }
                 });
     }
-
-    private void saveUserToDatabase(String uid, String username, String fullName, String email) {
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("username", username);
-        userData.put("fullname", fullName);
-        userData.put("email", email);
-        userData.put("avatarId", 0); // Default avatar
-
-        mDatabase.child("users").child(uid).setValue(userData)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "User data saved to database"))
-                .addOnFailureListener(e -> Log.w(TAG, "Error saving user data to database", e));
-    }
 }
