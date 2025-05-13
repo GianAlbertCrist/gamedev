@@ -14,8 +14,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.budgetapp.thrifty.MainActivity;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.TransactionAdapter;
@@ -29,8 +27,7 @@ public class HomeFragment extends Fragment {
 
     private View rootView;
     private RecyclerView recyclerView;
-    private TextView emptyMessage;
-    private TextView userGreet;
+    private TextView emptyMessage, userGreet;
     private ImageView profileIcon;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;

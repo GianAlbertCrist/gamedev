@@ -4,10 +4,7 @@ import androidx.annotation.NonNull;
 
 public class Account {
 
-    private String firstname;
-    private String lastname;
-    private String email;
-    private String password;
+    private String firstname, lastname, email, password;
 
     public Account(String firstname, String lastname, String email, String password) {
         this.firstname = firstname;

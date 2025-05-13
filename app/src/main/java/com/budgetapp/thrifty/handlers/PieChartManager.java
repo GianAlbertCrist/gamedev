@@ -3,9 +3,7 @@ package com.budgetapp.thrifty.handlers;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
-
 import androidx.core.content.ContextCompat;
-
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.utils.FormatUtils;
 import com.github.mikephil.charting.charts.PieChart;

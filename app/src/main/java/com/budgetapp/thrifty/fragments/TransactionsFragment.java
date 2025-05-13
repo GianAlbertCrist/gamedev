@@ -2,11 +2,9 @@ package com.budgetapp.thrifty.fragments;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
-
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,20 +14,15 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
-import com.budgetapp.thrifty.transaction.AddExpenseFragment;
-import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.FormatUtils;
-
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Objects;
 
 public class TransactionsFragment extends Fragment {
 

@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;

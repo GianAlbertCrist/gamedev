@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.budgetapp.thrifty"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.budgetapp.thrifty"
@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.credentials)
     implementation(libs.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.firebase.messaging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -59,4 +60,5 @@ dependencies {
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation ("com.google.firebase:firebase-firestore:24.7.1")
     implementation("com.google.android.material:material:1.5.0")
+    implementation("com.google.firebase:firebase-messaging:23.4.0")
 }

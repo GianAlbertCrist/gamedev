@@ -11,17 +11,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-
-import com.budgetapp.thrifty.fragments.NotificationsFragment;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.fragments.ReportsFragment;
-import com.budgetapp.thrifty.fragments.TransactionsFragment;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.utils.FirestoreManager;

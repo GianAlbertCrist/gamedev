@@ -4,7 +4,6 @@ import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
-
 import java.util.Calendar;
 import java.util.ArrayList;
 
@@ -98,19 +97,17 @@ public class TransactionsHandler {
         }
     }
 
-    // Helper method to create a formatted notification message
     private static String createNotificationMessage(Transaction transaction) {
         // Check if the transaction type is Income or Expense
         if ("Income".equalsIgnoreCase(transaction.getType())) {
-            // Income notification format
             return String.format("%s income reminder: ₱%.2f - {%s} is due today.", transaction.getRecurring(), transaction.getRawAmount(), transaction.getDescription());
 
         } else {
             // Expense notification format
             return String.format("%s expense reminder: ₱%.2f - {%s} is due today.",
-                    transaction.getRecurring(),  // Recurring type (Daily, Weekly, etc.)
+                    transaction.getRecurring(),
                     transaction.getRawAmount(),
-                    transaction.getDescription()); // Transaction description
+                    transaction.getDescription());
         }
     }
 

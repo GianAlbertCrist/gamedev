@@ -28,7 +28,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
@@ -38,10 +37,8 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private static final String TAG = "LoginActivity";
 
-    private TextInputLayout emailLayout;
-    private TextInputLayout passwordLayout;
-    private EditText emailInput;
-    private EditText passwordInput;
+    private TextInputLayout emailLayout, passwordLayout;
+    private EditText emailInput, passwordInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

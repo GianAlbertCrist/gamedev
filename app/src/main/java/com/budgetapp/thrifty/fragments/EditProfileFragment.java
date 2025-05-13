@@ -15,7 +15,6 @@ import android.widget.Toast;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-
 import com.budgetapp.thrifty.MainActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,12 +31,11 @@ public class EditProfileFragment extends Fragment {
 
     private static final String TAG = "EditProfileFragment";
     private ImageView profileImage, profileImageEdit;
-    private CardView profileImageEditContainer;
+    private CardView profileImageEditContainer, profilePictureSelector;
     private TextView profileName, profileFullName;
     private EditText usernameInput, fullnameInput, emailInput;
     private ImageButton editProfileImage;
     private Button updateProfileButton;
-    private CardView profilePictureSelector;
     private Button cancelAvatarSelection, confirmAvatarSelection;
     private ImageView[] avatarViews = new ImageView[8];
     private int selectedAvatarId = 0;

@@ -6,21 +6,18 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.utils.FormatUtils;
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
-    private List<Notification> notificationList;
+    private final List<Notification> notificationList;
     private static final String TAG = "NotificationAdapter";
 
     public NotificationAdapter(List<Notification> notificationList) {
@@ -76,6 +73,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 String amountStr = matcher.group(2); // "1234.56"
                 String suffix = matcher.group(4); // Any text after the amount
 
+                assert amountStr != null;
                 double amount = Double.parseDouble(amountStr);
                 String formattedAmount = FormatUtils.formatAmount(amount, true);
 

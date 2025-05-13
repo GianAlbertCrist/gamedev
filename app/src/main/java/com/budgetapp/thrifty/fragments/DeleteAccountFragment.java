@@ -9,10 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-
 import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -21,8 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class DeleteAccountFragment extends Fragment implements View.OnTouchListener {
 
-    private Button deleteAccountButton;
-    private Button cancelButton;
+    private Button deleteAccountButton, cancelButton;
     private View rootView;
     private CardView dialogContainer;
     private FirebaseAuth mAuth;

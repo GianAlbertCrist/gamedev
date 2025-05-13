@@ -10,22 +10,15 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
-import com.budgetapp.thrifty.fragments.NotificationsFragment;
-import com.budgetapp.thrifty.fragments.ProfileFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 import com.google.android.material.tabs.TabLayout;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;

@@ -2,7 +2,6 @@ package com.budgetapp.thrifty.utils;
 
 import android.content.Context;
 import android.view.Window;
-
 import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;

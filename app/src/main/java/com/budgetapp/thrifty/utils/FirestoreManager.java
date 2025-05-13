@@ -3,13 +3,8 @@ package com.budgetapp.thrifty.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.transaction.Transaction;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -17,20 +12,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.WriteBatch;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import com.google.firebase.messaging.FirebaseMessaging;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 public class FirestoreManager {
     private static final String TAG = "FirestoreManager";
@@ -69,8 +58,43 @@ public class FirestoreManager {
                             .putString("fullname", fullname)
                             .putInt("avatarId", avatarId)
                             .apply();
+
+                    // Get and save FCM token
+                    saveFCMToken();
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving user profile", e));
+    }
+
+    // Save FCM token to Firestore
+    public static void saveFCMToken() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String uid = currentUser.getUid();
+
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+
+                    // Get new FCM registration token
+                    String token = task.getResult();
+                    Log.d(TAG, "FCM Token: " + token);
+
+                    // Save token to Firestore
+                    Map<String, Object> tokenData = new HashMap<>();
+                    tokenData.put("fcmToken", token);
+                    tokenData.put("lastUpdated", new Date());
+                    tokenData.put("platform", "android");
+
+                    db.collection("users").document(uid)
+                            .collection("tokens").document("fcm")
+                            .set(tokenData, SetOptions.merge())
+                            .addOnSuccessListener(aVoid -> Log.d(TAG, "FCM Token saved successfully"))
+                            .addOnFailureListener(e -> Log.e(TAG, "Error saving FCM token", e));
+                });
     }
 
     // Migrate data from root to profile/info structure
@@ -117,6 +141,11 @@ public class FirestoreManager {
         transactionData.put("recurring", transaction.getRecurring());
         transactionData.put("description", transaction.getDescription());
 
+        // Add next due date for recurring transactions
+        if (!transaction.getRecurring().equals("None") && transaction.getNextDueDate() != null) {
+            transactionData.put("nextDueDate", transaction.getNextDueDate());
+        }
+
         // Generate a new document ID
         DocumentReference newTransactionRef = db.collection("users")
                 .document(uid)
@@ -161,34 +190,34 @@ public class FirestoreManager {
     }
 
     // Load user profile data
-    public static void loadUserProfile(OnProfileLoadedListener listener) {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) return;
-
-        db.collection("users")
-                .document(currentUser.getUid())
-                .collection("profile")
-                .document("info")
-                .get()
-                .addOnSuccessListener(document -> {
-                    if (document.exists()) {
-                        listener.onProfileLoaded(document.getData());
-                    } else {
-                        // If profile/info doesn't exist, check the root document
-                        db.collection("users").document(currentUser.getUid())
-                                .get()
-                                .addOnSuccessListener(rootDoc -> {
-                                    if (rootDoc.exists()) {
-                                        listener.onProfileLoaded(rootDoc.getData());
-                                        // Migrate data to the correct structure
-                                        migrateUserDataToProfileInfo();
-                                    }
-                                })
-                                .addOnFailureListener(e -> Log.e(TAG, "Error loading root document", e));
-                    }
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error loading profile", e));
-    }
+//    public static void loadUserProfile(OnProfileLoadedListener listener) {
+//        FirebaseUser currentUser = auth.getCurrentUser();
+//        if (currentUser == null) return;
+//
+//        db.collection("users")
+//                .document(currentUser.getUid())
+//                .collection("profile")
+//                .document("info")
+//                .get()
+//                .addOnSuccessListener(document -> {
+//                    if (document.exists()) {
+//                        listener.onProfileLoaded(document.getData());
+//                    } else {
+//                        // If profile/info doesn't exist, check the root document
+//                        db.collection("users").document(currentUser.getUid())
+//                                .get()
+//                                .addOnSuccessListener(rootDoc -> {
+//                                    if (rootDoc.exists()) {
+//                                        listener.onProfileLoaded(rootDoc.getData());
+//                                        // Migrate data to the correct structure
+//                                        migrateUserDataToProfileInfo();
+//                                    }
+//                                })
+//                                .addOnFailureListener(e -> Log.e(TAG, "Error loading root document", e));
+//                    }
+//                })
+//                .addOnFailureListener(e -> Log.e(TAG, "Error loading profile", e));
+//    }
 
     // Load user transactions
     public static void loadTransactions(OnTransactionsLoadedListener listener) {
@@ -223,6 +252,28 @@ public class FirestoreManager {
                                 transaction.setParsedDate(doc.getDate("dateTime"));
                             }
 
+                            // Set next due date if available
+                            if (doc.getDate("nextDueDate") != null) {
+                                transaction.setNextDueDate(doc.getDate("nextDueDate"));
+                            } else if (!transaction.getRecurring().equals("None")) {
+                                // Calculate next due date if not available
+                                transaction.calculateNextDueDate();
+
+                                // Update the transaction in Firestore with the calculated next due date
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("nextDueDate", transaction.getNextDueDate());
+
+                                db.collection("users")
+                                        .document(currentUser.getUid())
+                                        .collection("transactions")
+                                        .document(transaction.getId())
+                                        .update(updates)
+                                        .addOnSuccessListener(aVoid ->
+                                                Log.d(TAG, "Next due date updated for transaction: " + transaction.getId()))
+                                        .addOnFailureListener(e ->
+                                                Log.e(TAG, "Error updating next due date", e));
+                            }
+
                             transactions.add(transaction);
                         } catch (Exception e) {
                             Log.e(TAG, "Error converting document: " + doc.getId(), e);
@@ -253,6 +304,14 @@ public class FirestoreManager {
         transactionData.put("recurring", transaction.getRecurring());
         transactionData.put("description", transaction.getDescription());
         transactionData.put("dateTime", transaction.getParsedDate() != null ? transaction.getParsedDate() : new Date());
+
+        // Add next due date for recurring transactions
+        if (!transaction.getRecurring().equals("None") && transaction.getNextDueDate() != null) {
+            transactionData.put("nextDueDate", transaction.getNextDueDate());
+        } else if (transaction.getRecurring().equals("None")) {
+            // Remove next due date if not recurring
+            transactionData.put("nextDueDate", FieldValue.delete());
+        }
 
         db.collection("users")
                 .document(userId)
@@ -480,6 +539,27 @@ public class FirestoreManager {
                 })
                 .addOnFailureListener(e ->
                         Log.e(TAG, "Error querying notifications", e));
+    }
+
+    // Update the next due date for a transaction
+    public static void updateNextDueDate(String transactionId, Date newNextDueDate) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nextDueDate", newNextDueDate);
+
+        db.collection("users")
+                .document(userId)
+                .collection("transactions")
+                .document(transactionId)
+                .update(updates)
+                .addOnSuccessListener(aVoid ->
+                        Log.d(TAG, "Next due date updated for transaction: " + transactionId))
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error updating next due date", e));
     }
 
     // Listener interfaces

@@ -9,12 +9,15 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import android.content.SharedPreferences;
-
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import com.budgetapp.thrifty.databinding.ActivityMainBinding;
 import com.budgetapp.thrifty.fragments.HomeFragment;
 import com.budgetapp.thrifty.fragments.ProfileFragment;
@@ -28,9 +31,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    private static final int NOTIFICATION_PERMISSION_CODE = 123;
     private ListenerRegistration profileListener;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -53,14 +58,23 @@ public class MainActivity extends AppCompatActivity {
         // Setup initial UI without waiting for data
         setupBottomNavigation();
 
+        // Request notification permission for Android 13+
+        requestNotificationPermission();
+
+        // Initialize FCM
+        initializeFCM();
+
         // Determine which fragment to show
         String navigateTo = getIntent().getStringExtra("navigate_to");
         String forceNavigateTo = getIntent().getStringExtra("force_navigate_to");
+        String transactionId = getIntent().getStringExtra("transaction_id");
 
         if (forceNavigateTo != null && forceNavigateTo.equals("notifications")) {
             navigateToNotificationFragment();
         } else if (navigateTo != null && navigateTo.equals("profile")) {
             navigateToProfileFragment();
+        } else if (navigateTo != null && navigateTo.equals("transactions") && transactionId != null) {
+            navigateToTransactionDetails(transactionId);
         } else {
             replaceFragment(new HomeFragment());
         }
@@ -72,6 +86,45 @@ public class MainActivity extends AppCompatActivity {
         if (notificationsFragment != null) {
             TransactionsHandler.checkRecurringTransactions(notificationsFragment);
         }
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_CODE);
+            }
+        }
+    }
+
+    private void initializeFCM() {
+        // Subscribe to topics for general notifications
+        FirebaseMessaging.getInstance().subscribeToTopic("transaction_reminders")
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Subscribed to transaction_reminders topic");
+                    } else {
+                        Log.e(TAG, "Failed to subscribe to transaction_reminders topic", task.getException());
+                    }
+                });
+
+        // Save FCM token to Firestore
+        FirestoreManager.saveFCMToken();
+    }
+
+    private void navigateToTransactionDetails(String transactionId) {
+        // Navigate to transactions fragment
+        binding.bottomNav.setSelectedItemId(R.id.ic_transactions);
+
+        // Create and set up the transactions fragment with the transaction ID
+        TransactionsFragment fragment = new TransactionsFragment();
+        Bundle args = new Bundle();
+        args.putString("transaction_id", transactionId);
+        fragment.setArguments(args);
+
+        replaceFragment(fragment);
     }
 
     @Override
@@ -379,5 +432,17 @@ public class MainActivity extends AppCompatActivity {
             default: resourceId = R.drawable.sample_profile; break;
         }
         imageView.setImageResource(resourceId);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Notification permission granted");
+            } else {
+                Log.d(TAG, "Notification permission denied");
+            }
+        }
     }
 }

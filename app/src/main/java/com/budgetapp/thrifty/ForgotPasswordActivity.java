@@ -2,12 +2,10 @@ package com.budgetapp.thrifty;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 

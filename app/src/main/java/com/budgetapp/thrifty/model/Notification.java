@@ -1,10 +1,7 @@
 package com.budgetapp.thrifty.model;
 
 public class Notification {
-    private String type;
-    private String description;
-    private String time;
-    private String recurring;
+    private String type, description, time, recurring;
     private int iconID;
 
     public Notification(String type, String description, String time, String recurring, int iconID) {

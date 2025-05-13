@@ -31,6 +31,8 @@ public class Transaction implements Parcelable {
 
     private java.util.Date parsedDate;
 
+    private java.util.Date nextDueDate;
+
     public Transaction() {
         // Required empty constructor for Firestore
     }
@@ -50,6 +52,11 @@ public class Transaction implements Parcelable {
         this.recurring = recurring;
         this.dateAndTime = getCurrentDateTime();
         this.id = java.util.UUID.randomUUID().toString();
+
+        // Calculate next due date if this is a recurring transaction
+        if (!recurring.equals("None")) {
+            calculateNextDueDate();
+        }
     }
 
     protected Transaction(Parcel in) {
@@ -62,6 +69,8 @@ public class Transaction implements Parcelable {
         description = in.readString();
         long time = in.readLong();
         parsedDate = time > 0 ? new Date(time) : new Date();  // fallback to now
+        long nextDueTime = in.readLong();
+        nextDueDate = nextDueTime > 0 ? new Date(nextDueTime) : null;
     }
 
     public static final Creator<Transaction> CREATOR = new Creator<Transaction>() {
@@ -95,6 +104,86 @@ public class Transaction implements Parcelable {
         }
     }
 
+    // Calculate the next due date based on recurring type
+    public void calculateNextDueDate() {
+        if (recurring.equals("None")) {
+            this.nextDueDate = null;
+            return;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        if (parsedDate != null) {
+            calendar.setTime(parsedDate);
+        }
+
+        // Set time to beginning of day for consistent notifications
+        calendar.set(Calendar.HOUR_OF_DAY, 8); // 8:00 AM
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        // For the first calculation, use today or tomorrow as the start
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+
+        // If the parsed date is in the past, start from today
+        if (calendar.before(today)) {
+            calendar = today;
+            calendar.set(Calendar.HOUR_OF_DAY, 8); // 8:00 AM
+        }
+
+        // Calculate next due date based on recurring type
+        switch (recurring) {
+            case "Daily":
+                // Next day
+                calendar.add(Calendar.DAY_OF_YEAR, 1);
+                break;
+            case "Weekly":
+                // Next week, same day of week
+                calendar.add(Calendar.WEEK_OF_YEAR, 1);
+                break;
+            case "Monthly":
+                // Next month, same day of month
+                calendar.add(Calendar.MONTH, 1);
+                break;
+            case "Yearly":
+                // Next year, same day of year
+                calendar.add(Calendar.YEAR, 1);
+                break;
+        }
+
+        this.nextDueDate = calendar.getTime();
+    }
+
+    // Update the next due date after a notification has been sent
+    public void updateNextDueDate() {
+        if (nextDueDate == null || recurring.equals("None")) {
+            return;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(nextDueDate);
+
+        switch (recurring) {
+            case "Daily":
+                calendar.add(Calendar.DAY_OF_YEAR, 1);
+                break;
+            case "Weekly":
+                calendar.add(Calendar.WEEK_OF_YEAR, 1);
+                break;
+            case "Monthly":
+                calendar.add(Calendar.MONTH, 1);
+                break;
+            case "Yearly":
+                calendar.add(Calendar.YEAR, 1);
+                break;
+        }
+
+        this.nextDueDate = calendar.getTime();
+    }
 
     @Override
     public int describeContents() {
@@ -112,6 +201,7 @@ public class Transaction implements Parcelable {
         dest.writeString(recurring);
         dest.writeString(description);
         dest.writeLong(parsedDate != null ? parsedDate.getTime() : -1L);
+        dest.writeLong(nextDueDate != null ? nextDueDate.getTime() : -1L);
     }
 
     // Add this method to set parsed date from Firestore timestamp
@@ -120,8 +210,20 @@ public class Transaction implements Parcelable {
         // Update dateAndTime string
         SimpleDateFormat format = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault());
         this.dateAndTime = format.format(date);
+
+        // Recalculate next due date if this is a recurring transaction
+        if (!recurring.equals("None") && nextDueDate == null) {
+            calculateNextDueDate();
+        }
     }
 
+    public Date getNextDueDate() {
+        return nextDueDate;
+    }
+
+    public void setNextDueDate(Date nextDueDate) {
+        this.nextDueDate = nextDueDate;
+    }
 
     public String getType() {
         return type;
@@ -178,6 +280,13 @@ public class Transaction implements Parcelable {
 
     public void setRecurring(String recurring) {
         this.recurring = recurring;
+
+        // Recalculate next due date if recurring type changes
+        if (!recurring.equals("None")) {
+            calculateNextDueDate();
+        } else {
+            this.nextDueDate = null;
+        }
     }
 
     public String getDescription() {
@@ -200,5 +309,3 @@ public class Transaction implements Parcelable {
         this.id = id;
     }
 }
-
-

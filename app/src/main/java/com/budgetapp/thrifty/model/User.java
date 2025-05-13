@@ -1,9 +1,7 @@
 package com.budgetapp.thrifty.model;
 
 public class User {
-    private String uid;
-    private String email;
-    private String displayName;
+    private String uid, email, displayName;
     private boolean disabled;
 
     public User() {

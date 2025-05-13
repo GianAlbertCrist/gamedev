@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import com.budgetapp.thrifty.handlers.BarChartManager;
 import com.budgetapp.thrifty.handlers.PieChartManager;
 import com.budgetapp.thrifty.R;
@@ -28,13 +27,11 @@ public class ReportsFragment extends Fragment {
     private BarChartManager barChartManager;
     private TextView tvBalanceAmount, tvCurrentBalance, tvTotalIncome, tvTotalExpense, trendToggle;
     private BarChart barChart;
-    private float income;
-    private float expense;
+    private float income, expense;
     private RecyclerView rankingRecyclerView;
-    private TextView rankingToggle, sortToggle;
+    private TextView rankingToggle, sortToggle, rankingEmptyMessage;
     private boolean isIncomeRanking = true;
     private boolean sortHighToLow = true;
-    private TextView rankingEmptyMessage;
     private static final String PREFS_NAME = "ReportPreferences";
     private static final String KEY_IS_INCOME = "isIncomeRanking";
     private static final String KEY_SORT_HIGH_LOW = "sortHighToLow";

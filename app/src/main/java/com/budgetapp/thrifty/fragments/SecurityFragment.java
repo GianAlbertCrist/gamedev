@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseUser;
 public class SecurityFragment extends Fragment {
     private ConstraintLayout termsAndConditionsRow;
     private TextView profileName, profileFullName;
-    private ImageView profileImage;
     private FirebaseAuth mAuth;
 
     @Override
@@ -30,7 +29,6 @@ public class SecurityFragment extends Fragment {
         termsAndConditionsRow = view.findViewById(R.id.terms_conditions_row);
         profileName = view.findViewById(R.id.profile_name);
         profileFullName = view.findViewById(R.id.profile_full_name);
-        profileImage = view.findViewById(R.id.profile_image);
 
         // Set up click listeners
         termsAndConditionsRow.setOnClickListener(v -> showTermsAndConditions());

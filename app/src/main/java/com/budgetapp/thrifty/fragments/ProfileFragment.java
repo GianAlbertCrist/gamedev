@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -23,9 +22,7 @@ import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
@@ -36,10 +33,9 @@ public class ProfileFragment extends Fragment {
     private static final String TAG = "ProfileFragment";
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
-    private TextView usernameText;
-    private TextView fullNameText;
+    private TextView usernameText, fullNameText;
     private ImageView profileImage;
-    private int currentAvatarId = 0; // Default avatar
+    private int currentAvatarId = 0;
     private ListenerRegistration userListener;
 
     @Override

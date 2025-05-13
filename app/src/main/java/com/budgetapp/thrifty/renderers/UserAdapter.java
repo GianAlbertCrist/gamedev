@@ -6,13 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.model.User;
-
 import java.util.ArrayList;
 import java.util.List;
 

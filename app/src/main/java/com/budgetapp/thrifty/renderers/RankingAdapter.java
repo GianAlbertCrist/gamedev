@@ -7,19 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.app.AppCompatActivity;
-
-
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.fragments.DescriptionDialogFragment;
 import com.budgetapp.thrifty.utils.FormatUtils;
-
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
