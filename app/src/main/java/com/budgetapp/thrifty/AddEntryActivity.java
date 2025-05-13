@@ -2,10 +2,13 @@ package com.budgetapp.thrifty;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
@@ -21,8 +24,15 @@ import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 import com.google.android.material.tabs.TabLayout;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 public class AddEntryActivity extends AppCompatActivity {
     private TabLayout tabLayout;
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+    private TextView userGreet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +43,9 @@ public class AddEntryActivity extends AppCompatActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
         setContentView(R.layout.activity_add_entry);
-
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
+        userGreet = findViewById(R.id.user_greet);
         // Load initial fragment
         getSupportFragmentManager()
                 .beginTransaction()
@@ -54,6 +66,7 @@ public class AddEntryActivity extends AppCompatActivity {
 
         // Initialize TabLayout
         tabLayout = findViewById(R.id.tabLayout);
+        loadUserName();
 
         ImageButton smallThrifty = findViewById(R.id.small_thrifty);
         smallThrifty.setOnClickListener(view -> {
@@ -117,6 +130,26 @@ public class AddEntryActivity extends AppCompatActivity {
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
+    }
+    private void loadUserName() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            db.collection("users").document(user.getUid())
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            String name = task.getResult().getString("name");
+                            userGreet.setText(name != null ?
+                                    "Hello, " + name :
+                                    "Hello, User");
+                        } else {
+                            userGreet.setText("Hello, User");
+                            Log.e("Firestore", "Error loading user", task.getException());
+                        }
+                    });
+        } else {
+            userGreet.setText("Hello, Guest");
+        }
     }
 
     private void setupTouchOutsideToDismissKeyboard() {
