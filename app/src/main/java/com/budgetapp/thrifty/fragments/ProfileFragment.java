@@ -3,15 +3,19 @@ package com.budgetapp.thrifty.fragments;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -25,13 +29,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Objects;
+
 public class ProfileFragment extends Fragment {
 
     private static final String TAG = "ProfileFragment";
-    private LinearLayout editProfileButton;
-    private LinearLayout securityButton;
-    private LinearLayout logoutButton;
-    private LinearLayout deleteAccountButton;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private TextView usernameText;
@@ -50,15 +52,15 @@ public class ProfileFragment extends Fragment {
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         // Initialize buttons
-        editProfileButton = view.findViewById(R.id.edit_profile_button);
-        securityButton = view.findViewById(R.id.security_button);
-        logoutButton = view.findViewById(R.id.logout_button);
-        deleteAccountButton = view.findViewById(R.id.delete_account_button);
+        LinearLayout editProfileButton = view.findViewById(R.id.edit_profile_button);
+        LinearLayout securityButton = view.findViewById(R.id.security_button);
+        LinearLayout logoutButton = view.findViewById(R.id.logout_button);
+        LinearLayout deleteAccountButton = view.findViewById(R.id.delete_account_button);
 
         // Initialize text views
         usernameText = view.findViewById(R.id.textView);
         fullNameText = view.findViewById(R.id.textView2);
-        profileImage = view.findViewById(R.id.picture_najud);
+        profileImage = view.findViewById(R.id.user_avatar);
 
         // Load saved profile data
         loadProfileData();
@@ -89,7 +91,7 @@ public class ProfileFragment extends Fragment {
         // Set click listeners
         editProfileButton.setOnClickListener(v -> navigateToEditProfile());
         securityButton.setOnClickListener(v -> navigateToSecurity());
-        logoutButton.setOnClickListener(v -> showLogoutDialog());
+        logoutButton.setOnClickListener(v -> showCustomLogoutDialog());
         deleteAccountButton.setOnClickListener(v -> showDeleteAccountDialog());
 
         return view;
@@ -268,18 +270,41 @@ public class ProfileFragment extends Fragment {
         transaction.commit();
     }
 
-    private void showLogoutDialog() {
-        // Create the LogoutFragment (EndSessionFragment)
-        Fragment logoutFragment = new EndSessionFragment();
+    private void showCustomLogoutDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.logout_confirmation, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
 
-        // Get the FragmentManager and start a transaction
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+        dialog.getWindow().setLayout(
+                (int) (getResources().getDisplayMetrics().widthPixels * 0.85),
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
 
-        // Replace the current fragment with the LogoutFragment and add to back stack
-        transaction.replace(R.id.frame_layout, logoutFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        Button btnYes = dialogView.findViewById(R.id.btn_yes);
+        Button btnNo = dialogView.findViewById(R.id.btn_no);
+
+        btnYes.setOnClickListener(v -> {
+            dialog.dismiss();
+            performLogout();
+        });
+
+        btnNo.setOnClickListener(v -> dialog.dismiss());
+    }
+
+    private void performLogout() {
+        Toast.makeText(requireContext(), "Logging out...", Toast.LENGTH_SHORT).show();
+
+        FirebaseAuth.getInstance().signOut();
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            Intent intent = new Intent(requireActivity(), FirstActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            requireActivity().finish();
+        }, 1500);
     }
 
     private void showDeleteAccountDialog() {
