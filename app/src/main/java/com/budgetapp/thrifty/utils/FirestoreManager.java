@@ -170,6 +170,8 @@ public class FirestoreManager {
         String userId = currentUser.getUid();
         String transactionId = transaction.getId();
 
+        Log.d(TAG, "Updating transaction with ID: " + transactionId);
+
         Map<String, Object> transactionData = new HashMap<>();
         transactionData.put("type", transaction.getType());
         transactionData.put("category", transaction.getCategory());
@@ -187,7 +189,23 @@ public class FirestoreManager {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         documentSnapshot.getReference().update(transactionData)
-                                .addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction successfully updated"))
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Transaction successfully updated");
+
+                                    if (!transaction.getRecurring().equals("None")) {
+                                        Notification updatedNotification = new Notification(
+                                                "Transaction",
+                                                transaction.getCategory() + " | ₱" + transaction.getRawAmount(),
+                                                KeyboardBehavior.getCurrentTime(),
+                                                transaction.getRecurring(),
+                                                transaction.getIconID()
+                                        );
+                                        updateNotification(updatedNotification, transactionId);
+                                    } else {
+                                        // Delete notifications if recurring is set to None
+                                        deleteNotificationsForTransaction(transactionId);
+                                    }
+                                })
                                 .addOnFailureListener(e -> Log.e(TAG, "Error updating transaction", e));
                     } else {
                         Log.e(TAG, "Transaction document not found: " + transactionId);
@@ -339,21 +357,42 @@ public class FirestoreManager {
         notificationData.put("iconID", notification.getIconID());
         notificationData.put("transactionId", transactionId);
 
-        // Find and update existing notification
+        Log.d(TAG, "Updating notifications for transaction ID: " + transactionId);
+
+        // Find all notifications for this transaction
         db.collection("users")
                 .document(userId)
                 .collection("notifications")
                 .whereEqualTo("transactionId", transactionId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        // Update existing notification
-                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
-                        doc.getReference().update(notificationData)
+                    int notificationCount = querySnapshot.size();
+                    Log.d(TAG, "Found " + notificationCount + " notifications for transaction ID: " + transactionId);
+
+                    if (notificationCount > 0) {
+                        // Update the first notification
+                        DocumentSnapshot firstDoc = querySnapshot.getDocuments().get(0);
+                        firstDoc.getReference().update(notificationData)
                                 .addOnSuccessListener(aVoid ->
-                                        Log.d(TAG, "Notification updated successfully"))
+                                        Log.d(TAG, "First notification updated successfully"))
                                 .addOnFailureListener(e ->
-                                        Log.e(TAG, "Error updating notification", e));
+                                        Log.e(TAG, "Error updating first notification", e));
+
+                        // Delete any additional notifications (if there are duplicates)
+                        if (notificationCount > 1) {
+                            Log.d(TAG, "Found " + (notificationCount - 1) + " duplicate notifications to delete");
+                            WriteBatch batch = db.batch();
+                            for (int i = 1; i < querySnapshot.size(); i++) {
+                                DocumentSnapshot doc = querySnapshot.getDocuments().get(i);
+                                batch.delete(doc.getReference());
+                            }
+
+                            batch.commit()
+                                    .addOnSuccessListener(aVoid ->
+                                            Log.d(TAG, "Successfully deleted " + (notificationCount - 1) + " duplicate notifications"))
+                                    .addOnFailureListener(e ->
+                                            Log.e(TAG, "Error deleting duplicate notifications", e));
+                        }
                     } else {
                         // Create new notification if none exists
                         db.collection("users")
@@ -361,13 +400,14 @@ public class FirestoreManager {
                                 .collection("notifications")
                                 .add(notificationData)
                                 .addOnSuccessListener(documentReference ->
-                                        Log.d(TAG, "New notification created"))
+                                        Log.d(TAG, "New notification created with ID: " + documentReference.getId()))
                                 .addOnFailureListener(e ->
                                         Log.e(TAG, "Error creating notification", e));
                     }
                 })
                 .addOnFailureListener(e ->
-                        Log.e(TAG, "Error querying notifications", e));}
+                        Log.e(TAG, "Error querying notifications", e));
+    }
 
     // Listener interfaces
     public interface OnProfileLoadedListener {
