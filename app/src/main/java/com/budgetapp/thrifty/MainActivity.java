@@ -159,4 +159,13 @@ public class MainActivity extends AppCompatActivity {
         getSharedPreferences("UserPrefs", MODE_PRIVATE)
                 .unregisterOnSharedPreferenceChangeListener(prefsListener);
     }
+
+    public void refreshAllFragments() {
+        FragmentManager fm = getSupportFragmentManager();
+        for (Fragment fragment : fm.getFragments()) {
+            if (fragment instanceof HomeFragment) {
+                ((HomeFragment) fragment).refreshUserGreeting();
+            }
+        }
+    }
 }

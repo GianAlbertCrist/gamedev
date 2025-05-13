@@ -12,11 +12,6 @@ public class TransactionsHandler {
 
     public static ArrayList<Transaction> transactions = new ArrayList<>();
 
-    // Add transaction to the list
-    public void addTransaction(Transaction transaction) {
-        transactions.add(transaction);
-    }
-
     public static ArrayList<Transaction> getFilteredTransactions(String filterType) {
         ArrayList<Transaction> filtered = new ArrayList<>();
         Calendar now = Calendar.getInstance();

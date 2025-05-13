@@ -59,7 +59,13 @@ public class HomeFragment extends Fragment {
     }
 
     public void refreshUserGreeting() {
-        loadUserProfile();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && user.getDisplayName() != null) {
+            String[] userData = user.getDisplayName().split("\\|");
+            String username = userData[0];
+            TextView userGreet = rootView.findViewById(R.id.user_greet);
+            userGreet.setText("Hello, " + username + "!");
+        }
     }
 
     private void loadUserProfile() {

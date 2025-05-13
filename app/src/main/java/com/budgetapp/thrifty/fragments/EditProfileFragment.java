@@ -12,9 +12,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
+import com.budgetapp.thrifty.MainActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
@@ -141,7 +145,6 @@ public class EditProfileFragment extends Fragment {
                 highlightSelectedAvatar(avatarId);
             });
         }
-
         updateProfileButton.setOnClickListener(v -> updateProfile());
     }
 
@@ -205,26 +208,33 @@ public class EditProfileFragment extends Fragment {
         if (user != null) {
             String userId = user.getUid();
 
-            // Update the data in Firebase Database
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("username", newUsername);
-            updates.put("fullname", newFullName);
-            updates.put("avatarId", currentAvatarId);
+            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                    .setDisplayName(newUsername + "|" + newFullName)
+                    .build();
 
-            mDatabase.child("users").child(userId).updateChildren(updates)
+            user.updateProfile(profileUpdates)
                     .addOnSuccessListener(aVoid -> {
-                        // Send result back to ProfileFragment
-                        Bundle result = new Bundle();
-                        result.putString("username", newUsername);
-                        result.putString("fullname", newFullName);
-                        result.putInt("avatarId", currentAvatarId);
-                        getParentFragmentManager().setFragmentResult("profileUpdate", result);
+                        // Update Firebase Database
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("username", newUsername);
+                        updates.put("fullname", newFullName);
+                        updates.put("avatarId", currentAvatarId);
 
-                        Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                        getParentFragmentManager().popBackStack();
+                        mDatabase.child("users").child(userId).updateChildren(updates)
+                                .addOnSuccessListener(aVoid1 -> {
+                                    Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+
+                                    // Navigate back to ProfileFragment
+                                    FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                                    fragmentManager.popBackStack();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(getContext(), "Failed to update profile data", Toast.LENGTH_SHORT).show()
+                                );
                     })
                     .addOnFailureListener(e ->
-                            Toast.makeText(getContext(), "Failed to update profile", Toast.LENGTH_SHORT).show());
+                            Toast.makeText(getContext(), "Failed to update profile", Toast.LENGTH_SHORT).show()
+                    );
         }
     }
 }

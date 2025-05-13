@@ -96,7 +96,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
         holder.icon.setVisibility(View.VISIBLE);
         holder.icon.setImageResource(t.getIconID());
-
         holder.category.setText(t.getCategory());
         holder.category.setTypeface(poppins);
         holder.category.setTextColor(ContextCompat.getColor(context, R.color.black));
@@ -136,7 +135,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
 
         holder.description.setOnClickListener(v -> {
-
             DescriptionDialogFragment dialogFragment = DescriptionDialogFragment.newInstance(t);
             dialogFragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "descriptionDialog");
         });
