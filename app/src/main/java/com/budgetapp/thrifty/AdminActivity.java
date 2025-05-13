@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.budgetapp.thrifty.renderers.UserAdapter;
 import com.budgetapp.thrifty.model.User;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,6 +39,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class AdminActivity extends AppCompatActivity {
     private UserAdapter adapter;
@@ -53,7 +55,9 @@ public class AdminActivity extends AppCompatActivity {
 
         ThemeSync.syncNotificationBarColor(getWindow(), this);
 
-        findViewById(R.id.fab_add_entry).setOnClickListener(v -> {showRegisterUserDialog();});
+        findViewById(R.id.fab_add_entry).setOnClickListener(v -> {
+            showRegisterUserDialog();
+        });
 
         RecyclerView recyclerView = findViewById(R.id.accounts_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -84,12 +88,19 @@ public class AdminActivity extends AppCompatActivity {
         // Search Bar Filtering
         EditText searchBar = findViewById(R.id.search_bar);
         searchBar.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 adapter.filter(s.toString());
                 updatePageNumberDisplay();
             }
-            @Override public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // Pagination buttons
@@ -143,7 +154,7 @@ public class AdminActivity extends AppCompatActivity {
 
         // ✅ Set dialog width manually
         dialog.getWindow().setLayout(
-                (int)(getResources().getDisplayMetrics().widthPixels * 0.85),  // 85% of screen width
+                (int) (getResources().getDisplayMetrics().widthPixels * 0.85),  // 85% of screen width
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
     }
@@ -227,11 +238,12 @@ public class AdminActivity extends AppCompatActivity {
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
         dialog.getWindow().setLayout(
-                (int)(getResources().getDisplayMetrics().widthPixels * 0.85),
+                (int) (getResources().getDisplayMetrics().widthPixels * 0.85),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
     }
 
+    @SuppressLint("SetTextI18n")
     private void deleteUserFromServer(String uid) {
         new Thread(() -> {
             try {
@@ -245,12 +257,10 @@ public class AdminActivity extends AppCompatActivity {
                         Toast.makeText(this, "User deleted", Toast.LENGTH_SHORT).show();
                         adapter.removeUserById(uid);
 
-                        // ✅ Adjust pagination if needed
                         if (adapter.getCurrentPage() >= adapter.getTotalPages()) {
                             adapter.setPage(Math.max(0, adapter.getTotalPages() - 1));
                         }
 
-                        // ✅ Update UI
                         updatePageNumberDisplay();
                         totalUsers.setText("Total users: " + adapter.getTotalUserCount());
                     });
@@ -293,20 +303,27 @@ public class AdminActivity extends AppCompatActivity {
         // Pre-fill current user info
         String[] parts = user.getDisplayName().split("\\|");
         if (parts.length == 2) {
+            assert firstNameInput != null;
             firstNameInput.setText(parts[0]);
+            assert surnameInput != null;
             surnameInput.setText(parts[1].replace(parts[0] + " ", ""));
         } else {
+            assert firstNameInput != null;
             firstNameInput.setText(user.getDisplayName());
         }
+        assert emailInput != null;
         emailInput.setText(user.getEmail());
 
         registerBtn.setText("Update");
 
         registerBtn.setOnClickListener(v -> {
             String firstName = firstNameInput.getText().toString().trim();
+            assert surnameInput != null;
             String surname = surnameInput.getText().toString().trim();
             String email = emailInput.getText().toString().trim();
+            assert passwordInput != null;
             String password = passwordInput.getText().toString();
+            assert confirmPasswordInput != null;
             String confirmPassword = confirmPasswordInput.getText().toString();
             String displayName = firstName + "|" + firstName + " " + surname;
 
@@ -353,7 +370,7 @@ public class AdminActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             Toast.makeText(this, "User updated successfully", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
-                            fetchUsersFromServer(new ArrayList<>()); // refresh UI
+                            fetchUsersFromServer(new ArrayList<>());
                         });
                     } else {
                         runOnUiThread(() -> Toast.makeText(this, "Failed to update user", Toast.LENGTH_SHORT).show());
@@ -372,10 +389,10 @@ public class AdminActivity extends AppCompatActivity {
         builder.setView(dialogView);
         android.app.AlertDialog dialog = builder.create();
 
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
         dialog.getWindow().setLayout(
-                (int)(getResources().getDisplayMetrics().widthPixels * 0.74),
+                (int) (getResources().getDisplayMetrics().widthPixels * 0.74),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
 
@@ -394,10 +411,15 @@ public class AdminActivity extends AppCompatActivity {
         Button registerBtn = dialogView.findViewById(R.id.register_button);
 
         registerBtn.setOnClickListener(v -> {
+            assert firstNameInput != null;
             String firstName = firstNameInput.getText().toString().trim();
+            assert surnameInput != null;
             String surname = surnameInput.getText().toString().trim();
+            assert emailInput != null;
             String email = emailInput.getText().toString().trim();
+            assert passwordInput != null;
             String password = passwordInput.getText().toString();
+            assert confirmPasswordInput != null;
             String confirmPassword = confirmPasswordInput.getText().toString();
 
             if (firstName.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
@@ -417,30 +439,35 @@ public class AdminActivity extends AppCompatActivity {
                 return;
             }
 
-            // ✅ Register the user via Firebase Auth
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             FirebaseUser firebaseUser = task.getResult().getUser();
                             if (firebaseUser != null) {
                                 String fullName = firstName + " " + surname;
+                                String displayName = firstName + "|" + fullName;
+
                                 UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(firstName + "|" + fullName)
+                                        .setDisplayName(displayName)
                                         .build();
+
                                 firebaseUser.updateProfile(profileUpdates)
                                         .addOnCompleteListener(updateTask -> {
                                             if (updateTask.isSuccessful()) {
+                                                FirestoreManager.saveUserProfile(displayName, email, 0);
+
                                                 Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
                                                 dialog.dismiss();
                                                 fetchUsersFromServer(new ArrayList<>());
+                                            } else {
+                                                Toast.makeText(this, "Profile update failed", Toast.LENGTH_SHORT).show();
                                             }
                                         });
                             }
                         } else {
-                            Toast.makeText(this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Registration failed: " + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_LONG).show();
                         }
                     });
         });
     }
-
 }
