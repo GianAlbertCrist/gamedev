@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences.OnSharedPreferenceChangeListener prefsListener =
             (sharedPreferences, key) -> {
                 // Update UI elements when profile data changes
-                if (key.equals("username") || key.equals("fullname")) {
+                if (key.equals("username") || key.equals("fullname") || key.equals("avatarId")) {
                     updateProfileUI();
                 }
             };
@@ -165,6 +165,24 @@ public class MainActivity extends AppCompatActivity {
         for (Fragment fragment : fm.getFragments()) {
             if (fragment instanceof HomeFragment) {
                 ((HomeFragment) fragment).refreshUserGreeting();
+            } else if (fragment instanceof ProfileFragment) {
+                // Refresh the profile fragment
+                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                int avatarId = prefs.getInt("avatarId", 0);
+                String username = prefs.getString("username", "");
+                String fullname = prefs.getString("fullname", "");
+
+                Bundle args = new Bundle();
+                args.putInt("avatarId", avatarId);
+                args.putString("username", username);
+                args.putString("fullname", fullname);
+                fragment.setArguments(args);
+
+                // Force refresh the profile fragment
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.detach(fragment);
+                ft.attach(fragment);
+                ft.commit();
             }
         }
     }
