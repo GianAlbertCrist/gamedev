@@ -2,6 +2,7 @@ package com.budgetapp.thrifty.fragments;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 public class EditProfileFragment extends Fragment {
 
+    private static final String TAG = "EditProfileFragment";
     private ImageView profileImage, profileImageEdit;
     private CardView profileImageEditContainer;
     private TextView profileName, profileFullName;
@@ -113,45 +115,74 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        editProfileImage.setOnClickListener(v -> {
-            toggleProfilePictureEditMode();
-        });
+        // Debug log to check if this method is being called
+        Log.d(TAG, "Setting up click listeners");
 
-        cancelAvatarSelection.setOnClickListener(v -> {
-            profilePictureSelector.setVisibility(View.GONE);
-            selectedAvatarId = currentAvatarId;
-
-            // Exit edit mode when canceling
-            if (isEditingProfilePicture) {
+        editProfileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 toggleProfilePictureEditMode();
             }
         });
 
-        confirmAvatarSelection.setOnClickListener(v -> {
-            currentAvatarId = selectedAvatarId;
-            updateProfileImage(currentAvatarId);
-            profilePictureSelector.setVisibility(View.GONE);
+        cancelAvatarSelection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                profilePictureSelector.setVisibility(View.GONE);
+                selectedAvatarId = currentAvatarId;
 
-            // Exit edit mode when confirming
-            if (isEditingProfilePicture) {
-                toggleProfilePictureEditMode();
+                // Exit edit mode when canceling
+                if (isEditingProfilePicture) {
+                    toggleProfilePictureEditMode();
+                }
+            }
+        });
+
+        confirmAvatarSelection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentAvatarId = selectedAvatarId;
+                updateProfileImage(currentAvatarId);
+                profilePictureSelector.setVisibility(View.GONE);
+
+                // Exit edit mode when confirming
+                if (isEditingProfilePicture) {
+                    toggleProfilePictureEditMode();
+                }
             }
         });
 
         // Set up avatar selection listeners
         for (int i = 0; i < avatarViews.length; i++) {
             final int avatarId = i + 1;
-            avatarViews[i].setOnClickListener(v -> {
-                selectedAvatarId = avatarId;
-                highlightSelectedAvatar(avatarId);
+            avatarViews[i].setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    selectedAvatarId = avatarId;
+                    highlightSelectedAvatar(avatarId);
+                }
             });
         }
-        updateProfileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateProfile();
-            }
-        });
+
+        // Debug log to check if the button is null
+        if (updateProfileButton == null) {
+            Log.e(TAG, "updateProfileButton is null!");
+        } else {
+            Log.d(TAG, "updateProfileButton found, setting click listener");
+
+            // Set click listener with explicit debug logs
+            updateProfileButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "Update profile button clicked");
+                    updateProfile();
+                }
+            });
+
+            // Make sure the button is clickable and enabled
+            updateProfileButton.setClickable(true);
+            updateProfileButton.setEnabled(true);
+        }
     }
 
     private void toggleProfilePictureEditMode() {
@@ -202,6 +233,8 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void updateProfile() {
+        Log.d(TAG, "updateProfile method called");
+
         String newUsername = usernameInput.getText().toString().trim();
         String newFullName = fullnameInput.getText().toString().trim();
 
@@ -213,6 +246,7 @@ public class EditProfileFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
+            Log.d(TAG, "Updating profile for user: " + userId);
 
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(newUsername + "|" + newFullName)
@@ -220,6 +254,8 @@ public class EditProfileFragment extends Fragment {
 
             user.updateProfile(profileUpdates)
                     .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Firebase Auth profile updated successfully");
+
                         // Update Firebase Database
                         Map<String, Object> updates = new HashMap<>();
                         updates.put("username", newUsername);
@@ -228,6 +264,7 @@ public class EditProfileFragment extends Fragment {
 
                         mDatabase.child("users").child(userId).updateChildren(updates)
                                 .addOnSuccessListener(aVoid1 -> {
+                                    Log.d(TAG, "Firebase Database updated successfully");
                                     Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
 
                                     // Save to SharedPreferences for immediate access
@@ -255,13 +292,29 @@ public class EditProfileFragment extends Fragment {
                                     FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
                                     fragmentManager.popBackStack();
                                 })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Failed to update profile data", Toast.LENGTH_SHORT).show()
-                                );
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Failed to update Firebase Database", e);
+                                    Toast.makeText(getContext(), "Failed to update profile data", Toast.LENGTH_SHORT).show();
+                                });
                     })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(getContext(), "Failed to update profile", Toast.LENGTH_SHORT).show()
-                    );
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to update Firebase Auth profile", e);
+                        Toast.makeText(getContext(), "Failed to update profile", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Double-check that the button is properly set up
+        if (updateProfileButton != null) {
+            updateProfileButton.setOnClickListener(v -> {
+                Log.d(TAG, "Update button clicked from onResume listener");
+                updateProfile();
+            });
+            updateProfileButton.setClickable(true);
+            updateProfileButton.setEnabled(true);
         }
     }
 }
