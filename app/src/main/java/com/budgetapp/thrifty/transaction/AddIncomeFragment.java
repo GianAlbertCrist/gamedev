@@ -2,7 +2,6 @@ package com.budgetapp.thrifty.transaction;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +31,6 @@ public class AddIncomeFragment extends Fragment {
 
     private int selectedIconResId = R.drawable.ic_salary;
     private String selectedRecurring = "None";
-    private EditText descriptionInput;
     Transaction editingTransaction;
 
     public AddIncomeFragment() {
@@ -60,7 +58,7 @@ public class AddIncomeFragment extends Fragment {
         TextView categoryText = view.findViewById(R.id.category_text);
         ImageView categoryIcon = view.findViewById(R.id.category_icon);
         EditText numberInput = view.findViewById(R.id.number_input);
-        descriptionInput = view.findViewById(R.id.income_description);
+        EditText descriptionInput = view.findViewById(R.id.income_description);
         ImageButton recurringButton = view.findViewById(R.id.ic_recurring);
 
         Button confirmBtn = view.findViewById(R.id.confirm_button);
@@ -211,17 +209,8 @@ public class AddIncomeFragment extends Fragment {
             if (editingTransaction != null) {
                 // Update existing transaction
                 transaction.setId(editingTransaction.getId());
-                transaction.setParsedDate(editingTransaction.getParsedDate()); // Preserve the original date
-
-                Log.d("AddIncomeFragment", "Updating transaction with ID: " + transaction.getId());
-
                 FirestoreManager.updateTransaction(transaction);
-
-                // Update local list
-                int index = TransactionsHandler.transactions.indexOf(editingTransaction);
-                if (index != -1) {
-                    TransactionsHandler.transactions.set(index, transaction);
-                }
+                TransactionsHandler.transactions.remove(editingTransaction);
             } else {
                 // Save new transaction
                 FirestoreManager.saveTransaction(transaction);

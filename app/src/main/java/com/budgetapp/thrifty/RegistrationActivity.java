@@ -1,7 +1,6 @@
 package com.budgetapp.thrifty;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -176,15 +175,5 @@ public class RegistrationActivity extends AppCompatActivity {
         mDatabase.child("users").child(uid).setValue(userData)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "User data saved to database"))
                 .addOnFailureListener(e -> Log.w(TAG, "Error saving user data to database", e));
-    }
-
-    private void saveToSharedPreferences(String username, String fullName, String email) {
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("username", username);
-        editor.putString("fullname", fullName);
-        editor.putString("email", email);
-        editor.putInt("avatarId", 0); // Default avatar
-        editor.apply();
     }
 }

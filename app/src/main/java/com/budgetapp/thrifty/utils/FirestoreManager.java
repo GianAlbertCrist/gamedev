@@ -12,6 +12,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -58,17 +59,26 @@ public class FirestoreManager {
         transactionData.put("recurring", transaction.getRecurring());
         transactionData.put("description", transaction.getDescription());
 
-        String transactionId = db.collection("users")
+        // Generate a new document ID
+        DocumentReference newTransactionRef = db.collection("users")
                 .document(currentUser.getUid())
                 .collection("transactions")
-                .document().getId();
+                .document();
 
-        db.collection("users")
-                .document(currentUser.getUid())
-                .collection("transactions")
-                .document(transactionId)
-                .set(transactionData)
-                .addOnFailureListener(e -> Log.e(TAG, "Error saving transaction", e));
+        // Set the ID on the transaction object
+        String transactionId = newTransactionRef.getId();
+        transaction.setId(transactionId);
+
+        Log.d(TAG, "Saving transaction with ID: " + transactionId);
+
+        // Save to Firestore
+        newTransactionRef.set(transactionData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Transaction successfully saved with ID: " + transactionId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error saving transaction with ID: " + transactionId, e);
+                });
     }
 
     // Save a notification
@@ -158,16 +168,8 @@ public class FirestoreManager {
         if (currentUser == null) return;
 
         String userId = currentUser.getUid();
-        String transactionId = transaction.getId(); // Get the ID
+        String transactionId = transaction.getId();
 
-        Log.d(TAG, "Updating transaction with ID: " + transactionId);
-
-        DocumentReference transactionRef = db.collection("users")
-                .document(userId)
-                .collection("transactions")
-                .document(transactionId);
-
-        // Prepare the update data
         Map<String, Object> transactionData = new HashMap<>();
         transactionData.put("type", transaction.getType());
         transactionData.put("category", transaction.getCategory());
@@ -175,27 +177,23 @@ public class FirestoreManager {
         transactionData.put("iconID", transaction.getIconID());
         transactionData.put("recurring", transaction.getRecurring());
         transactionData.put("description", transaction.getDescription());
-        transactionData.put("dateTime", transaction.getParsedDate() != null ?
-                transaction.getParsedDate() : new Date());
+        transactionData.put("dateTime", transaction.getParsedDate() != null ? transaction.getParsedDate() : new Date());
 
-        // Update the document
-        transactionRef.get()
+        db.collection("users")
+                .document(userId)
+                .collection("transactions")
+                .document(transactionId)
+                .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        transactionRef.update(transactionData)
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Transaction successfully updated");
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error updating transaction", e);
-                                });
+                        documentSnapshot.getReference().update(transactionData)
+                                .addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction successfully updated"))
+                                .addOnFailureListener(e -> Log.e(TAG, "Error updating transaction", e));
                     } else {
                         Log.e(TAG, "Transaction document not found: " + transactionId);
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error checking transaction existence", e);
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Error checking transaction existence", e));
     }
 
     public interface OnDeleteTransactionListener {
@@ -212,38 +210,56 @@ public class FirestoreManager {
         }
 
         String userId = currentUser.getUid();
-        DocumentReference transactionRef = db.collection("users")
-                .document(userId)
-                .collection("transactions")
-                .document(transactionId);
 
-        // Add debug logging
-        Log.d(TAG, "Attempting to delete transaction: " + transactionId);
+        // Add extensive debug logging
+        Log.d(TAG, "Starting deletion process for transaction: " + transactionId);
+        Log.d(TAG, "User ID: " + userId);
         Log.d(TAG, "Full path: users/" + userId + "/transactions/" + transactionId);
 
-        transactionRef.get()
+        // First check if the transaction exists to provide better debugging
+        db.collection("users")
+                .document(userId)
+                .collection("transactions")
+                .document(transactionId)
+                .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (!documentSnapshot.exists()) {
-                        Log.e(TAG, "Transaction document not found at path: users/" + userId + "/transactions/" + transactionId);
-                        if (listener != null) listener.onFailure(new Exception("Transaction not found"));
-                        return;
+                    if (documentSnapshot.exists()) {
+                        Log.d(TAG, "Transaction found in Firestore. Data: " + documentSnapshot.getData());
+
+                        // Now delete it
+                        documentSnapshot.getReference().delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Transaction successfully deleted from Firestore");
+                                    deleteAssociatedNotifications(userId, transactionId, listener);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error deleting transaction from Firestore", e);
+                                    if (listener != null) listener.onFailure(e);
+                                });
+                    } else {
+                        Log.w(TAG, "Transaction not found in Firestore. This could be because:");
+                        Log.w(TAG, "1. The transaction was never saved to Firestore");
+                        Log.w(TAG, "2. The transaction ID is incorrect");
+                        Log.w(TAG, "3. The transaction was already deleted");
+
+                        // Try to delete it anyway in case there's a sync issue
+                        db.collection("users")
+                                .document(userId)
+                                .collection("transactions")
+                                .document(transactionId)
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Delete operation completed (though document didn't exist)");
+                                    if (listener != null) listener.onSuccess();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error in delete operation", e);
+                                    if (listener != null) listener.onFailure(e);
+                                });
                     }
-
-                    // Document exists, log its data
-                    Log.d(TAG, "Found transaction data: " + documentSnapshot.getData());
-
-                    transactionRef.delete()
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d(TAG, "Transaction document deleted successfully");
-                                deleteAssociatedNotifications(userId, transactionId, listener);
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e(TAG, "Error deleting transaction document", e);
-                                if (listener != null) listener.onFailure(e);
-                            });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error checking transaction existence", e);
+                    Log.e(TAG, "Error checking if transaction exists", e);
                     if (listener != null) listener.onFailure(e);
                 });
     }
@@ -256,10 +272,12 @@ public class FirestoreManager {
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (querySnapshot.isEmpty()) {
+                        Log.d(TAG, "No associated notifications found for transaction: " + transactionId);
                         if (listener != null) listener.onSuccess();
                         return;
                     }
 
+                    Log.d(TAG, "Found " + querySnapshot.size() + " notifications to delete");
                     com.google.firebase.firestore.WriteBatch batch = db.batch();
                     for (DocumentSnapshot document : querySnapshot.getDocuments()) {
                         batch.delete(document.getReference());
@@ -272,6 +290,7 @@ public class FirestoreManager {
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "Error deleting notifications", e);
+                                // Still consider the transaction deletion a success
                                 if (listener != null) listener.onSuccess();
                             });
                 })
@@ -280,6 +299,75 @@ public class FirestoreManager {
                     if (listener != null) listener.onSuccess();
                 });
     }
+
+    public static void deleteNotificationsForTransaction(String transactionId) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();
+        db.collection("users")
+                .document(userId)
+                .collection("notifications")
+                .whereEqualTo("transactionId", transactionId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    WriteBatch batch = db.batch();
+                    for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                        batch.delete(document.getReference());
+                    }
+                    batch.commit()
+                            .addOnSuccessListener(aVoid ->
+                                    Log.d(TAG, "Notifications deleted successfully"))
+                            .addOnFailureListener(e ->
+                                    Log.e(TAG, "Error deleting notifications", e));
+                })
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error querying notifications", e));
+    }
+
+    // Update notification for a transaction
+    public static void updateNotification(Notification notification, String transactionId) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("title", notification.getType());
+        notificationData.put("message", notification.getDescription());
+        notificationData.put("timestamp", new Date());
+        notificationData.put("recurring", notification.getRecurring());
+        notificationData.put("iconID", notification.getIconID());
+        notificationData.put("transactionId", transactionId);
+
+        // Find and update existing notification
+        db.collection("users")
+                .document(userId)
+                .collection("notifications")
+                .whereEqualTo("transactionId", transactionId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // Update existing notification
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                        doc.getReference().update(notificationData)
+                                .addOnSuccessListener(aVoid ->
+                                        Log.d(TAG, "Notification updated successfully"))
+                                .addOnFailureListener(e ->
+                                        Log.e(TAG, "Error updating notification", e));
+                    } else {
+                        // Create new notification if none exists
+                        db.collection("users")
+                                .document(userId)
+                                .collection("notifications")
+                                .add(notificationData)
+                                .addOnSuccessListener(documentReference ->
+                                        Log.d(TAG, "New notification created"))
+                                .addOnFailureListener(e ->
+                                        Log.e(TAG, "Error creating notification", e));
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error querying notifications", e));}
 
     // Listener interfaces
     public interface OnProfileLoadedListener {

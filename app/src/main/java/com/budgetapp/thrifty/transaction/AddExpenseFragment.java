@@ -33,6 +33,8 @@ public class AddExpenseFragment extends Fragment {
     private int selectedIconResId = R.drawable.ic_transport; // default
     private String selectedRecurring = "None";
 
+    Transaction editingTransaction;
+
     public AddExpenseFragment() {}
 
     @Override
@@ -47,7 +49,6 @@ public class AddExpenseFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Transaction editingTransaction;
         if (getArguments() != null && getArguments().containsKey("transactionToEdit")) {
             editingTransaction = getArguments().getParcelable("transactionToEdit");
         } else {
