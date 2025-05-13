@@ -24,11 +24,10 @@ import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.Objects;
 
@@ -36,12 +35,12 @@ public class ProfileFragment extends Fragment {
 
     private static final String TAG = "ProfileFragment";
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private FirebaseFirestore mFirestore;
     private TextView usernameText;
     private TextView fullNameText;
     private ImageView profileImage;
     private int currentAvatarId = 0; // Default avatar
-    private ValueEventListener userListener;
+    private ListenerRegistration userListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,7 +49,7 @@ public class ProfileFragment extends Fragment {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mFirestore = FirebaseFirestore.getInstance();
 
         // Initialize buttons
         LinearLayout editProfileButton = view.findViewById(R.id.edit_profile_button);
@@ -107,8 +106,8 @@ public class ProfileFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         // Remove the database listener when the fragment is destroyed
-        if (userListener != null && mAuth.getCurrentUser() != null) {
-            mDatabase.child("users").child(mAuth.getCurrentUser().getUid()).removeEventListener(userListener);
+        if (userListener != null) {
+            userListener.remove();
         }
     }
 
@@ -117,40 +116,36 @@ public class ProfileFragment extends Fragment {
         if (user != null) {
             String uid = user.getUid();
 
-            userListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        String username = snapshot.child("username").getValue(String.class);
-                        String fullname = snapshot.child("fullname").getValue(String.class);
-                        Long avatarIdLong = snapshot.child("avatarId").getValue(Long.class);
-                        int avatarId = avatarIdLong != null ? avatarIdLong.intValue() : 0;
+            DocumentReference userRef = mFirestore.collection("users").document(uid);
+            userListener = userRef.addSnapshotListener((snapshot, error) -> {
+                if (error != null) {
+                    Log.w(TAG, "loadUserData:onCancelled", error);
+                    return;
+                }
 
-                        if (username != null && !username.isEmpty()) {
-                            usernameText.setText(username);
-                            saveProfileData("username", username);
-                        }
+                if (snapshot != null && snapshot.exists()) {
+                    String username = snapshot.getString("username");
+                    String fullname = snapshot.getString("fullname");
+                    Long avatarIdLong = snapshot.getLong("avatarId");
+                    int avatarId = avatarIdLong != null ? avatarIdLong.intValue() : 0;
 
-                        if (fullname != null && !fullname.isEmpty()) {
-                            fullNameText.setText(fullname.toUpperCase());
-                            saveProfileData("fullname", fullname);
-                        }
+                    if (username != null && !username.isEmpty()) {
+                        usernameText.setText(username);
+                        saveProfileData("username", username);
+                    }
 
-                        if (avatarId > 0) {
-                            updateProfileImage(avatarId);
-                            currentAvatarId = avatarId;
-                            saveProfileData("avatarId", String.valueOf(avatarId));
-                        }
+                    if (fullname != null && !fullname.isEmpty()) {
+                        fullNameText.setText(fullname.toUpperCase());
+                        saveProfileData("fullname", fullname);
+                    }
+
+                    if (avatarId > 0) {
+                        updateProfileImage(avatarId);
+                        currentAvatarId = avatarId;
+                        saveProfileData("avatarId", String.valueOf(avatarId));
                     }
                 }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.w(TAG, "loadUserData:onCancelled", error.toException());
-                }
-            };
-
-            mDatabase.child("users").child(uid).addValueEventListener(userListener);
+            });
         }
     }
 
@@ -337,7 +332,7 @@ public class ProfileFragment extends Fragment {
             if (user != null) {
                 // Delete user data from Firebase Database
                 String uid = user.getUid();
-                mDatabase.child("users").child(uid).removeValue();
+                mFirestore.collection("users").document(uid).delete();
 
                 // Delete user from Firebase Auth
                 user.delete().addOnCompleteListener(task -> {

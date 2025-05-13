@@ -42,7 +42,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.database)
+    implementation(libs.firebase.firestore)
     implementation(libs.protolite.well.known.types)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)

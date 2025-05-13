@@ -21,8 +21,7 @@ import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +40,7 @@ public class EditProfileFragment extends Fragment {
     private int selectedAvatarId = 0;
     private int currentAvatarId = 0;
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private FirebaseFirestore mFirestore;
     private boolean isEditingProfilePicture = false;
 
     @Override
@@ -50,7 +49,7 @@ public class EditProfileFragment extends Fragment {
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mFirestore = FirebaseFirestore.getInstance();
 
         // Initialize views
         initializeViews(view);
@@ -256,15 +255,15 @@ public class EditProfileFragment extends Fragment {
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Firebase Auth profile updated successfully");
 
-                        // Update Firebase Database
+                        // Update Firestore
                         Map<String, Object> updates = new HashMap<>();
                         updates.put("username", newUsername);
                         updates.put("fullname", newFullName);
                         updates.put("avatarId", currentAvatarId);
 
-                        mDatabase.child("users").child(userId).updateChildren(updates)
+                        mFirestore.collection("users").document(userId).update(updates)
                                 .addOnSuccessListener(aVoid1 -> {
-                                    Log.d(TAG, "Firebase Database updated successfully");
+                                    Log.d(TAG, "Firestore updated successfully");
                                     Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
 
                                     // Save to SharedPreferences for immediate access
@@ -293,7 +292,7 @@ public class EditProfileFragment extends Fragment {
                                     fragmentManager.popBackStack();
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Failed to update Firebase Database", e);
+                                    Log.e(TAG, "Failed to update Firestore", e);
                                     Toast.makeText(getContext(), "Failed to update profile data", Toast.LENGTH_SHORT).show();
                                 });
                     })

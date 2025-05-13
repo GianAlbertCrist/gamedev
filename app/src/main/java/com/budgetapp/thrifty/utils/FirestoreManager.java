@@ -416,5 +416,6 @@ public class FirestoreManager {
 
     public interface OnTransactionsLoadedListener {
         void onTransactionsLoaded(List<Transaction> transactions);
+
     }
 }

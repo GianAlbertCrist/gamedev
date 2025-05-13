@@ -26,6 +26,7 @@ public class FirstActivity extends AppCompatActivity {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Find views using correct type (Button)
         signInButton = findViewById(R.id.sign_in_button);

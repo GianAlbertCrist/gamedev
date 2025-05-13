@@ -17,6 +17,7 @@ import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class DeleteAccountFragment extends Fragment implements View.OnTouchListener {
 
@@ -25,6 +26,7 @@ public class DeleteAccountFragment extends Fragment implements View.OnTouchListe
     private View rootView;
     private CardView dialogContainer;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore mFirestore;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,6 +35,7 @@ public class DeleteAccountFragment extends Fragment implements View.OnTouchListe
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+        mFirestore = FirebaseFirestore.getInstance();
 
         // Initialize buttons
         deleteAccountButton = rootView.findViewById(R.id.yes_delete_account);
@@ -88,28 +91,39 @@ public class DeleteAccountFragment extends Fragment implements View.OnTouchListe
     private void performDeleteAccount() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            // Delete the user account
-            user.delete()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            // Clear shared preferences
-                            SharedPreferences preferences = requireActivity().getSharedPreferences("UserPrefs",
-                                    requireActivity().MODE_PRIVATE);
-                            preferences.edit().clear().apply();
+            String uid = user.getUid();
 
-                            Toast.makeText(getContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
+            // Delete user data from Firestore
+            mFirestore.collection("users").document(uid).delete()
+                    .addOnSuccessListener(aVoid -> {
+                        // Delete user from Firebase Auth
+                        user.delete()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        // Clear shared preferences
+                                        SharedPreferences preferences = requireActivity().getSharedPreferences("UserPrefs",
+                                                requireActivity().MODE_PRIVATE);
+                                        preferences.edit().clear().apply();
 
-                            // Navigate to FirstActivity
-                            Intent intent = new Intent(getActivity(), FirstActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            requireActivity().finish();
-                        } else {
-                            // If delete fails, show error message
-                            Toast.makeText(getContext(),
-                                    "Failed to delete account: " + task.getException().getMessage(),
-                                    Toast.LENGTH_LONG).show();
-                        }
+                                        Toast.makeText(getContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
+
+                                        // Navigate to FirstActivity
+                                        Intent intent = new Intent(getActivity(), FirstActivity.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                        startActivity(intent);
+                                        requireActivity().finish();
+                                    } else {
+                                        // If delete fails, show error message
+                                        Toast.makeText(getContext(),
+                                                "Failed to delete account: " + task.getException().getMessage(),
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(),
+                                "Failed to delete account data: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
                     });
         }
     }

@@ -29,6 +29,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,7 +39,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class AdminActivity extends AppCompatActivity {
@@ -46,13 +49,14 @@ public class AdminActivity extends AppCompatActivity {
     private TextView currentPageText;
     private ProgressBar loadingSpinner;
     private TextView totalUsers;
-
+    private FirebaseFirestore mFirestore;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.admin_activity);
 
+        mFirestore = FirebaseFirestore.getInstance();
         ThemeSync.syncNotificationBarColor(getWindow(), this);
 
         findViewById(R.id.fab_add_entry).setOnClickListener(v -> {
@@ -454,11 +458,23 @@ public class AdminActivity extends AppCompatActivity {
                                 firebaseUser.updateProfile(profileUpdates)
                                         .addOnCompleteListener(updateTask -> {
                                             if (updateTask.isSuccessful()) {
-                                                FirestoreManager.saveUserProfile(displayName, email, 0);
+                                                // Save user profile to Firestore
+                                                Map<String, Object> userData = new HashMap<>();
+                                                userData.put("username", firstName);
+                                                userData.put("fullname", fullName);
+                                                userData.put("email", email);
+                                                userData.put("avatarId", 0);
 
-                                                Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
-                                                dialog.dismiss();
-                                                fetchUsersFromServer(new ArrayList<>());
+                                                mFirestore.collection("users").document(firebaseUser.getUid())
+                                                        .set(userData)
+                                                        .addOnSuccessListener(aVoid -> {
+                                                            Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
+                                                            dialog.dismiss();
+                                                            fetchUsersFromServer(new ArrayList<>());
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            Toast.makeText(this, "Profile creation failed", Toast.LENGTH_SHORT).show();
+                                                        });
                                             } else {
                                                 Toast.makeText(this, "Profile update failed", Toast.LENGTH_SHORT).show();
                                             }

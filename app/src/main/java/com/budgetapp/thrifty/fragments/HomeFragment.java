@@ -20,10 +20,8 @@ import com.budgetapp.thrifty.renderers.TransactionAdapter;
 import com.budgetapp.thrifty.utils.FormatUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class HomeFragment extends Fragment {
 
@@ -33,7 +31,7 @@ public class HomeFragment extends Fragment {
     private TextView userGreet;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private ValueEventListener profileListener;
+    private ListenerRegistration profileListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -98,9 +96,8 @@ public class HomeFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         // Clean up listener to prevent memory leaks
-        if (profileListener != null && mAuth.getCurrentUser() != null) {
-            mDatabase.child("users").child(mAuth.getCurrentUser().getUid())
-                    .removeEventListener(profileListener);
+        if (profileListener != null) {
+            profileListener.remove();
             profileListener = null;
         }
     }
