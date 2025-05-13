@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty.fragments;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -223,6 +224,27 @@ public class EditProfileFragment extends Fragment {
                         mDatabase.child("users").child(userId).updateChildren(updates)
                                 .addOnSuccessListener(aVoid1 -> {
                                     Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+
+                                    // Save to SharedPreferences for immediate access
+                                    SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                                            requireActivity().MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = prefs.edit();
+                                    editor.putString("username", newUsername);
+                                    editor.putString("fullname", newFullName);
+                                    editor.putInt("avatarId", currentAvatarId);
+                                    editor.apply();
+
+                                    // Set fragment result to notify ProfileFragment
+                                    Bundle result = new Bundle();
+                                    result.putString("username", newUsername);
+                                    result.putString("fullname", newFullName);
+                                    result.putInt("avatarId", currentAvatarId);
+                                    getParentFragmentManager().setFragmentResult("profileUpdate", result);
+
+                                    // Refresh MainActivity to update all fragments
+                                    if (getActivity() instanceof MainActivity) {
+                                        ((MainActivity) getActivity()).refreshAllFragments();
+                                    }
 
                                     // Navigate back to ProfileFragment
                                     FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();

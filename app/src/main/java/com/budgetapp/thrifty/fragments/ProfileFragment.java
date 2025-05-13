@@ -85,6 +85,11 @@ public class ProfileFragment extends Fragment {
                         int avatarId = result.getInt("avatarId");
                         updateProfileImage(avatarId);
                         currentAvatarId = avatarId;
+
+                        // Save to SharedPreferences
+                        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                                requireActivity().MODE_PRIVATE);
+                        prefs.edit().putInt("avatarId", avatarId).apply();
                     }
                 });
 
@@ -176,14 +181,27 @@ public class ProfileFragment extends Fragment {
 
             usernameText.setText(username);
             fullNameText.setText(fullName.toUpperCase());
-            profileImage.setImageResource(R.drawable.sample_profile); // Default profile image
 
-            // Get avatar ID from arguments if available
-            Bundle args = getArguments();
-            if (args != null) {
-                int avatarId = args.getInt("avatarId", 0);
-                if (avatarId > 0) {
-                    updateProfileImage(avatarId);
+            // Check SharedPreferences first for the most up-to-date avatar
+            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                    requireActivity().MODE_PRIVATE);
+            int savedAvatarId = prefs.getInt("avatarId", 0);
+
+            if (savedAvatarId > 0) {
+                updateProfileImage(savedAvatarId);
+                currentAvatarId = savedAvatarId;
+            } else {
+                // Default profile image if no saved avatar
+                profileImage.setImageResource(R.drawable.sample_profile);
+
+                // Get avatar ID from arguments if available
+                Bundle args = getArguments();
+                if (args != null) {
+                    int avatarId = args.getInt("avatarId", 0);
+                    if (avatarId > 0) {
+                        updateProfileImage(avatarId);
+                        currentAvatarId = avatarId;
+                    }
                 }
             }
         }
