@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -31,11 +32,12 @@ public class EditProfileFragment extends Fragment {
 
     private static final String TAG = "EditProfileFragment";
     private ImageView profileImage, profileImageEdit;
-    private CardView profileImageEditContainer, profilePictureSelector;
+    private CardView profileImageEditContainer;
     private TextView profileName, profileFullName;
     private EditText usernameInput, fullnameInput, emailInput;
     private ImageButton editProfileImage;
     private Button updateProfileButton;
+    private CardView profilePictureSelector;
     private Button cancelAvatarSelection, confirmAvatarSelection;
     private ImageView[] avatarViews = new ImageView[8];
     private int selectedAvatarId = 0;
@@ -60,6 +62,11 @@ public class EditProfileFragment extends Fragment {
 
         // Set up click listeners
         setupClickListeners();
+
+        // Fix for keyboard pushing up the navigation bar
+        if (getActivity() != null) {
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        }
 
         return view;
     }

@@ -27,11 +27,14 @@ public class HomeFragment extends Fragment {
 
     private View rootView;
     private RecyclerView recyclerView;
-    private TextView emptyMessage, userGreet;
+    private TextView emptyMessage;
+    private TextView userGreet;
     private ImageView profileIcon;
+    private TextView notificationBadge;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private ListenerRegistration profileListener;
+    private ListenerRegistration notificationsListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -46,6 +49,7 @@ public class HomeFragment extends Fragment {
         emptyMessage = rootView.findViewById(R.id.empty_message);
         userGreet = rootView.findViewById(R.id.user_greet);
         profileIcon = rootView.findViewById(R.id.ic_profile);
+        notificationBadge = rootView.findViewById(R.id.notification_badge);
 
         ImageButton notificationButton = rootView.findViewById(R.id.ic_notifications);
         notificationButton.setOnClickListener(v -> openNotificationsFragment());
@@ -56,7 +60,42 @@ public class HomeFragment extends Fragment {
         // Load user profile data
         loadUserProfile();
 
+        // Load notification count
+        loadNotificationCount();
+
         return rootView;
+    }
+
+    private void loadNotificationCount() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            notificationsListener = db.collection("users").document(user.getUid())
+                    .collection("notifications")
+                    .whereEqualTo("read", false)
+                    .addSnapshotListener((value, error) -> {
+                        if (error != null) {
+                            return;
+                        }
+
+                        if (value != null && !value.isEmpty()) {
+                            int unreadCount = value.size();
+                            updateNotificationBadge(unreadCount);
+                        } else {
+                            updateNotificationBadge(0);
+                        }
+                    });
+        }
+    }
+
+    private void updateNotificationBadge(int count) {
+        if (notificationBadge != null) {
+            if (count > 0) {
+                notificationBadge.setVisibility(View.VISIBLE);
+                notificationBadge.setText(String.valueOf(count > 99 ? "99+" : count));
+            } else {
+                notificationBadge.setVisibility(View.GONE);
+            }
+        }
     }
 
     public void refreshUserGreeting() {
@@ -131,6 +170,7 @@ public class HomeFragment extends Fragment {
         loadTransactions();
         updateBalances();
         refreshUserGreeting(); // Refresh the greeting when returning to this fragment
+        loadNotificationCount(); // Refresh notification count
 
         // Also refresh avatar
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
@@ -144,10 +184,14 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Clean up listener to prevent memory leaks
+        // Clean up listeners to prevent memory leaks
         if (profileListener != null) {
             profileListener.remove();
             profileListener = null;
+        }
+        if (notificationsListener != null) {
+            notificationsListener.remove();
+            notificationsListener = null;
         }
     }
 

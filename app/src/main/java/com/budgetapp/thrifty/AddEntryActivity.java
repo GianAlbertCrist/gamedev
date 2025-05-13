@@ -22,6 +22,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class AddEntryActivity extends AppCompatActivity {
     private TabLayout tabLayout;
@@ -29,6 +30,8 @@ public class AddEntryActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private TextView userGreet;
     private ImageView profileIcon;
+    private TextView notificationBadge;
+    private ListenerRegistration notificationsListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,7 @@ public class AddEntryActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         userGreet = findViewById(R.id.user_greet);
         profileIcon = findViewById(R.id.ic_profile);
+        notificationBadge = findViewById(R.id.notification_badge);
 
         // Load initial fragment
         getSupportFragmentManager()
@@ -65,14 +69,10 @@ public class AddEntryActivity extends AppCompatActivity {
         // Initialize TabLayout
         tabLayout = findViewById(R.id.tabLayout);
         loadUserData();
+        loadNotificationCount();
 
         ImageButton smallThrifty = findViewById(R.id.small_thrifty);
         smallThrifty.setOnClickListener(view -> {
-            finish();
-        });
-
-        ImageButton notificationsIcon = findViewById(R.id.ic_notifications);
-        notificationsIcon.setOnClickListener(view -> {
             finish();
         });
 
@@ -93,7 +93,6 @@ public class AddEntryActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
-
 
         // Setup touch outside to dismiss keyboard
         setupTouchOutsideToDismissKeyboard();
@@ -130,10 +129,51 @@ public class AddEntryActivity extends AppCompatActivity {
         });
     }
 
+    private void loadNotificationCount() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            notificationsListener = db.collection("users").document(user.getUid())
+                    .collection("notifications")
+                    .whereEqualTo("read", false)
+                    .addSnapshotListener((value, error) -> {
+                        if (error != null) {
+                            return;
+                        }
+
+                        if (value != null && !value.isEmpty()) {
+                            int unreadCount = value.size();
+                            updateNotificationBadge(unreadCount);
+                        } else {
+                            updateNotificationBadge(0);
+                        }
+                    });
+        }
+    }
+
+    private void updateNotificationBadge(int count) {
+        if (notificationBadge != null) {
+            if (count > 0) {
+                notificationBadge.setVisibility(View.VISIBLE);
+                notificationBadge.setText(String.valueOf(count > 99 ? "99+" : count));
+            } else {
+                notificationBadge.setVisibility(View.GONE);
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         loadUserData();
+        loadNotificationCount();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationsListener != null) {
+            notificationsListener.remove();
+        }
     }
 
     private void loadUserData() {

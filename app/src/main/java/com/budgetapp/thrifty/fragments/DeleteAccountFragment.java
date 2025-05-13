@@ -1,132 +1,98 @@
 package com.budgetapp.thrifty.fragments;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
-import androidx.cardview.widget.CardView;
-import androidx.fragment.app.Fragment;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class DeleteAccountFragment extends Fragment implements View.OnTouchListener {
-
-    private Button deleteAccountButton, cancelButton;
-    private View rootView;
-    private CardView dialogContainer;
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore mFirestore;
+public class DeleteAccountFragment extends DialogFragment {
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_delete_account, container, false);
-
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
-        mFirestore = FirebaseFirestore.getInstance();
-
-        // Initialize buttons
-        deleteAccountButton = rootView.findViewById(R.id.yes_delete_account);
-        cancelButton = rootView.findViewById(R.id.cancel_button);
-        dialogContainer = rootView.findViewById(R.id.dialog_container);
-
-        // Set click listeners
-        deleteAccountButton.setOnClickListener(v -> performDeleteAccount());
-        cancelButton.setOnClickListener(v -> cancelDeleteAccount());
-
-
-        // Set touch listener on the root view to detect touches outside the container
-        rootView.setOnTouchListener(this);
-
-        return rootView;
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NO_TITLE, R.style.FullScreenDialogStyle);
     }
 
+    @Nullable
     @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        // Only handle ACTION_DOWN events (when the user first touches the screen)
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            // Get the coordinates of the touch event
-            float x = event.getX();
-            float y = event.getY();
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_delete_account, container, false);
 
-            // Check if the touch is outside the dialog container
-            if (dialogContainer != null && !isPointInsideView(x, y, dialogContainer)) {
-                cancelDeleteAccount();
-                return true; // Consume the touch event
-            }
-        }
-        return false; // Let other touch events pass through
+        Button btnYesDelete = view.findViewById(R.id.yes_delete_account);
+        Button btnCancel = view.findViewById(R.id.cancel_button);
+
+        btnYesDelete.setOnClickListener(v -> {
+            deleteAccount();
+            dismiss();
+        });
+
+        btnCancel.setOnClickListener(v -> dismiss());
+
+        // Allow dismissing by clicking outside the card
+        view.setOnClickListener(v -> dismiss());
+
+        // Prevent clicks on the card from dismissing the dialog
+        view.findViewById(R.id.dialog_container).setOnClickListener(v -> {
+            // Do nothing, just consume the click
+        });
+
+        return view;
     }
 
-    private boolean isPointInsideView(float x, float y, View view) {
-        // Get the absolute coordinates of the view
-        int[] location = new int[2];
-        view.getLocationOnScreen(location);
-
-        // Convert touch coordinates to be relative to the screen
-        int[] rootLocation = new int[2];
-        rootView.getLocationOnScreen(rootLocation);
-        float screenX = x + rootLocation[0];
-        float screenY = y + rootLocation[1];
-
-        // Check if the point is inside the view's bounds
-        return (screenX >= location[0] &&
-                screenX <= location[0] + view.getWidth() &&
-                screenY >= location[1] &&
-                screenY <= location[1] + view.getHeight());
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        return dialog;
     }
 
-    private void performDeleteAccount() {
-        FirebaseUser user = mAuth.getCurrentUser();
+    private void deleteAccount() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
+            // Delete user data from Firebase Database
             String uid = user.getUid();
+            FirebaseFirestore.getInstance().collection("users").document(uid).delete();
 
-            // Delete user data from Firestore
-            mFirestore.collection("users").document(uid).delete()
-                    .addOnSuccessListener(aVoid -> {
-                        // Delete user from Firebase Auth
-                        user.delete()
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        // Clear shared preferences
-                                        SharedPreferences preferences = requireActivity().getSharedPreferences("UserPrefs",
-                                                requireActivity().MODE_PRIVATE);
-                                        preferences.edit().clear().apply();
+            // Delete user from Firebase Auth
+            user.delete().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // Clear SharedPreferences
+                    SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                            requireActivity().MODE_PRIVATE);
+                    prefs.edit().clear().apply();
 
-                                        Toast.makeText(getContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
 
-                                        // Navigate to FirstActivity
-                                        Intent intent = new Intent(getActivity(), FirstActivity.class);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(intent);
-                                        requireActivity().finish();
-                                    } else {
-                                        // If delete fails, show error message
-                                        Toast.makeText(getContext(),
-                                                "Failed to delete account: " + task.getException().getMessage(),
-                                                Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(),
-                                "Failed to delete account data: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    });
+                    // Navigate to login screen
+                    Intent intent = new Intent(requireActivity(), FirstActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    requireActivity().finish();
+                } else {
+                    Toast.makeText(requireContext(), "Failed to delete account: " + task.getException().getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
         }
-    }
-
-    private void cancelDeleteAccount() {
-        // Just go back to the previous screen
-        requireActivity().getSupportFragmentManager().popBackStack();
     }
 }

@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.budgetapp.thrifty"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.budgetapp.thrifty"

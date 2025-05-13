@@ -6,7 +6,9 @@
     android:background="@color/background_color"
     android:fillViewport="true"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:fitsSystemWindows="true"
+    android:windowSoftInputMode="adjustPan">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -53,18 +55,26 @@
                 app:layout_constraintGuide_percent="0.25" />
 
             <!-- Normal profile image (default view) -->
-            <ImageView
-                android:id="@+id/profile_image"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/profile_image_container"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_marginEnd="16dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/sample_profile"
+                app:cardCornerRadius="40dp"
+                app:cardElevation="0dp"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.2" />
+                app:layout_constraintWidth_percent="0.2">
+
+                <ImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/sample_profile" />
+            </androidx.cardview.widget.CardView>
 
             <!-- Circular background for editing mode (initially invisible) -->
             <androidx.cardview.widget.CardView
@@ -101,11 +111,11 @@
                 android:padding="4dp"
                 android:scaleType="centerInside"
                 android:src="@android:drawable/ic_menu_edit"
-                app:layout_constraintBottom_toBottomOf="@+id/profile_image"
-                app:layout_constraintEnd_toEndOf="@+id/profile_image"
+                app:layout_constraintBottom_toBottomOf="@+id/profile_image_container"
+                app:layout_constraintEnd_toEndOf="@+id/profile_image_container"
                 app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="@+id/profile_image"
-                app:layout_constraintTop_toTopOf="@+id/profile_image"
+                app:layout_constraintStart_toStartOf="@+id/profile_image_container"
+                app:layout_constraintTop_toTopOf="@+id/profile_image_container"
                 app:layout_constraintVertical_bias="1.0" />
 
             <TextView
@@ -119,7 +129,7 @@
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
-                app:layout_constraintTop_toTopOf="@+id/profile_image" />
+                app:layout_constraintTop_toTopOf="@+id/profile_image_container" />
 
             <TextView
                 android:id="@+id/profile_full_name"
@@ -170,94 +180,142 @@
                     android:useDefaultMargins="true">
 
                     <!-- Row 1 -->
-                    <ImageView
-                        android:id="@+id/avatar_1"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/profile2" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/profile2" />
+                    </androidx.cardview.widget.CardView>
 
-                    <ImageView
-                        android:id="@+id/avatar_2"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/profile3" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_2"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/profile3" />
+                    </androidx.cardview.widget.CardView>
 
-                    <ImageView
-                        android:id="@+id/avatar_3"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/profile4" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_3"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/profile4" />
+                    </androidx.cardview.widget.CardView>
 
-                    <ImageView
-                        android:id="@+id/avatar_4"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/profile5" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_4"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/profile5" />
+                    </androidx.cardview.widget.CardView>
 
                     <!-- Row 2 -->
-                    <ImageView
-                        android:id="@+id/avatar_5"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/profile6" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_5"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/profile6" />
+                    </androidx.cardview.widget.CardView>
 
-                    <ImageView
-                        android:id="@+id/avatar_6"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/profile7" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_6"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/profile7" />
+                    </androidx.cardview.widget.CardView>
 
-                    <ImageView
-                        android:id="@+id/avatar_7"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/sample_profile" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_7"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/sample_profile" />
+                    </androidx.cardview.widget.CardView>
 
-                    <ImageView
-                        android:id="@+id/avatar_8"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        android:background="@drawable/rounded_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/sample_profile" />
+                        app:cardCornerRadius="30dp"
+                        app:cardElevation="0dp">
+                        <ImageView
+                            android:id="@+id/avatar_8"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/sample_profile" />
+                    </androidx.cardview.widget.CardView>
                 </GridLayout>
 
                 <LinearLayout
