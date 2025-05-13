@@ -146,7 +146,12 @@ public class EditProfileFragment extends Fragment {
                 highlightSelectedAvatar(avatarId);
             });
         }
-        updateProfileButton.setOnClickListener(v -> updateProfile());
+        updateProfileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateProfile();
+            }
+        });
     }
 
     private void toggleProfilePictureEditMode() {
