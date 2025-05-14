@@ -164,36 +164,44 @@ public class LoginActivity extends AppCompatActivity {
         if (user != null) {
             Log.d(TAG, "Checking user role...");
 
-            // Check for admin role in profile/info document
+            // Check for admin role in Firestore
             db.collection("users")
                     .document(user.getUid())
-                    .collection("profile")
-                    .document("info")
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists() && "admin".equalsIgnoreCase(documentSnapshot.getString("role"))) {
-                            // Admin user detected
-                            Log.d(TAG, "Admin detected. Redirecting...");
-                            startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-                            finish();
-                        } else {
-                            // Regular user - go directly to MainActivity
-                            Log.d(TAG, "Regular user detected. Going directly to MainActivity...");
+                        if (documentSnapshot.exists()) {
+                            String role = documentSnapshot.getString("role");
+                            Log.d(TAG, "User role: " + role);
 
-                            // Save user data to SharedPreferences for faster access
-                            saveUserDataToSharedPreferences(documentSnapshot);
-
-                            // Load transactions and go to MainActivity
-                            FirestoreManager.loadTransactions(transactions -> {
-                                TransactionsHandler.transactions.clear();
-                                TransactionsHandler.transactions.addAll(transactions);
-                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            if (role != null && role.equalsIgnoreCase("admin")) {
+                                // Admin user detected
+                                Log.d(TAG, "Admin detected. Redirecting to AdminActivity...");
+                                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                                 finish();
-                            });
+                            } else {
+                                // Regular user - go directly to MainActivity
+                                Log.d(TAG, "Regular user detected. Going to MainActivity...");
+
+                                // Save user data to SharedPreferences for faster access
+                                saveUserDataToSharedPreferences(documentSnapshot);
+
+                                // Load transactions and go to MainActivity
+                                FirestoreManager.loadTransactions(transactions -> {
+                                    TransactionsHandler.transactions.clear();
+                                    TransactionsHandler.transactions.addAll(transactions);
+                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                    finish();
+                                });
+                            }
+                        } else {
+                            // Document doesn't exist, treat as regular user
+                            Log.d(TAG, "User document not found. Treating as regular user.");
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            finish();
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to load profile", e);
+                        Log.e(TAG, "Failed to load user profile", e);
                         Toast.makeText(this, "Failed to load user profile", Toast.LENGTH_SHORT).show();
                     });
         }

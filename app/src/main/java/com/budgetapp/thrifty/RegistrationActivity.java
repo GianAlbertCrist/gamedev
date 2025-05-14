@@ -181,16 +181,15 @@ public class RegistrationActivity extends AppCompatActivity {
 
         String email = user.getEmail();
 
-        // Save to Firestore profile/info document
+        // Save to Firestore
         Map<String, Object> userData = new HashMap<>();
         userData.put("username", username);
         userData.put("fullname", fullName);
         userData.put("email", email);
         userData.put("avatarId", avatarId);
-        userData.put("role", "user");
+        userData.put("role", "user"); // Default role is user
 
         FirebaseFirestore.getInstance().collection("users").document(user.getUid())
-                .collection("profile").document("info")
                 .set(userData, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Registration", "User profile saved to Firestore");
