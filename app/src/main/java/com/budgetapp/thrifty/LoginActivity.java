@@ -164,7 +164,6 @@ public class LoginActivity extends AppCompatActivity {
         if (user != null) {
             Log.d(TAG, "Checking user role...");
 
-            // Check for admin role in Firestore
             db.collection("users")
                     .document(user.getUid())
                     .get()
@@ -174,18 +173,16 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d(TAG, "User role: " + role);
 
                             if (role != null && role.equalsIgnoreCase("admin")) {
-                                // Admin user detected
+
                                 Log.d(TAG, "Admin detected. Redirecting to AdminActivity...");
                                 startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                                 finish();
                             } else {
-                                // Regular user - go directly to MainActivity
+
                                 Log.d(TAG, "Regular user detected. Going to MainActivity...");
 
-                                // Save user data to SharedPreferences for faster access
                                 saveUserDataToSharedPreferences(documentSnapshot);
 
-                                // Load transactions and go to MainActivity
                                 FirestoreManager.loadTransactions(transactions -> {
                                     TransactionsHandler.transactions.clear();
                                     TransactionsHandler.transactions.addAll(transactions);
@@ -194,7 +191,6 @@ public class LoginActivity extends AppCompatActivity {
                                 });
                             }
                         } else {
-                            // Document doesn't exist, treat as regular user
                             Log.d(TAG, "User document not found. Treating as regular user.");
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
@@ -229,16 +225,13 @@ public class LoginActivity extends AppCompatActivity {
         String displayName = user.getDisplayName();
         String email = user.getEmail();
 
-        // Default avatar ID
         int avatarId = 0;
 
-        // Get cached avatar ID if available
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         if (prefs.contains("avatarId")) {
             avatarId = prefs.getInt("avatarId", 0);
         }
 
-        // Save to Firestore
         FirestoreManager.saveUserProfile(displayName, email, avatarId);
     }
 }
