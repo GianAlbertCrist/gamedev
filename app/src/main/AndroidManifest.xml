@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -18,36 +19,52 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".FirstActivity"
-            android:exported="true">
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Thrifty.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".LoginActivity"
-            android:exported="false">
-        </activity>
-        <activity
-            android:name=".RegistrationActivity"
-            android:exported="false">
-        </activity>
-        <activity
-            android:name=".AddEntryActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false"/>
+            android:name=".FirstActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Thrifty.NoActionBar" />
+
+        <!-- Other activities remain unchanged -->
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="false">
-        </activity>
+            android:exported="false"
+            android:theme="@style/Theme.Thrifty.NoActionBar" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Thrifty.NoActionBar" />
+
+        <activity
+            android:name=".RegistrationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Thrifty.NoActionBar" />
+
         <activity
             android:name=".ForgotPasswordActivity"
-            android:exported="false">
-        </activity>
-        <activity android:name=".AdminActivity" />
+            android:exported="false"
+            android:theme="@style/Theme.Thrifty.NoActionBar" />
 
+        <activity
+            android:name=".AddEntryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Thrifty.NoActionBar" />
+
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Thrifty.NoActionBar" />
+
+        <!-- Firebase Messaging Service -->
         <service
             android:name=".services.ThriftyMessagingService"
             android:exported="false">
@@ -55,16 +72,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/icnotif_transactions" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/primary_color" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="transaction_reminders" />
-
     </application>
+
 </manifest>

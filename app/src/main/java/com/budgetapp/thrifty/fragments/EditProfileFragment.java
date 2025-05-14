@@ -277,9 +277,13 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void highlightSelectedAvatar(int avatarId) {
-        for (int i = 0; i < avatarViews.length; i++) {
-            avatarViews[i].setBackgroundResource(i == avatarId - 1 ?
-                    R.drawable.selected_avatar_background : R.drawable.rounded_background);
+        // Hide all highlights first
+        for (int i = 1; i <= 8; i++) {
+            int highlightId = getResources().getIdentifier("avatar_highlight_" + i, "id", requireActivity().getPackageName());
+            View highlightView = getView().findViewById(highlightId);
+            if (highlightView != null) {
+                highlightView.setVisibility(i == avatarId ? View.VISIBLE : View.GONE);
+            }
         }
     }
 
