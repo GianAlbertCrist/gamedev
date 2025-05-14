@@ -39,7 +39,6 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Profile picture and name -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/profile_header"
             android:layout_width="match_parent"
@@ -54,7 +53,6 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.25" />
 
-            <!-- Normal profile image (default view) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/profile_image_container"
                 android:layout_width="0dp"
@@ -76,7 +74,6 @@
                     android:src="@drawable/sample_profile" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Circular background for editing mode (initially invisible) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/profile_image_edit_container"
                 android:layout_width="0dp"
@@ -123,7 +120,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:text="makoy"
+                android:text="Username"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
@@ -137,7 +134,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="4dp"
-                android:text="MARC STEFFEN PANTELGONE"
+                android:text="Full name"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -389,7 +386,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:hint="makoy"
+                android:hint="Enter your username"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:textColor="@color/black"
@@ -439,7 +436,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:hint="Marc Steffen Pantelgone"
+                android:hint="Enter you full name"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:textColor="@color/black"
@@ -489,7 +486,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:hint="makoy@gmail.com"
+                android:hint="Enter you email"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:textColor="@color/black"

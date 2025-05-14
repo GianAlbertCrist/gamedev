@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:gravity="center"
-                android:text="Are you sure you want to delete your account? This action cannot be undone."
+                android:text="Are you sure you want to request the deletion of your account? This action cannot be undone."
                 android:textColor="@color/background_color"
                 android:textSize="16sp" />
 
