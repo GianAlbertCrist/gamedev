@@ -29,6 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:fontFamily="@font/poppins"
                 android:text="Delete Account"
                 android:textColor="@color/red"
                 android:textSize="24sp"
@@ -38,6 +39,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
+                android:fontFamily="@font/poppins"
                 android:gravity="center"
                 android:text="Are you sure you want to request the deletion of your account? This action cannot be undone."
                 android:textColor="@color/background_color"
@@ -49,6 +51,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:backgroundTint="@color/red"
+                android:fontFamily="@font/poppins"
                 android:text="Yes, Delete Account"
                 android:textColor="@color/white" />
 
@@ -57,6 +60,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/primary_color"
+                android:fontFamily="@font/poppins"
                 android:text="Cancel"
                 android:textColor="@color/white" />
         </LinearLayout>
