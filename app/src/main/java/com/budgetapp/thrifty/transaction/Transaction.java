@@ -308,4 +308,8 @@ public class Transaction implements Parcelable {
     public void setId(String id) {
         this.id = id;
     }
+
+    public void setAmount(float amount) {
+        this.amount = amount;
+    }
 }

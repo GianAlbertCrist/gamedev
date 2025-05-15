@@ -209,12 +209,12 @@ public class AddIncomeFragment extends Fragment {
             );
 
             if (editingTransaction != null) {
-                // Update existing transaction
+                transaction.setDateAndTime(editingTransaction.getDateAndTime());
+                transaction.setParsedDate(editingTransaction.getParsedDate());
                 transaction.setId(editingTransaction.getId());
                 FirestoreManager.updateTransaction(transaction);
                 TransactionsHandler.transactions.remove(editingTransaction);
             } else {
-                // Save new transaction
                 FirestoreManager.saveTransaction(transaction);
             }
 
