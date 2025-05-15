@@ -22,7 +22,6 @@ import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 
-
 public class AddExpenseFragment extends Fragment {
 
     private int selectedIconResId = R.drawable.ic_transport; // default
@@ -35,14 +34,19 @@ public class AddExpenseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_add_expense, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_add_expense, container, false);
     }
 
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        if (getActivity() != null && getActivity().getWindow() != null) {
+            getActivity().getWindow().setNavigationBarColor(
+                    ContextCompat.getColor(requireContext(), R.color.background_color)
+            );
+        }
 
         if (getArguments() != null && getArguments().containsKey("transactionToEdit")) {
             editingTransaction = getArguments().getParcelable("transactionToEdit");
@@ -176,7 +180,7 @@ public class AddExpenseFragment extends Fragment {
             popupWindow.showAsDropDown(categorySelector);
         });
 
-        // 4. Confirm button logic
+        // Confirm button logic
         confirmBtn.setOnClickListener(v -> {
             String category = categoryText.getText().toString();
             String description = descriptionInput.getText().toString();
@@ -236,6 +240,16 @@ public class AddExpenseFragment extends Fragment {
             }
 
             // Close dialog/activity
+            Fragment parent = getParentFragment();
+            if (parent instanceof DialogFragment) {
+                ((DialogFragment) parent).dismiss();
+            } else {
+                requireActivity().finish();
+            }
+        });
+
+        // Cancel button logic
+        cancelBtn.setOnClickListener(v -> {
             Fragment parent = getParentFragment();
             if (parent instanceof DialogFragment) {
                 ((DialogFragment) parent).dismiss();

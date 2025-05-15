@@ -15,6 +15,7 @@ import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.utils.FirestoreManager;
+import android.view.Window;
 
 public class TransactionEditDialogFragment extends DialogFragment {
     private Runnable onDismissListener;
@@ -51,7 +52,7 @@ public class TransactionEditDialogFragment extends DialogFragment {
         }
 
         if (transaction == null) {
-            dismiss(); // Or show an error
+            dismiss();
             return inflater.inflate(R.layout.dialog_transaction_edit, container, false);
         }
 

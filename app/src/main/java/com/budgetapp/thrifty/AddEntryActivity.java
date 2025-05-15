@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
@@ -40,6 +41,7 @@ public class AddEntryActivity extends AppCompatActivity {
 
         // Set window soft input mode to adjust resize
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.background_color));
 
         setContentView(R.layout.activity_add_entry);
         db = FirebaseFirestore.getInstance();
