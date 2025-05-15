@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.budgetapp.thrifty.databinding.ActivityLoginBinding;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
@@ -50,7 +51,6 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Initialize input fields
         emailLayout = findViewById(R.id.enter_email);
         passwordLayout = findViewById(R.id.enter_password);
         emailInput = emailLayout.getEditText();
@@ -162,7 +162,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            Log.d(TAG, "Checking user role...");
+            AppLogger.log(this, TAG, "Checking user role...");
 
             db.collection("users")
                     .document(user.getUid())
@@ -170,7 +170,7 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
                             String role = documentSnapshot.getString("role");
-                            Log.d(TAG, "User role: " + role);
+                            AppLogger.log(this, TAG, "User role: " + role);
 
                             if (role != null && role.equalsIgnoreCase("admin")) {
 
@@ -179,7 +179,7 @@ public class LoginActivity extends AppCompatActivity {
                                 finish();
                             } else {
 
-                                Log.d(TAG, "Regular user detected. Going to MainActivity...");
+                                AppLogger.log(this, TAG, "Regular user detected. Going to MainActivity...");
 
                                 saveUserDataToSharedPreferences(documentSnapshot);
 
@@ -191,13 +191,13 @@ public class LoginActivity extends AppCompatActivity {
                                 });
                             }
                         } else {
-                            Log.d(TAG, "User document not found. Treating as regular user.");
+                            AppLogger.log(this, TAG, "User document not found. Treating as regular user.");
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to load user profile", e);
+                        AppLogger.logError(this, TAG, "Failed to load user profile", e);
                         Toast.makeText(this, "Failed to load user profile", Toast.LENGTH_SHORT).show();
                     });
         }
