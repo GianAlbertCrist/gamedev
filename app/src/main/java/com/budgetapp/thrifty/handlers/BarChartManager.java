@@ -110,33 +110,25 @@ public class BarChartManager {
         // Debug transactions count
         Log.d(TAG, "Total transactions: " + TransactionsHandler.transactions.size());
 
-        // Process transactions - use a simpler approach
+        // Process transactions
         for (Transaction transaction : TransactionsHandler.transactions) {
             String transactionType = transaction.getType();
-
-            // Debug transaction
-            Log.d(TAG, "Processing transaction: " + transaction.getCategory() +
-                    ", Type: " + transactionType +
-                    ", Amount: " + transaction.getRawAmount() +
-                    ", Date: " + transaction.getDateAndTime());
-
-            // Check if this transaction matches our filter (income or expense)
             if ((isIncome && "Income".equalsIgnoreCase(transactionType)) ||
                     (!isIncome && "Expense".equalsIgnoreCase(transactionType))) {
 
-                // For simplicity, let's just add all transactions to today's bar
-                // This is a temporary solution to verify the chart is working
-                Calendar today = Calendar.getInstance();
-                int dayOfWeek = today.get(Calendar.DAY_OF_WEEK) - Calendar.MONDAY;
-                if (dayOfWeek < 0) dayOfWeek += 7; // Adjust for Sunday
+                // Parse transaction date
+                Calendar txDate = Calendar.getInstance();
+                txDate.setTime(transaction.getParsedDate());
 
-                if (dayOfWeek >= 0 && dayOfWeek < 7) {
-                    dailyTotals[dayOfWeek] += transaction.getRawAmount();
-                    Log.d(TAG, "Added amount " + transaction.getRawAmount() +
-                            " to day " + dayOfWeek + ", new total: " + dailyTotals[dayOfWeek]);
+                // Find which day index this transaction belongs to
+                for (int i = 0; i < weekDates.size(); i++) {
+                    Calendar day = weekDates.get(i);
+                    if (txDate.get(Calendar.YEAR) == day.get(Calendar.YEAR) &&
+                            txDate.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR)) {
+                        dailyTotals[i] += transaction.getRawAmount();
+                        break;
+                    }
                 }
-
-                // We'll implement proper date parsing in the next iteration
             }
         }
 
