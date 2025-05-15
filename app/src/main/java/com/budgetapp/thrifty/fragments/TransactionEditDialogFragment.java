@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.Transaction;
@@ -93,9 +94,14 @@ public class TransactionEditDialogFragment extends DialogFragment {
 
     public void updateTransaction(Transaction transaction) {
         FirestoreManager.updateTransaction(transaction);
-        if (onDismissListener != null) {
-            onDismissListener.run();
+        // Remove and re-add the transaction to ensure the local list is up-to-date
+        for (int i = 0; i < TransactionsHandler.transactions.size(); i++) {
+            if (TransactionsHandler.transactions.get(i).getId().equals(transaction.getId())) {
+                TransactionsHandler.transactions.set(i, transaction);
+                break;
+            }
         }
+        if (onDismissListener != null) onDismissListener.run();
         dismiss();
     }
 }

@@ -82,16 +82,15 @@ public class HomeFragment extends Fragment {
         refreshUserGreeting();
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // Clean up listener to prevent memory leaks
-        if (profileListener != null && mAuth.getCurrentUser() != null) {
-            mDatabase.child("users").child(mAuth.getCurrentUser().getUid())
-                    .removeEventListener(profileListener);
-            profileListener = null;
-        }
-    }
+//    @Override
+//    public void onDestroyView() {
+//        super.onDestroyView();
+//        if (profileListener != null && mAuth.getCurrentUser() != null) {
+//            mDatabase.child("users").child(mAuth.getCurrentUser().getUid())
+//                    .removeEventListener(profileListener);
+//            profileListener = null;
+//        }
+//    }
 
     @SuppressLint("DefaultLocale")
     private void updateBalances() {

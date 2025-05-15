@@ -100,7 +100,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Remove the database listener when the fragment is destroyed
         if (userListener != null && mAuth.getCurrentUser() != null) {
             mDatabase.child("users").child(mAuth.getCurrentUser().getUid()).removeEventListener(userListener);
         }

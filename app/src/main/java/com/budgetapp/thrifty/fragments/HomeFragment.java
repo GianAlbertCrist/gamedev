@@ -187,7 +187,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Clean up listeners to prevent memory leaks
         if (profileListener != null) {
             profileListener.remove();
             profileListener = null;
