@@ -22,6 +22,7 @@ import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
+import com.budgetapp.thrifty.utils.ThemeSync;
 
 public class AddIncomeFragment extends Fragment {
 

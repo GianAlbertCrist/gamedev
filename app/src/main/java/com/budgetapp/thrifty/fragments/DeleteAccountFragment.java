@@ -22,6 +22,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,6 +44,7 @@ public class DeleteAccountFragment extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_delete_account, container, false);
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         Button btnYesDelete = view.findViewById(R.id.yes_delete_account);
         Button btnCancel = view.findViewById(R.id.cancel_button);

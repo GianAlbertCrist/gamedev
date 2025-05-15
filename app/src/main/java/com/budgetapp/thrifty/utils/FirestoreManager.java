@@ -32,7 +32,7 @@ public class FirestoreManager {
         if (currentUser == null) return;
 
         String uid = currentUser.getUid();
-        String[] nameParts = displayName.split("\\|");
+        String[] nameParts = displayName != null ? displayName.split("\\|") : new String[]{displayName};
         String username = nameParts[0];
         String fullname = nameParts.length > 1 ? nameParts[1] : username;
 
@@ -41,28 +41,32 @@ public class FirestoreManager {
         userData.put("fullname", fullname);
         userData.put("email", email);
         userData.put("avatarId", avatarId);
-        userData.put("role", "user");
 
-        // Save only to profile/info document
-        db.collection("users").document(uid)
-                .collection("profile").document("info")
-                .set(userData, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "User profile/info saved successfully");
+        // ✅ Only set role: user if root role is not admin
+        db.collection("users").document(uid).get().addOnSuccessListener(snapshot -> {
+            String rootRole = snapshot.contains("role") ? snapshot.getString("role") : null;
+            if (!"admin".equalsIgnoreCase(rootRole)) {
+                userData.put("role", "user");
+            }
 
-                    // Save to SharedPreferences for faster access
-                    SharedPreferences prefs = FirebaseAuth.getInstance().getApp().getApplicationContext()
-                            .getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-                    prefs.edit()
-                            .putString("username", username)
-                            .putString("fullname", fullname)
-                            .putInt("avatarId", avatarId)
-                            .apply();
+            db.collection("users").document(uid)
+                    .collection("profile").document("info")
+                    .set(userData, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "User profile/info saved successfully");
 
-                    // Get and save FCM token
-                    saveFCMToken();
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error saving user profile", e));
+                        SharedPreferences prefs = FirebaseAuth.getInstance().getApp().getApplicationContext()
+                                .getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                        prefs.edit()
+                                .putString("username", username)
+                                .putString("fullname", fullname)
+                                .putInt("avatarId", avatarId)
+                                .apply();
+
+                        saveFCMToken();
+                    })
+                    .addOnFailureListener(e -> Log.e(TAG, "Error saving user profile", e));
+        });
     }
 
     // Save FCM token to Firestore

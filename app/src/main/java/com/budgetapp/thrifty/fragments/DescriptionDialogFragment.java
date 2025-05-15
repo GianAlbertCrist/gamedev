@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.fragment.app.DialogFragment;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.utils.ThemeSync;
 
 public class DescriptionDialogFragment extends DialogFragment {
 
@@ -26,7 +27,7 @@ public class DescriptionDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         Dialog dialog = super.onCreateDialog(savedInstanceState);
-
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);  // Remove the background
 

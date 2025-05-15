@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.renderers.NotificationAdapter;
+import com.budgetapp.thrifty.utils.ThemeSync;
+
 import java.util.ArrayList;
 
 public class NotificationsFragment extends Fragment {
@@ -20,6 +22,7 @@ public class NotificationsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notifications, container, false);
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         recyclerView = view.findViewById(R.id.recyclerViewNotifications);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

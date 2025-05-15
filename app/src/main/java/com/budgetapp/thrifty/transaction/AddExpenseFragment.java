@@ -21,6 +21,7 @@ import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
+import com.budgetapp.thrifty.utils.ThemeSync;
 
 public class AddExpenseFragment extends Fragment {
 
@@ -35,6 +36,7 @@ public class AddExpenseFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_add_expense, container, false);
+
     }
 
     @SuppressLint("NonConstantResourceId")

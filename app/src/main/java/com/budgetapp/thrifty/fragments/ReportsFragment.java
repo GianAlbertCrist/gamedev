@@ -18,6 +18,7 @@ import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.RankingAdapter;
 import com.budgetapp.thrifty.utils.FormatUtils;
+import com.budgetapp.thrifty.utils.ThemeSync;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 
@@ -41,6 +42,8 @@ public class ReportsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_report, container, false);
         Log.d(TAG, "onCreateView called");
+
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         try {
             // Initialize views

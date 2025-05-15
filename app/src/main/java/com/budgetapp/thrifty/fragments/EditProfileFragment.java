@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import com.budgetapp.thrifty.MainActivity;
 import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
@@ -49,6 +50,7 @@ public class EditProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_edit_profile, container, false);
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();

@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         ThemeSync.syncNotificationBarColor(getWindow(), this);
-        themeSync();
+        appBttmBarColorAjuster();
 
         // Setup initial UI without waiting for data
         setupBottomNavigation();
@@ -311,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commitNow();
     }
 
-    public void themeSync() {
+    public void appBttmBarColorAjuster() {
         boolean isDarkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 
         ColorStateList iconTintDay = ContextCompat.getColorStateList(this, R.color.bottom_nav_icon_selector_day);

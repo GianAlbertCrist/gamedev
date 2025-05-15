@@ -1,6 +1,7 @@
 package com.budgetapp.thrifty.fragments;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Bundle;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -19,6 +20,8 @@ import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.FormatUtils;
+import com.budgetapp.thrifty.utils.ThemeSync;
+
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -32,8 +35,10 @@ public class TransactionsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_transactions, container, false);
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         filter = view.findViewById(R.id.todayLabel);
+
         LinearLayout filterButton = view.findViewById(R.id.filter_button); // Entire row acts as button
 
         filterButton.setOnClickListener(this::showPopupMenu);
@@ -44,10 +49,13 @@ public class TransactionsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        applyDefaultFilter();
+        applyDefaultFilter(); // First update content
     }
 
     private void applyDefaultFilter() {
+        requireView().post(() ->
+                ThemeSync.syncNotificationBarColor(requireActivity().getWindow(), requireContext())
+        );
         String filterText = "Today";
         filter.setText(filterText);
         ArrayList<Transaction> filteredList = TransactionsHandler.getFilteredTransactions(filterText);

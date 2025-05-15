@@ -198,12 +198,15 @@ public class AdminActivity extends AppCompatActivity {
                     String role = obj.optString("role", "");
                     if (!"admin".equalsIgnoreCase(role)) {
                         User user = new User(
-                                obj.getString("uid"),
-                                obj.getString("email"),
+                                obj.optString("uid", ""),
+                                obj.optString("email", ""),
                                 obj.optString("displayName", ""),
                                 obj.optBoolean("disabled", false)
                         );
                         filteredList.add(user);
+                    }
+                    if (filteredList.isEmpty()) {
+                        Toast.makeText(this, "No regular users found.", Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -248,6 +251,14 @@ public class AdminActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void deleteUserFromServer(String uid) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getUid().equals(uid)) {
+            runOnUiThread(() ->
+                    Toast.makeText(this, "You cannot delete your own account while logged in.", Toast.LENGTH_SHORT).show()
+            );
+            return;
+        }
+
         new Thread(() -> {
             try {
                 URL url = new URL("http://192.168.1.35:3000/api/user/" + uid);
@@ -277,6 +288,7 @@ public class AdminActivity extends AppCompatActivity {
         }).start();
     }
 
+
     private void showEditUserDialog(User user) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.register_user_dialog, null);
@@ -304,7 +316,19 @@ public class AdminActivity extends AppCompatActivity {
         EditText confirmPasswordInput = confirmPasswordLayout.getEditText();
 
         // Pre-fill current user info
-        String[] parts = user.getDisplayName().split("\\|");
+        String existingDisplayName = user.getDisplayName();
+        String[] parts = (existingDisplayName != null) ? existingDisplayName.split("\\|") : new String[]{existingDisplayName};
+
+        if (parts.length == 2) {
+            assert firstNameInput != null;
+            firstNameInput.setText(parts[0]);
+            assert surnameInput != null;
+            surnameInput.setText(parts[1].replace(parts[0] + " ", ""));
+        } else {
+            assert firstNameInput != null;
+            firstNameInput.setText(existingDisplayName != null ? existingDisplayName : "");
+        }
+
         if (parts.length == 2) {
             assert firstNameInput != null;
             firstNameInput.setText(parts[0]);

@@ -149,6 +149,12 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
+                        if (user == null) {
+                            Log.e("AdminActivity", "No authenticated user found. Redirecting to Login.");
+                            startActivity(new Intent(this, LoginActivity.class));
+                            finish();
+                            return;
+                        }
                         saveUserDataToFirestore(user);
                         updateUI(user);
                     } else {
@@ -223,6 +229,9 @@ public class LoginActivity extends AppCompatActivity {
         if (user == null) return;
 
         String displayName = user.getDisplayName();
+        if (displayName == null) {
+            displayName = "User|User";
+        }
         String email = user.getEmail();
 
         int avatarId = 0;

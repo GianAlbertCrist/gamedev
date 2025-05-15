@@ -19,6 +19,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.budgetapp.thrifty.FirstActivity;
 import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class LogoutDialogFragment extends DialogFragment {
@@ -33,6 +34,7 @@ public class LogoutDialogFragment extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.logout_confirmation, container, false);
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         Button btnYes = view.findViewById(R.id.btn_yes);
         Button btnNo = view.findViewById(R.id.btn_no);

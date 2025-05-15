@@ -11,11 +11,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import com.budgetapp.thrifty.R;
-import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.Transaction;
-import com.budgetapp.thrifty.utils.FirestoreManager;
+import com.budgetapp.thrifty.utils.ThemeSync;
+
 import android.view.Window;
 
 public class TransactionEditDialogFragment extends DialogFragment {
@@ -36,16 +36,20 @@ public class TransactionEditDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = super.onCreateDialog(savedInstanceState);
-        setStyle(STYLE_NORMAL, android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen);
+        setStyle(STYLE_NORMAL, R.style.AppTheme_Dialog_FullScreen);
+        ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
-        return dialog;
+        return super.onCreateDialog(savedInstanceState);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_transaction_edit, container, false);
+
+        if (getDialog() != null && getContext() != null) {
+            ThemeSync.syncNotificationBarColor(getDialog().getWindow(), getContext());
+        }
 
         Transaction transaction = null;
         if (getArguments() != null) {
@@ -78,11 +82,19 @@ public class TransactionEditDialogFragment extends DialogFragment {
     @Override
     public void onStart() {
         super.onStart();
+
         Dialog dialog = getDialog();
         if (dialog != null && dialog.getWindow() != null) {
             Window window = dialog.getWindow();
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+            // Delay ThemeSync until the window is fully laid out
+            window.getDecorView().post(() -> {
+                if (getContext() != null) {
+                    ThemeSync.syncNotificationBarColor(window, getContext());
+                }
+            });
         }
     }
 
@@ -90,18 +102,5 @@ public class TransactionEditDialogFragment extends DialogFragment {
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
         if (onDismissListener != null) onDismissListener.run();
-    }
-
-    public void updateTransaction(Transaction transaction) {
-        FirestoreManager.updateTransaction(transaction);
-        // Remove and re-add the transaction to ensure the local list is up-to-date
-        for (int i = 0; i < TransactionsHandler.transactions.size(); i++) {
-            if (TransactionsHandler.transactions.get(i).getId().equals(transaction.getId())) {
-                TransactionsHandler.transactions.set(i, transaction);
-                break;
-            }
-        }
-        if (onDismissListener != null) onDismissListener.run();
-        dismiss();
     }
 }

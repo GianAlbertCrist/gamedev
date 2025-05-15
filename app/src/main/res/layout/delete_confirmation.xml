@@ -12,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Are you sure you want to delete this user?"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textSize="16sp"
         android:fontFamily="@font/poppins"
         app:layout_constraintTop_toTopOf="parent"
