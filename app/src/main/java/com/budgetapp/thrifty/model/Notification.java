@@ -53,7 +53,6 @@ public class Notification {
         this.iconID = iconID;
     }
 
-    // Optional: Override toString() for debugging
     @Override
     public String toString() {
         return "Notification{" +

@@ -33,11 +33,11 @@
             android:exported="false"
             android:theme="@style/Theme.Thrifty.NoActionBar" />
 
-        <!-- Other activities remain unchanged -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:theme="@style/Theme.Thrifty.NoActionBar" />
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:windowSoftInputMode="adjustPan"/>
 
         <activity
             android:name=".LoginActivity"

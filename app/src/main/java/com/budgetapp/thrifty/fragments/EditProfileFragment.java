@@ -230,7 +230,6 @@ public class EditProfileFragment extends Fragment {
                 }
             });
 
-            // Make sure the button is clickable and enabled
             updateProfileButton.setClickable(true);
             updateProfileButton.setEnabled(true);
         }
@@ -270,7 +269,6 @@ public class EditProfileFragment extends Fragment {
         }
         profileImage.setImageResource(resourceId);
 
-        // Also update the edit image if it's visible
         if (profileImageEditContainer.getVisibility() == View.VISIBLE) {
             profileImageEdit.setImageResource(resourceId);
         }

@@ -97,34 +97,6 @@ public class FirestoreManager {
                 });
     }
 
-    // Migrate data from root to profile/info structure
-    public static void migrateUserDataToProfileInfo() {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) return;
-
-        String uid = currentUser.getUid();
-
-        // Get data from root document
-        db.collection("users").document(uid)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Map<String, Object> data = documentSnapshot.getData();
-                        if (data != null) {
-                            // Save data to profile/info document
-                            db.collection("users").document(uid)
-                                    .collection("profile").document("info")
-                                    .set(data, SetOptions.merge())
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d(TAG, "Data migrated from root to profile/info successfully");
-                                    })
-                                    .addOnFailureListener(e ->
-                                            Log.e(TAG, "Error migrating data to profile/info", e));
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error getting root document data", e));
-    }
 
     // Save a transaction
     public static void saveTransaction(Transaction transaction) {
@@ -188,36 +160,6 @@ public class FirestoreManager {
                 .set(notificationData)
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
     }
-
-    // Load user profile data
-//    public static void loadUserProfile(OnProfileLoadedListener listener) {
-//        FirebaseUser currentUser = auth.getCurrentUser();
-//        if (currentUser == null) return;
-//
-//        db.collection("users")
-//                .document(currentUser.getUid())
-//                .collection("profile")
-//                .document("info")
-//                .get()
-//                .addOnSuccessListener(document -> {
-//                    if (document.exists()) {
-//                        listener.onProfileLoaded(document.getData());
-//                    } else {
-//                        // If profile/info doesn't exist, check the root document
-//                        db.collection("users").document(currentUser.getUid())
-//                                .get()
-//                                .addOnSuccessListener(rootDoc -> {
-//                                    if (rootDoc.exists()) {
-//                                        listener.onProfileLoaded(rootDoc.getData());
-//                                        // Migrate data to the correct structure
-//                                        migrateUserDataToProfileInfo();
-//                                    }
-//                                })
-//                                .addOnFailureListener(e -> Log.e(TAG, "Error loading root document", e));
-//                    }
-//                })
-//                .addOnFailureListener(e -> Log.e(TAG, "Error loading profile", e));
-//    }
 
     // Load user transactions
     public static void loadTransactions(OnTransactionsLoadedListener listener) {

@@ -187,7 +187,7 @@ public class RegistrationActivity extends AppCompatActivity {
         userData.put("fullname", fullName);
         userData.put("email", email);
         userData.put("avatarId", avatarId);
-        userData.put("role", "user"); // Default role is user
+        userData.put("role", "user");
 
         FirebaseFirestore.getInstance().collection("users").document(user.getUid())
                 .set(userData, SetOptions.merge())

@@ -57,6 +57,9 @@ public class HomeFragment extends Fragment {
         ImageButton profileButton = rootView.findViewById(R.id.ic_profile);
         profileButton.setOnClickListener(v -> openProfileFragment());
 
+        // Load transactions
+        loadTransactions();
+
         // Load user profile data
         loadUserProfile();
 
@@ -169,8 +172,8 @@ public class HomeFragment extends Fragment {
         super.onResume();
         loadTransactions();
         updateBalances();
-        refreshUserGreeting(); // Refresh the greeting when returning to this fragment
-        loadNotificationCount(); // Refresh notification count
+        refreshUserGreeting();
+        loadNotificationCount();
 
         // Also refresh avatar
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
