@@ -93,7 +93,6 @@ public class ProfileFragment extends Fragment {
                 updateAvatarImage(userAvatar, avatarId);
             }
 
-            // Then load from Firestore to ensure we have the latest data
             DocumentReference userRef = db.collection("users").document(user.getUid());
             userRef.collection("profile").document("info")
                     .get()
@@ -161,7 +160,6 @@ public class ProfileFragment extends Fragment {
     private void openEditProfileFragment() {
         EditProfileFragment editProfileFragment = new EditProfileFragment();
 
-        // Pass current avatar ID if available
         Bundle args = new Bundle();
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
                 requireActivity().MODE_PRIVATE);
@@ -193,7 +191,6 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showDeleteAccountConfirmation() {
-        // Show delete account confirmation dialog using the fragment
         DeleteAccountFragment deleteAccountFragment = new DeleteAccountFragment();
         deleteAccountFragment.show(getParentFragmentManager(), "DeleteAccountDialog");
     }

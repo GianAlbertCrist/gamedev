@@ -9,8 +9,10 @@
     <ImageView
         android:id="@+id/splash_logo"
         android:layout_width="120dp"
+        android:padding="10dp"
         android:layout_height="120dp"
         android:src="@drawable/app_icon_launcher"
+        android:background="@drawable/transaction_container"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

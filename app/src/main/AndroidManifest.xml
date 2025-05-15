@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.Thrifty"
-        tools:targetApi="31">
+        tools:targetApi="33">
 
         <activity
             android:name=".SplashActivity"
@@ -64,7 +64,6 @@
             android:exported="false"
             android:theme="@style/Theme.Thrifty.NoActionBar" />
 
-        <!-- Firebase Messaging Service -->
         <service
             android:name=".services.ThriftyMessagingService"
             android:exported="false">

@@ -63,49 +63,45 @@ public class SplashActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if (currentUser != null) {
-            // User is already logged in, show loading indicators
+            // Show loading while checking role
             loadingSpinner.setVisibility(View.VISIBLE);
             loadingText.setVisibility(View.VISIBLE);
             loadingText.setText("Checking account...");
 
-            // Check for admin role in profile/info document
-            db.collection("users")
-                    .document(currentUser.getUid())
-                    .collection("profile")
-                    .document("info")
+            // ✅ Check root-level role first (preferred location)
+            db.collection("users").document(currentUser.getUid())
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists() && "admin".equalsIgnoreCase(documentSnapshot.getString("role"))) {
-                            // Admin user
                             startActivity(new Intent(this, AdminActivity.class));
                         } else {
-                            // Regular user
                             startActivity(new Intent(this, MainActivity.class));
                         }
                         finish();
                     })
                     .addOnFailureListener(e -> {
-                        db.collection("users").document(currentUser.getUid())
+                        Log.e(TAG, "Failed to check root role, falling back to profile/info", e);
+
+                        db.collection("users")
+                                .document(currentUser.getUid())
+                                .collection("profile")
+                                .document("info")
                                 .get()
-                                .addOnSuccessListener(rootDoc -> {
-                                    if (rootDoc.exists() && "admin".equalsIgnoreCase(rootDoc.getString("role"))) {
-                                        // Admin user
+                                .addOnSuccessListener(profileDoc -> {
+                                    if (profileDoc.exists() && "admin".equalsIgnoreCase(profileDoc.getString("role"))) {
                                         startActivity(new Intent(this, AdminActivity.class));
                                     } else {
-                                        // Regular user
                                         startActivity(new Intent(this, MainActivity.class));
                                     }
                                     finish();
                                 })
                                 .addOnFailureListener(error -> {
-                                    // If all checks fail, just go to MainActivity as regular user
-                                    Log.e(TAG, "Failed to check role: ", error);
+                                    Log.e(TAG, "Failed to check fallback profile role", error);
                                     startActivity(new Intent(this, MainActivity.class));
                                     finish();
                                 });
                     });
         } else {
-            // No user is logged in, go to FirstActivity immediately
             startActivity(new Intent(this, FirstActivity.class));
             finish();
         }
