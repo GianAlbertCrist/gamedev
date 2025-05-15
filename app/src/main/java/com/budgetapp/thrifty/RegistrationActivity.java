@@ -20,6 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.budgetapp.thrifty.utils.FirestoreManager;
+import com.budgetapp.thrifty.utils.NetworkUtils;
+import com.budgetapp.thrifty.utils.OfflineAccountManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -96,6 +98,11 @@ public class RegistrationActivity extends AppCompatActivity {
                 return;
             }
 
+            if (!NetworkUtils.isOnline(RegistrationActivity.this)) {
+                OfflineAccountManager.savePendingAccount(RegistrationActivity.this, email, password);
+                Toast.makeText(RegistrationActivity.this, "Account will be created when you're back online.", Toast.LENGTH_SHORT).show();
+                return;
+            }
             createAccount(firstName, surname, email, password);
         });
 
