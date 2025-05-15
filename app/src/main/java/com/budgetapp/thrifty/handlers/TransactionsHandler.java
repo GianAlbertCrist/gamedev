@@ -4,6 +4,8 @@ import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
+import com.budgetapp.thrifty.utils.FirestoreManager;
+
 import java.util.Calendar;
 import java.util.ArrayList;
 
@@ -92,7 +94,10 @@ public class TransactionsHandler {
                 Notification notification = new Notification("Expense Reminder", notificationMessage, getCurrentTime(), transaction.getRecurring(), iconResId);
 
                 // Add notification to the NotificationsFragment
-                notificationsFragment.addNotification(notification);  // Call the non-static method of the fragment
+                notificationsFragment.addNotification(notification);
+
+                transaction.updateNextDueDate();
+                FirestoreManager.updateTransaction(transaction);
             }
         }
     }
