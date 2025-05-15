@@ -29,6 +29,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.budgetapp.thrifty.utils.NetworkUtils;
 import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
@@ -58,6 +59,12 @@ public class LoginActivity extends AppCompatActivity {
         Button loginButton = binding.loginButton;
 
         loginButton.setOnClickListener(v -> {
+
+            if (!NetworkUtils.isOnline(this)) {
+                Toast.makeText(LoginActivity.this, "Cannot log in, you are offline", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             String email = Objects.requireNonNull(emailInput).getText().toString().trim();
             String password = Objects.requireNonNull(passwordInput).getText().toString();
 
