@@ -56,9 +56,8 @@
             <!-- Normal profile image (default view) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/profile_image_container"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginEnd="16dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 app:cardCornerRadius="40dp"
                 app:cardElevation="0dp"
                 app:layout_constraintDimensionRatio="1:1"
@@ -142,6 +141,18 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
                 app:layout_constraintTop_toBottomOf="@+id/profile_name" />
+
+            <TextView
+                android:id="@+id/email_display"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:text="makoy@gmail.com"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
+                app:layout_constraintTop_toBottomOf="@+id/profile_full_name" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.cardview.widget.CardView
@@ -632,7 +643,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:hint="makoy"
+                android:hint="Enter username"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:textColor="@color/black"
@@ -682,7 +693,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:hint="Marc Steffen Pantelgone"
+                android:hint="Enter fullname"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:textColor="@color/black"
@@ -694,56 +705,6 @@
 
             <ImageView
                 android:id="@+id/fullname_edit"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_edit"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/grey" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <TextView
-            android:id="@+id/email_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="52dp"
-            android:layout_marginTop="20dp"
-            android:text="Email Address"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fullname_container" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/email_container"
-            android:layout_width="318dp"
-            android:layout_height="35dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/rounded_background"
-            android:backgroundTint="#D9F0D9"
-            android:padding="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/email_label">
-
-            <EditText
-                android:id="@+id/email_input"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:background="@null"
-                android:hint="makoy@gmail.com"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/email_edit"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageView
-                android:id="@+id/email_edit"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_edit"
@@ -769,7 +730,7 @@
             android:focusable="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/email_container"
+            app:layout_constraintTop_toBottomOf="@+id/fullname_container"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="32dp" />
 
