@@ -17,12 +17,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.TransactionAdapter;
+import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.utils.FormatUtils;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
 
@@ -224,7 +229,11 @@ public class HomeFragment extends Fragment {
             recyclerView.setVisibility(View.VISIBLE);
 
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            TransactionAdapter adapter = new TransactionAdapter(getContext(), TransactionsHandler.transactions);
+
+            List<Transaction> reversedList = new ArrayList<>(TransactionsHandler.transactions);
+            Collections.reverse(reversedList);
+
+            TransactionAdapter adapter = new TransactionAdapter(getContext(), reversedList);
             recyclerView.setAdapter(adapter);
         }
     }

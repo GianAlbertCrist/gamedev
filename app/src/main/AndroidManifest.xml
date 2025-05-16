@@ -21,7 +21,8 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.Thrifty.NoActionBar">
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -31,38 +32,45 @@
         <activity
             android:name=".FirstActivity"
             android:exported="false"
-            android:theme="@style/Theme.Thrifty.NoActionBar" />
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Thrifty.NoActionBar"
-            android:windowSoftInputMode="adjustPan"/>
+            android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".LoginActivity"
             android:exported="false"
-            android:theme="@style/Theme.Thrifty.NoActionBar" />
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".RegistrationActivity"
             android:exported="false"
-            android:theme="@style/Theme.Thrifty.NoActionBar" />
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".ForgotPasswordActivity"
             android:exported="false"
-            android:theme="@style/Theme.Thrifty.NoActionBar" />
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".AddEntryActivity"
             android:exported="false"
-            android:theme="@style/Theme.Thrifty.NoActionBar" />
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".AdminActivity"
             android:exported="false"
-            android:theme="@style/Theme.Thrifty.NoActionBar" />
+            android:theme="@style/Theme.Thrifty.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <service
             android:name=".services.ThriftyMessagingService"

@@ -101,12 +101,12 @@
                     app:layout_constraintHorizontal_bias="0.04"
                     app:layout_constraintStart_toStartOf="@+id/enter_email"
                     app:layout_constraintTop_toTopOf="@+id/enter_email"
-                    app:layout_constraintVertical_bias="0.60" />
+                    app:layout_constraintVertical_bias="0.40" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/enter_email"
                     android:layout_width="match_parent"
-                    android:layout_height="57dp"
+                    android:layout_height="wrap_content"
                     android:hint="Enter Email"
                     android:textColorHint="@color/hint_text_color"
                     app:boxBackgroundMode="outline"
@@ -139,7 +139,6 @@
                     android:id="@+id/password_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="15dp"
                     android:fontFamily="@font/poppins"
                     android:text="Password"
                     android:textColor="@color/black"
@@ -160,16 +159,16 @@
                     app:layout_constraintHorizontal_bias="0.04"
                     app:layout_constraintStart_toStartOf="@+id/enter_password"
                     app:layout_constraintTop_toTopOf="@+id/enter_password"
-                    app:layout_constraintVertical_bias="0.60" />
+                    app:layout_constraintVertical_bias="0.4" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/enter_password"
                     android:layout_width="match_parent"
-                    android:layout_height="57dp"
+                    android:layout_height="wrap_content"
                     android:hint="@string/enter_passw"
                     android:textColorHint="@color/hint_text_color"
                     app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxCornerRadiusBottomEnd="18dp"
                     app:boxCornerRadiusBottomStart="16dp"
                     app:boxCornerRadiusTopEnd="16dp"
                     app:boxCornerRadiusTopStart="16dp"
@@ -181,7 +180,8 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/password_label"
                     app:passwordToggleEnabled="true"
-                    app:passwordToggleTint="@color/lock_green">
+                    app:passwordToggleTint="@color/lock_green"
+                    app:errorEnabled="true">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
