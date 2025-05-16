@@ -106,4 +106,13 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
+    <style name="NoErrorTextAppearance" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="errorTextAppearance">@style/InvisibleErrorText</item>
+    </style>
+
+    <style name="InvisibleErrorText" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textColor">@android:color/transparent</item>
+        <item name="android:textSize">0sp</item>
+    </style>
+
 </resources>

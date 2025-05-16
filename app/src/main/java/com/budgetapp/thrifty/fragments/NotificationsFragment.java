@@ -41,4 +41,16 @@ public class NotificationsFragment extends Fragment {
             adapter.notifyDataSetChanged();  // Refresh the notification list
         }
     }
+
+    public ArrayList<Notification> getNotificationList() {
+        return notificationList;
+    }
+
+    public RecyclerView getRecyclerView() {
+        return recyclerView;
+    }
+
+    public NotificationAdapter getAdapter() {
+        return adapter;
+    }
 }

@@ -106,7 +106,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/enter_email"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="57dp"
                     android:hint="Enter Email"
                     android:textColorHint="@color/hint_text_color"
                     app:boxBackgroundMode="outline"
@@ -120,7 +120,8 @@
                     app:boxStrokeWidth="2dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/email_label">
+                    app:layout_constraintTop_toBottomOf="@+id/email_label"
+                    app:errorEnabled="true">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
@@ -164,7 +165,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/enter_password"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="57dp"
                     android:hint="@string/enter_passw"
                     android:textColorHint="@color/hint_text_color"
                     app:boxBackgroundMode="outline"

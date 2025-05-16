@@ -82,30 +82,57 @@ public class TransactionsHandler {
 
     // Method to check recurring transactions and trigger notifications
     public static void checkRecurringTransactions(NotificationsFragment notificationsFragment) {
+        Calendar today = Calendar.getInstance();
+
         for (Transaction transaction : transactions) {
-            if (transaction.isDueForNotification()) {
-                // Create notification message
-                String notificationMessage = createNotificationMessage(transaction);
+            if (!transaction.getRecurring().equals("None") && transaction.getNextDueDate() != null) {
+                Calendar nextDueDate = Calendar.getInstance();
+                nextDueDate.setTime(transaction.getNextDueDate());
 
-                // Get the corresponding notification icon for the recurring type
-                int iconResId = getNotificationIcon(transaction.getRecurring());
+                // Generate notifications for all missed due dates
+                while (nextDueDate.before(today) || isSameDay(nextDueDate, today)) {
+                    // Create notification message
+                    String notificationMessage = createNotificationMessage(transaction);
 
-                // Create the notification
-                Notification notification = new Notification("Expense Reminder", notificationMessage, getCurrentTime(), transaction.getRecurring(), iconResId);
+                    // Get the corresponding notification icon
+                    int iconResId = getNotificationIcon(transaction.getRecurring());
 
-                // Add notification to the NotificationsFragment
-                notificationsFragment.addNotification(notification);
+                    // Create the notification
+                    Notification notification = new Notification(
+                            "Expense Reminder",
+                            notificationMessage,
+                            getCurrentTime(),
+                            transaction.getRecurring(),
+                            iconResId
+                    );
 
-                transaction.updateNextDueDate();
+                    // Add notification to the NotificationsFragment
+                    notificationsFragment.addNotification(notification);
+
+                    // Update next due date
+                    transaction.updateNextDueDate();
+                    nextDueDate.setTime(transaction.getNextDueDate());
+                }
+
+                // Save the updated transaction to Firestore
                 FirestoreManager.updateTransaction(transaction);
             }
         }
     }
 
+
+    private static boolean isSameDay(Calendar date1, Calendar date2) {
+        return date1.get(Calendar.YEAR) == date2.get(Calendar.YEAR) &&
+                date1.get(Calendar.DAY_OF_YEAR) == date2.get(Calendar.DAY_OF_YEAR);
+    }
+
     private static String createNotificationMessage(Transaction transaction) {
         // Check if the transaction type is Income or Expense
         if ("Income".equalsIgnoreCase(transaction.getType())) {
-            return String.format("%s income reminder: ₱%.2f - {%s} is due today.", transaction.getRecurring(), transaction.getRawAmount(), transaction.getDescription());
+            return String.format("%s income reminder: ₱%.2f - {%s} is due today.",
+                    transaction.getRecurring(),
+                    transaction.getRawAmount(),
+                    transaction.getDescription());
 
         } else {
             // Expense notification format

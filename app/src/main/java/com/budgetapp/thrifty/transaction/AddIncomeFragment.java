@@ -45,12 +45,6 @@ public class AddIncomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (getActivity() != null && getActivity().getWindow() != null) {
-            getActivity().getWindow().setNavigationBarColor(
-                    ContextCompat.getColor(requireContext(), R.color.background_color)
-            );
-        }
-
         if (getArguments() != null && getArguments().containsKey("transactionToEdit")) {
             editingTransaction = getArguments().getParcelable("transactionToEdit");
         } else {
