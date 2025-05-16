@@ -34,8 +34,8 @@ public class EditProfileFragment extends Fragment {
     private static final String TAG = "EditProfileFragment";
     private ImageView profileImage, profileImageEdit;
     private CardView profileImageEditContainer;
-    private TextView profileName, profileFullName;
-    private EditText usernameInput, fullnameInput, emailInput;
+    private TextView profileName, profileFullName, emailDisplay;
+    private EditText usernameInput, fullnameInput;
     private ImageButton editProfileImage;
     private Button updateProfileButton;
     private CardView profilePictureSelector;
@@ -86,8 +86,7 @@ public class EditProfileFragment extends Fragment {
         profilePictureSelector = view.findViewById(R.id.profile_picture_selector);
         cancelAvatarSelection = view.findViewById(R.id.cancel_avatar_selection);
         confirmAvatarSelection = view.findViewById(R.id.confirm_avatar_selection);
-        emailInput = view.findViewById(R.id.email_input);
-        emailInput.setEnabled(false);
+        emailDisplay = view.findViewById(R.id.email_display);
 
         // Initialize avatar views
         avatarViews[0] = view.findViewById(R.id.avatar_1);
@@ -104,7 +103,7 @@ public class EditProfileFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             String userEmail = user.getEmail();
-            emailInput.setText(userEmail);
+            emailDisplay.setText(userEmail);
 
             // First try to get data from Firebase Auth display name
             if (user.getDisplayName() != null) {

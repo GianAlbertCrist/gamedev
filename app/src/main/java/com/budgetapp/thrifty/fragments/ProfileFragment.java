@@ -24,7 +24,7 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private TextView usernameText, fullnameText;
+    private TextView usernameText, fullnameText, emailDisplay;
     private ImageView userAvatar;
     private LinearLayout editProfileButton, securityButton, logoutButton, deleteAccountButton;
 
@@ -40,6 +40,7 @@ public class ProfileFragment extends Fragment {
         // Initialize views
         usernameText = view.findViewById(R.id.textView);
         fullnameText = view.findViewById(R.id.textView2);
+        emailDisplay = view.findViewById(R.id.email_display);
         userAvatar = view.findViewById(R.id.user_avatar);
         editProfileButton = view.findViewById(R.id.edit_profile_button);
         securityButton = view.findViewById(R.id.security_button);
@@ -84,6 +85,8 @@ public class ProfileFragment extends Fragment {
             String username = prefs.getString("username", null);
             String fullname = prefs.getString("fullname", null);
             int avatarId = prefs.getInt("avatarId", 0);
+            String userEmail = user.getEmail();
+            emailDisplay.setText(userEmail);
 
             if (username != null) {
                 usernameText.setText(username);
