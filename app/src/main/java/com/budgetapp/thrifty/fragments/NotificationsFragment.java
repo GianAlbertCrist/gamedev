@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,6 +25,20 @@ public class NotificationsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notifications, container, false);
         ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
+
+        RecyclerView recyclerView = view.findViewById(R.id.recyclerViewNotifications);
+        TextView noNotificationsText = view.findViewById(R.id.no_notifications_text);
+
+        NotificationAdapter adapter = new NotificationAdapter(notificationList);
+        recyclerView.setAdapter(adapter);
+
+        if (notificationList.isEmpty()) {
+            noNotificationsText.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            noNotificationsText.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
 
         recyclerView = view.findViewById(R.id.recyclerViewNotifications);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

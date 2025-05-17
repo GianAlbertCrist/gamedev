@@ -421,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateAvatarImage(ImageView imageView, int avatarId) {
-        int resourceId;
+        int resourceId = -1;
         switch (avatarId) {
             case 1: resourceId = R.drawable.profile2; break;
             case 2: resourceId = R.drawable.profile3; break;
@@ -429,9 +429,13 @@ public class MainActivity extends AppCompatActivity {
             case 4: resourceId = R.drawable.profile5; break;
             case 5: resourceId = R.drawable.profile6; break;
             case 6: resourceId = R.drawable.profile7; break;
-            default: resourceId = R.drawable.sample_profile; break;
+            case 8: resourceId = R.drawable.profile8; break;
+            case 9: resourceId = R.drawable.profile9; break;
         }
-        imageView.setImageResource(resourceId);
+
+        if (resourceId != -1) {
+            imageView.setImageResource(resourceId);
+        }
     }
 
     @Override

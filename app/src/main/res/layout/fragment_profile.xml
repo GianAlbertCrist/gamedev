@@ -48,6 +48,8 @@
 
             <ImageView
                 android:id="@+id/user_avatar"
+                android:padding="2dp"
+                android:background="@drawable/circular_profile_background"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
@@ -83,14 +85,13 @@
             app:layout_constraintStart_toEndOf="@+id/user_avatar_container"
             app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-        <!-- Place this after the fullname_container -->
         <TextView
             android:id="@+id/email_display"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="5dp"
-            android:text="makoy@gmail.com"
+            android:text="user@gmail.com"
             android:textColor="@color/white"
             android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"

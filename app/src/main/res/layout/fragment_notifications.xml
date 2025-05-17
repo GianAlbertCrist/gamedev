@@ -15,6 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:fontFamily="@font/poppins"
             android:text="Notifications"
             android:textColor="@color/white"
             android:textSize="20sp"
@@ -31,4 +32,23 @@
         android:layout_marginTop="80dp"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp" />
+
+    <TextView
+        android:id="@+id/no_notifications_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No notifications."
+        android:textSize="16sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="50dp"
+        android:fontFamily="@font/poppins"
+        android:padding="16dp"
+        android:textColor="@color/grey" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notificationRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 </FrameLayout>

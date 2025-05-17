@@ -44,8 +44,8 @@
                 android:id="@+id/ic_profile"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:contentDescription="Profile"
+                android:padding="2dp"
+                android:background="@drawable/circular_profile_background"                android:contentDescription="Profile"
                 android:scaleType="centerCrop"
                 app:srcCompat="@drawable/sample_profile" />
         </androidx.cardview.widget.CardView>

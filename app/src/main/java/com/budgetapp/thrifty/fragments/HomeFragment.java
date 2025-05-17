@@ -18,6 +18,7 @@ import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.TransactionAdapter;
 import com.budgetapp.thrifty.transaction.Transaction;
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FormatUtils;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
@@ -65,11 +66,11 @@ public class HomeFragment extends Fragment {
         ImageButton profileButton = rootView.findViewById(R.id.ic_profile);
         profileButton.setOnClickListener(v -> openProfileFragment());
 
-        // Load transactions
-        loadTransactions();
-
         // Load user profile data
         loadUserProfile();
+
+        // Load transactions
+        loadTransactions();
 
         // Load notification count
         loadNotificationCount();
@@ -132,48 +133,47 @@ public class HomeFragment extends Fragment {
         // Load username
         refreshUserGreeting();
 
-        // Load avatar
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
                 requireActivity().MODE_PRIVATE);
+
         int avatarId = prefs.getInt("avatarId", 0);
 
-        if (avatarId > 0) {
-            updateAvatarImage(profileIcon, avatarId);
-        } else {
-            // If not in SharedPreferences, fetch from Firestore
-            FirebaseUser user = mAuth.getCurrentUser();
-            if (user != null) {
-                db.collection("users").document(user.getUid())
-                        .collection("profile").document("info")
-                        .get()
-                        .addOnSuccessListener(document -> {
-                            if (document.exists()) {
-                                Long avatarIdLong = document.getLong("avatarId");
-                                if (avatarIdLong != null) {
-                                    int newAvatarId = avatarIdLong.intValue();
-                                    updateAvatarImage(profileIcon, newAvatarId);
+        // Show default or cached avatar while loading Firestore
+        updateAvatarImage(profileIcon, avatarId);  // This shows what we have for now
 
-                                    // Cache for future use
-                                    prefs.edit().putInt("avatarId", newAvatarId).apply();
-                                }
-                            } else {
-                                // If profile/info doesn't exist, check the root document
-                                db.collection("users").document(user.getUid())
-                                        .get()
-                                        .addOnSuccessListener(rootDoc -> {
-                                            if (rootDoc.exists()) {
-                                                Long avatarIdLong = rootDoc.getLong("avatarId");
-                                                if (avatarIdLong != null) {
-                                                    int newAvatarId = avatarIdLong.intValue();
-                                                    updateAvatarImage(profileIcon, newAvatarId);
-                                                }
-                                            }
-                                        });
+        // Try to fetch the latest avatarId from Firestore
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            db.collection("users").document(user.getUid())
+                    .collection("profile").document("info")
+                    .get()
+                    .addOnSuccessListener(document -> {
+                        if (document.exists()) {
+                            Long avatarIdLong = document.getLong("avatarId");
+                            if (avatarIdLong != null) {
+                                int newAvatarId = avatarIdLong.intValue();
+                                updateAvatarImage(profileIcon, newAvatarId);
+                                prefs.edit().putInt("avatarId", newAvatarId).apply(); // Update cached copy
                             }
-                        });
-            }
+                        } else {
+                            // Fallback: check the root document
+                            db.collection("users").document(user.getUid())
+                                    .get()
+                                    .addOnSuccessListener(rootDoc -> {
+                                        if (rootDoc.exists()) {
+                                            Long avatarIdLong = rootDoc.getLong("avatarId");
+                                            if (avatarIdLong != null) {
+                                                int newAvatarId = avatarIdLong.intValue();
+                                                updateAvatarImage(profileIcon, newAvatarId);
+                                                prefs.edit().putInt("avatarId", newAvatarId).apply(); // Update cache
+                                            }
+                                        }
+                                    });
+                        }
+                    });
         }
     }
+
 
     @Override
     public void onResume() {
@@ -260,21 +260,8 @@ public class HomeFragment extends Fragment {
         fragmentTransaction.commit();
     }
 
-    public void refreshUserData() {
-        // Refresh user greeting
-        refreshUserGreeting();
-
-        // Refresh avatar
-        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                requireActivity().MODE_PRIVATE);
-        int avatarId = prefs.getInt("avatarId", 0);
-        if (avatarId > 0) {
-            updateAvatarImage(profileIcon, avatarId);
-        }
-    }
-
     private void updateAvatarImage(ImageView imageView, int avatarId) {
-        int resourceId;
+        int resourceId = -1;
         switch (avatarId) {
             case 1: resourceId = R.drawable.profile2; break;
             case 2: resourceId = R.drawable.profile3; break;
@@ -282,8 +269,12 @@ public class HomeFragment extends Fragment {
             case 4: resourceId = R.drawable.profile5; break;
             case 5: resourceId = R.drawable.profile6; break;
             case 6: resourceId = R.drawable.profile7; break;
-            default: resourceId = R.drawable.sample_profile; break;
+            case 8: resourceId = R.drawable.profile8; break;
+            case 9: resourceId = R.drawable.profile9; break;
         }
-        imageView.setImageResource(resourceId);
+
+        if (resourceId != -1) {
+            imageView.setImageResource(resourceId);
+        }
     }
 }

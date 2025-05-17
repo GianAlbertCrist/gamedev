@@ -32,20 +32,14 @@ import java.util.Map;
 public class EditProfileFragment extends Fragment {
 
     private static final String TAG = "EditProfileFragment";
-    private ImageView profileImage, profileImageEdit;
-    private CardView profileImageEditContainer;
+    private ImageView profileImage;
     private TextView profileName, profileFullName, emailDisplay;
     private EditText usernameInput, fullnameInput;
     private ImageButton editProfileImage;
     private Button updateProfileButton;
-    private CardView profilePictureSelector;
-    private Button cancelAvatarSelection, confirmAvatarSelection;
-    private ImageView[] avatarViews = new ImageView[8];
-    private int selectedAvatarId = 0;
     private int currentAvatarId = 0;
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
-    private boolean isEditingProfilePicture = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -75,28 +69,13 @@ public class EditProfileFragment extends Fragment {
 
     private void initializeViews(View view) {
         profileImage = view.findViewById(R.id.profile_image);
-        profileImageEdit = view.findViewById(R.id.profile_image_edit);
-        profileImageEditContainer = view.findViewById(R.id.profile_image_edit_container);
         profileName = view.findViewById(R.id.profile_name);
         profileFullName = view.findViewById(R.id.profile_full_name);
         usernameInput = view.findViewById(R.id.username_input);
         fullnameInput = view.findViewById(R.id.fullname_input);
         editProfileImage = view.findViewById(R.id.edit_profile_image);
         updateProfileButton = view.findViewById(R.id.update_profile_button);
-        profilePictureSelector = view.findViewById(R.id.profile_picture_selector);
-        cancelAvatarSelection = view.findViewById(R.id.cancel_avatar_selection);
-        confirmAvatarSelection = view.findViewById(R.id.confirm_avatar_selection);
         emailDisplay = view.findViewById(R.id.email_display);
-
-        // Initialize avatar views
-        avatarViews[0] = view.findViewById(R.id.avatar_1);
-        avatarViews[1] = view.findViewById(R.id.avatar_2);
-        avatarViews[2] = view.findViewById(R.id.avatar_3);
-        avatarViews[3] = view.findViewById(R.id.avatar_4);
-        avatarViews[4] = view.findViewById(R.id.avatar_5);
-        avatarViews[5] = view.findViewById(R.id.avatar_6);
-        avatarViews[6] = view.findViewById(R.id.avatar_7);
-        avatarViews[7] = view.findViewById(R.id.avatar_8);
     }
 
     private void loadUserData() {
@@ -170,51 +149,14 @@ public class EditProfileFragment extends Fragment {
         // Debug log to check if this method is being called
         Log.d(TAG, "Setting up click listeners");
 
-        editProfileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleProfilePictureEditMode();
-            }
-        });
-
-        cancelAvatarSelection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                profilePictureSelector.setVisibility(View.GONE);
-                selectedAvatarId = currentAvatarId;
-
-                // Exit edit mode when canceling
-                if (isEditingProfilePicture) {
-                    toggleProfilePictureEditMode();
-                }
-            }
-        });
-
-        confirmAvatarSelection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currentAvatarId = selectedAvatarId;
+        editProfileImage.setOnClickListener(v -> {
+            AvatarSelectionDialogFragment dialog = AvatarSelectionDialogFragment.newInstance(currentAvatarId);
+            dialog.setOnAvatarSelectedListener(avatarId -> {
+                currentAvatarId = avatarId;
                 updateProfileImage(currentAvatarId);
-                profilePictureSelector.setVisibility(View.GONE);
-
-                // Exit edit mode when confirming
-                if (isEditingProfilePicture) {
-                    toggleProfilePictureEditMode();
-                }
-            }
-        });
-
-        // Set up avatar selection listeners
-        for (int i = 0; i < avatarViews.length; i++) {
-            final int avatarId = i + 1;
-            avatarViews[i].setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    selectedAvatarId = avatarId;
-                    highlightSelectedAvatar(avatarId);
-                }
             });
-        }
+            dialog.show(getParentFragmentManager(), "AvatarSelectionDialog");
+        });
 
         // Debug log to check if the button is null
         if (updateProfileButton == null) {
@@ -236,27 +178,6 @@ public class EditProfileFragment extends Fragment {
         }
     }
 
-    private void toggleProfilePictureEditMode() {
-        isEditingProfilePicture = !isEditingProfilePicture;
-
-        if (isEditingProfilePicture) {
-            // Enter edit mode
-            profileImage.setVisibility(View.INVISIBLE);
-            profileImageEditContainer.setVisibility(View.VISIBLE);
-
-            // Copy the current image to the edit container
-            profileImageEdit.setImageDrawable(profileImage.getDrawable());
-
-            // Show the profile picture selector
-            profilePictureSelector.setVisibility(View.VISIBLE);
-        } else {
-            // Exit edit mode
-            profileImage.setVisibility(View.VISIBLE);
-            profileImageEditContainer.setVisibility(View.GONE);
-            profilePictureSelector.setVisibility(View.GONE);
-        }
-    }
-
     private void updateProfileImage(int avatarId) {
         int resourceId;
         switch (avatarId) {
@@ -266,25 +187,13 @@ public class EditProfileFragment extends Fragment {
             case 4: resourceId = R.drawable.profile5; break;
             case 5: resourceId = R.drawable.profile6; break;
             case 6: resourceId = R.drawable.profile7; break;
+            case 8: resourceId = R.drawable.profile8; break;
+            case 9: resourceId = R.drawable.profile9; break;
             default: resourceId = R.drawable.sample_profile; break;
         }
         profileImage.setImageResource(resourceId);
-
-        if (profileImageEditContainer.getVisibility() == View.VISIBLE) {
-            profileImageEdit.setImageResource(resourceId);
-        }
     }
 
-    private void highlightSelectedAvatar(int avatarId) {
-        // Hide all highlights first
-        for (int i = 1; i <= 8; i++) {
-            int highlightId = getResources().getIdentifier("avatar_highlight_" + i, "id", requireActivity().getPackageName());
-            View highlightView = getView().findViewById(highlightId);
-            if (highlightView != null) {
-                highlightView.setVisibility(i == avatarId ? View.VISIBLE : View.GONE);
-            }
-        }
-    }
 
     private void updateProfile() {
         Log.d(TAG, "updateProfile method called");

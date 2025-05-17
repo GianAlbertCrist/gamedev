@@ -157,6 +157,8 @@ public class ProfileFragment extends Fragment {
             case 4: resourceId = R.drawable.profile5; break;
             case 5: resourceId = R.drawable.profile6; break;
             case 6: resourceId = R.drawable.profile7; break;
+            case 8: resourceId = R.drawable.profile8; break;
+            case 9: resourceId = R.drawable.profile9; break;
             default: resourceId = R.drawable.sample_profile; break;
         }
         imageView.setImageResource(resourceId);

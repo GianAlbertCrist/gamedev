@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color"
-    android:fillViewport="true"
     android:clickable="true"
-    android:focusable="true"
-    android:fitsSystemWindows="true">
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:focusable="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -20,6 +21,8 @@
             android:layout_height="80dp"
             android:background="@color/primary_color"
             android:padding="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
@@ -44,115 +47,86 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/topProfilebar">
 
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline_vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.25" />
-
-            <!-- Normal profile image (default view) -->
-            <androidx.cardview.widget.CardView
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/profile_image_container"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                app:cardCornerRadius="40dp"
-                app:cardElevation="0dp"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.2">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
                 <ImageView
                     android:id="@+id/profile_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:background="@drawable/circular_profile_background"
+                    android:padding="4dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/sample_profile" />
-            </androidx.cardview.widget.CardView>
+                    android:src="@drawable/sample_profile"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Circular background for editing mode (initially invisible) -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/profile_image_edit_container"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginEnd="16dp"
-                android:visibility="gone"
-                app:cardCornerRadius="40dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardElevation="4dp"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.2">
+                <ImageButton
+                    android:id="@+id/edit_profile_image"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/rounded_background"
+                    android:backgroundTint="@color/primary_color"
+                    android:padding="4dp"
+                    android:scaleType="centerInside"
+                    android:src="@android:drawable/ic_menu_edit"
+                    app:layout_constraintBottom_toBottomOf="@+id/profile_image_container"
+                    app:layout_constraintEnd_toEndOf="@+id/profile_image_container"
+                    app:layout_constraintHorizontal_bias="0.65"
+                    app:layout_constraintStart_toStartOf="@+id/profile_image_container"
+                    app:layout_constraintTop_toTopOf="@+id/profile_image_container"
+                    app:layout_constraintVertical_bias="1.0" />
 
-                <ImageView
-                    android:id="@+id/profile_image_edit"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="3dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/sample_profile" />
-            </androidx.cardview.widget.CardView>
-
-            <ImageButton
-                android:id="@+id/edit_profile_image"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="bottom|end"
-                android:background="@drawable/rounded_background"
-                android:backgroundTint="@color/primary_color"
-                android:padding="4dp"
-                android:scaleType="centerInside"
-                android:src="@android:drawable/ic_menu_edit"
-                app:layout_constraintBottom_toBottomOf="@+id/profile_image_container"
-                app:layout_constraintEnd_toEndOf="@+id/profile_image_container"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="@+id/profile_image_container"
-                app:layout_constraintTop_toTopOf="@+id/profile_image_container"
-                app:layout_constraintVertical_bias="1.0" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
                 android:id="@+id/profile_name"
                 android:layout_width="0dp"
+                android:layout_marginTop="20dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="makoy"
+                android:fontFamily="@font/poppins"
+                android:text="Username"
+                android:textAlignment="center"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
-                app:layout_constraintTop_toTopOf="@+id/profile_image_container" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/profile_image_container" />
 
             <TextView
                 android:id="@+id/profile_full_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="4dp"
-                android:text="MARC STEFFEN PANTELGONE"
+                android:fontFamily="@font/poppins"
+                android:text="USER FULL NAME"
+                android:textAlignment="center"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/profile_name" />
 
             <TextView
                 android:id="@+id/email_display"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="4dp"
-                android:text="makoy@gmail.com"
+                android:fontFamily="@font/poppins"
+                android:text="user@gmail.com"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-                app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/profile_full_name" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.cardview.widget.CardView
@@ -194,13 +168,14 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:orientation="horizontal">
 
                             <FrameLayout
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_1"
                                     android:layout_width="70dp"
@@ -208,6 +183,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_1"
                                         android:layout_width="match_parent"
@@ -217,6 +193,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile2" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_1"
                                     android:layout_width="80dp"
@@ -230,6 +207,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_2"
                                     android:layout_width="70dp"
@@ -237,6 +215,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_2"
                                         android:layout_width="match_parent"
@@ -246,6 +225,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile3" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_2"
                                     android:layout_width="80dp"
@@ -259,6 +239,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_3"
                                     android:layout_width="70dp"
@@ -266,6 +247,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_3"
                                         android:layout_width="match_parent"
@@ -275,6 +257,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile4" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_3"
                                     android:layout_width="80dp"
@@ -289,13 +272,14 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:orientation="horizontal">
 
                             <FrameLayout
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_4"
                                     android:layout_width="70dp"
@@ -303,6 +287,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_4"
                                         android:layout_width="match_parent"
@@ -312,6 +297,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile5" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_4"
                                     android:layout_width="80dp"
@@ -325,6 +311,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_5"
                                     android:layout_width="70dp"
@@ -332,6 +319,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_5"
                                         android:layout_width="match_parent"
@@ -341,6 +329,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile6" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_5"
                                     android:layout_width="80dp"
@@ -354,6 +343,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_6"
                                     android:layout_width="70dp"
@@ -361,6 +351,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_6"
                                         android:layout_width="match_parent"
@@ -370,6 +361,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile7" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_6"
                                     android:layout_width="80dp"
@@ -384,13 +376,14 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:orientation="horizontal">
 
                             <FrameLayout
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_7"
                                     android:layout_width="70dp"
@@ -398,6 +391,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_7"
                                         android:layout_width="match_parent"
@@ -407,6 +401,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/sample_profile" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_7"
                                     android:layout_width="80dp"
@@ -420,6 +415,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_8"
                                     android:layout_width="70dp"
@@ -427,6 +423,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_8"
                                         android:layout_width="match_parent"
@@ -436,6 +433,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/sample_profile" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_8"
                                     android:layout_width="80dp"
@@ -449,6 +447,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_9"
                                     android:layout_width="70dp"
@@ -456,6 +455,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_9"
                                         android:layout_width="match_parent"
@@ -465,6 +465,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile2" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_9"
                                     android:layout_width="80dp"
@@ -479,13 +480,14 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:orientation="horizontal">
 
                             <FrameLayout
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_10"
                                     android:layout_width="70dp"
@@ -493,6 +495,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_10"
                                         android:layout_width="match_parent"
@@ -502,6 +505,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile3" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_10"
                                     android:layout_width="80dp"
@@ -515,6 +519,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_11"
                                     android:layout_width="70dp"
@@ -522,6 +527,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_11"
                                         android:layout_width="match_parent"
@@ -531,6 +537,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile4" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_11"
                                     android:layout_width="80dp"
@@ -544,6 +551,7 @@
                                 android:layout_width="90dp"
                                 android:layout_height="90dp"
                                 android:layout_margin="8dp">
+
                                 <androidx.cardview.widget.CardView
                                     android:id="@+id/avatar_card_12"
                                     android:layout_width="70dp"
@@ -551,6 +559,7 @@
                                     android:layout_gravity="center"
                                     app:cardCornerRadius="35dp"
                                     app:cardElevation="0dp">
+
                                     <ImageView
                                         android:id="@+id/avatar_12"
                                         android:layout_width="match_parent"
@@ -560,6 +569,7 @@
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/profile5" />
                                 </androidx.cardview.widget.CardView>
+
                                 <View
                                     android:id="@+id/avatar_highlight_12"
                                     android:layout_width="80dp"
@@ -606,8 +616,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
             android:layout_marginEnd="16dp"
+            android:fontFamily="@font/poppins"
             android:text="Account Setting"
             android:textColor="@color/white"
             android:textSize="20sp"
@@ -620,6 +630,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="52dp"
             android:layout_marginTop="32dp"
+            android:fontFamily="@font/poppins"
             android:text="Username"
             android:textColor="@color/white"
             android:textSize="16sp"
@@ -629,7 +640,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/username_container"
             android:layout_width="318dp"
-            android:layout_height="35dp"
+            android:layout_height="48dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/rounded_background"
             android:backgroundTint="#D9F0D9"
@@ -643,6 +654,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@null"
+                android:fontFamily="@font/poppins"
                 android:hint="Enter username"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
@@ -670,6 +682,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="52dp"
             android:layout_marginTop="24dp"
+            android:fontFamily="@font/poppins"
             android:text="Full Name"
             android:textColor="@color/white"
             android:textSize="16sp"
@@ -679,7 +692,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/fullname_container"
             android:layout_width="318dp"
-            android:layout_height="35dp"
+            android:layout_height="48dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/rounded_background"
             android:backgroundTint="#D9F0D9"
@@ -693,6 +706,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="@null"
+                android:fontFamily="@font/poppins"
                 android:hint="Enter fullname"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
@@ -716,23 +730,24 @@
 
         <Button
             android:id="@+id/update_profile_button"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginTop="28dp"
             android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="32dp"
             android:backgroundTint="@color/primary_color"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins"
             android:text="Update Profile"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="15sp"
             android:textStyle="bold"
-            android:clickable="true"
-            android:focusable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fullname_container"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="32dp" />
+            app:layout_constraintTop_toBottomOf="@+id/fullname_container" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
