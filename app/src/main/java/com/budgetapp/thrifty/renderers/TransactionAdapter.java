@@ -83,7 +83,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             holder.category.setText("");
             holder.amount.setText("");
             holder.datetime.setText("");
-            return;
+            holder.description.setVisibility(View.GONE);
         }
 
         int index = transactions.size() - 1 - position;
@@ -122,7 +122,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.amount.setTextColor(color);
 
 
-        holder.description.setText(t.getDescription());  // Set the description from the transaction
+        holder.description.setText(t.getDescription());
 
 
         String timeText = t.getDateAndTime();

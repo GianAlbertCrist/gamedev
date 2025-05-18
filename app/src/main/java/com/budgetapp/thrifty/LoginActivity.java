@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -151,9 +152,17 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void signInWithEmailAndPassword(String email, String password) {
+        ProgressBar progressBar = findViewById(R.id.login_progress);
+        Button loginButton = binding.loginButton;
+
+        progressBar.setVisibility(View.VISIBLE);
+        loginButton.setEnabled(false);
+
         Toast.makeText(LoginActivity.this, "Signing in...", Toast.LENGTH_SHORT).show();
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
+                    progressBar.setVisibility(View.GONE);
+                    loginButton.setEnabled(true);
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user == null) {
