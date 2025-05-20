@@ -30,6 +30,7 @@ import java.util.Locale;
 public class TransactionsFragment extends Fragment {
 
     private TextView filter;
+    private String currentFilterType = "Today";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,16 +50,18 @@ public class TransactionsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        applyDefaultFilter(); // First update content
+        applyDefaultFilter();
     }
 
     private void applyDefaultFilter() {
         requireView().post(() ->
                 ThemeSync.syncNotificationBarColor(requireActivity().getWindow(), requireContext())
         );
-        String filterText = "Today";
-        filter.setText(filterText);
-        ArrayList<Transaction> filteredList = TransactionsHandler.getFilteredTransactions(filterText);
+        if (currentFilterType == null || currentFilterType.isEmpty()) {
+            currentFilterType = "Today";
+        }
+        filter.setText(currentFilterType);
+        ArrayList<Transaction> filteredList = TransactionsHandler.getFilteredTransactions(currentFilterType);
         updateTransactionList(filteredList);
     }
 
@@ -82,8 +85,8 @@ public class TransactionsFragment extends Fragment {
                 return false;
             }
 
-            // Show selected filter in UI
             filter.setText(filterText);
+            currentFilterType = filterText;
 
             // Get filtered transactions
             ArrayList<Transaction> filteredList = TransactionsHandler.getFilteredTransactions(filterText);
@@ -318,7 +321,12 @@ public class TransactionsFragment extends Fragment {
     }
 
     public void refreshTransactions() {
-        applyDefaultFilter();
+        requireView().post(() ->
+                ThemeSync.syncNotificationBarColor(requireActivity().getWindow(), requireContext())
+        );
+        filter.setText(currentFilterType);
+        ArrayList<Transaction> filteredList = TransactionsHandler.getFilteredTransactions(currentFilterType);
+        updateTransactionList(filteredList);
     }
 
 }
