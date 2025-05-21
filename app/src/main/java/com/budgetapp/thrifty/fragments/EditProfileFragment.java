@@ -196,8 +196,6 @@ public class EditProfileFragment extends Fragment {
 
 
     private void updateProfile() {
-        Log.d(TAG, "updateProfile method called");
-
         String newUsername = usernameInput.getText().toString().trim();
         String newFullName = fullnameInput.getText().toString().trim();
 
@@ -209,7 +207,6 @@ public class EditProfileFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
-            Log.d(TAG, "Updating profile for user: " + userId);
 
             // Update Firebase Auth display name
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
@@ -218,8 +215,6 @@ public class EditProfileFragment extends Fragment {
 
             user.updateProfile(profileUpdates)
                     .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Firebase Auth profile updated successfully");
-
                         // Create profile data map
                         Map<String, Object> profileData = new HashMap<>();
                         profileData.put("username", newUsername);
@@ -228,48 +223,47 @@ public class EditProfileFragment extends Fragment {
                         profileData.put("email", user.getEmail());
                         profileData.put("role", "user");
 
-                        // Update Firestore - update only the profile/info document
-                        DocumentReference profileRef = mFirestore.collection("users")
-                                .document(userId)
-                                .collection("profile")
-                                .document("info");
+                        // Update both root user document and profile/info document
+                        DocumentReference userRef = mFirestore.collection("users").document(userId);
+                        DocumentReference profileRef = userRef.collection("profile").document("info");
 
-                        profileRef.set(profileData, SetOptions.merge())
-                                .addOnSuccessListener(aVoid1 -> {
-                                    Log.d(TAG, "Firestore profile/info updated successfully");
+                        // Create a batch write to update both documents atomically
+                        mFirestore.runBatch(batch -> {
+                            batch.set(userRef, profileData, SetOptions.merge());
+                            batch.set(profileRef, profileData, SetOptions.merge());
+                        }).addOnSuccessListener(aVoid1 -> {
+                            // Save to SharedPreferences
+                            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
+                                    requireActivity().MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putString("username", newUsername);
+                            editor.putString("fullname", newFullName);
+                            editor.putInt("avatarId", currentAvatarId);
+                            editor.apply();
 
-                                    // Save to SharedPreferences for immediate access
-                                    SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                                            requireActivity().MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = prefs.edit();
-                                    editor.putString("username", newUsername);
-                                    editor.putString("fullname", newFullName);
-                                    editor.putInt("avatarId", currentAvatarId);
-                                    editor.apply();
+                            Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
 
-                                    Toast.makeText(getContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                            // Set fragment result
+                            Bundle result = new Bundle();
+                            result.putString("username", newUsername);
+                            result.putString("fullname", newFullName);
+                            result.putInt("avatarId", currentAvatarId);
+                            getParentFragmentManager().setFragmentResult("profileUpdate", result);
 
-                                    // Set fragment result to notify ProfileFragment
-                                    Bundle result = new Bundle();
-                                    result.putString("username", newUsername);
-                                    result.putString("fullname", newFullName);
-                                    result.putInt("avatarId", currentAvatarId);
-                                    getParentFragmentManager().setFragmentResult("profileUpdate", result);
+                            // Refresh MainActivity
+                            if (getActivity() instanceof MainActivity) {
+                                ((MainActivity) getActivity()).refreshAllFragments();
+                                ((MainActivity) getActivity()).updateAvatarEverywhere(currentAvatarId);
+                            }
 
-                                    // Refresh MainActivity to update all fragments
-                                    if (getActivity() instanceof MainActivity) {
-                                        ((MainActivity) getActivity()).refreshAllFragments();
-                                        ((MainActivity) getActivity()).updateAvatarEverywhere(currentAvatarId);
-                                    }
+                            // Navigate back
+                            FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                            fragmentManager.popBackStack();
 
-                                    // Navigate back to ProfileFragment
-                                    FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-                                    fragmentManager.popBackStack();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Failed to update Firestore", e);
-                                    Toast.makeText(getContext(), "Failed to update profile data", Toast.LENGTH_SHORT).show();
-                                });
+                        }).addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to update Firestore", e);
+                            Toast.makeText(getContext(), "Failed to update profile data", Toast.LENGTH_SHORT).show();
+                        });
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Failed to update Firebase Auth profile", e);
