@@ -44,6 +44,11 @@ public class ThriftyMessagingService extends FirebaseMessagingService {
             String body = remoteMessage.getNotification().getBody();
             sendNotification(title, body, null);
         }
+
+        // Force check for recurring transactions
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     private void handleDataMessage(Map<String, String> data) {

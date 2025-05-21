@@ -8,6 +8,7 @@ import com.budgetapp.thrifty.utils.FirestoreManager;
 
 import java.util.Calendar;
 import java.util.ArrayList;
+import android.util.Log;
 
 public class TransactionsHandler {
 
@@ -82,15 +83,29 @@ public class TransactionsHandler {
 
     // Method to check recurring transactions and trigger notifications
     public static void checkRecurringTransactions(NotificationsFragment notificationsFragment) {
+        if (notificationsFragment == null) {
+            Log.e("TransactionsHandler", "NotificationsFragment is null, cannot add notifications");
+            return;
+        }
+
         Calendar today = Calendar.getInstance();
+        Log.d("TransactionsHandler", "Checking recurring transactions. Today: " + today.getTime());
+        Log.d("TransactionsHandler", "Total transactions to check: " + transactions.size());
 
         for (Transaction transaction : transactions) {
             if (!transaction.getRecurring().equals("None") && transaction.getNextDueDate() != null) {
                 Calendar nextDueDate = Calendar.getInstance();
                 nextDueDate.setTime(transaction.getNextDueDate());
 
+                Log.d("TransactionsHandler", "Checking transaction: " + transaction.getId() +
+                        ", Category: " + transaction.getCategory() +
+                        ", Recurring: " + transaction.getRecurring() +
+                        ", Next due date: " + nextDueDate.getTime());
+
                 // Generate notifications for all missed due dates
                 while (nextDueDate.before(today) || isSameDay(nextDueDate, today)) {
+                    Log.d("TransactionsHandler", "Creating notification for transaction: " + transaction.getId());
+
                     // Create notification message
                     String notificationMessage = createNotificationMessage(transaction);
 
@@ -108,10 +123,12 @@ public class TransactionsHandler {
 
                     // Add notification to the NotificationsFragment
                     notificationsFragment.addNotification(notification);
+                    Log.d("TransactionsHandler", "Added notification to fragment: " + notificationMessage);
 
                     // Update next due date
                     transaction.updateNextDueDate();
                     nextDueDate.setTime(transaction.getNextDueDate());
+                    Log.d("TransactionsHandler", "Updated next due date to: " + nextDueDate.getTime());
                 }
 
                 // Save the updated transaction to Firestore

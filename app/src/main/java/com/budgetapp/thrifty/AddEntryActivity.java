@@ -27,6 +27,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
 public class AddEntryActivity extends AppCompatActivity {
+    private static final String TAG = "AddEntryActivity";
     private TabLayout tabLayout;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -92,10 +93,14 @@ public class AddEntryActivity extends AppCompatActivity {
         // notification button
         ImageButton notificationsButton = findViewById(R.id.ic_notifications);
         notificationsButton.setOnClickListener(view -> {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("force_navigate_to", "notifications");
-            startActivity(intent);
-            finish();
+            try {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("force_navigate_to", "notifications");
+                startActivity(intent);
+                finish();
+            } catch (Exception e) {
+                Log.e(TAG, "Error navigating to notifications", e);
+            }
         });
 
         // Setup touch outside to dismiss keyboard
@@ -141,6 +146,7 @@ public class AddEntryActivity extends AppCompatActivity {
                     .whereEqualTo("read", false)
                     .addSnapshotListener((value, error) -> {
                         if (error != null) {
+                            Log.e(TAG, "Error loading notifications", error);
                             return;
                         }
 
@@ -232,7 +238,7 @@ public class AddEntryActivity extends AppCompatActivity {
                                                             "Hello, User!");
                                                 } else {
                                                     userGreet.setText("Hello, User!");
-                                                    Log.e("Firestore", "Error loading user", task.getException());
+                                                    Log.e(TAG, "Error loading user", task.getException());
                                                 }
                                             });
                                 }

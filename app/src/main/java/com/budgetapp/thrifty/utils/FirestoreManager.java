@@ -157,12 +157,57 @@ public class FirestoreManager {
         notificationData.put("iconID", notification.getIconID());
         notificationData.put("transactionId", transactionId);
 
+        Log.d(TAG, "Saving notification for transaction: " + transactionId +
+                ", Message: " + notification.getDescription());
+
         db.collection("users")
                 .document(currentUser.getUid())
                 .collection("notifications")
                 .document()
                 .set(notificationData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Notification saved successfully");
+
+                    // Send a push notification
+                    sendPushNotification(notification.getType(), notification.getDescription(), transactionId);
+                })
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
+    }
+
+    // Send a push notification via FCM
+    private static void sendPushNotification(String title, String body, String transactionId) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        // Get the user's FCM token
+        db.collection("users")
+                .document(currentUser.getUid())
+                .collection("tokens")
+                .document("fcm")
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists() && documentSnapshot.getString("fcmToken") != null) {
+                        String fcmToken = documentSnapshot.getString("fcmToken");
+
+                        // Create a message to send via FCM
+                        Map<String, Object> message = new HashMap<>();
+                        Map<String, Object> notification = new HashMap<>();
+                        Map<String, Object> data = new HashMap<>();
+
+                        notification.put("title", title);
+                        notification.put("body", body);
+
+                        data.put("transactionId", transactionId);
+
+                        message.put("notification", notification);
+                        message.put("data", data);
+                        message.put("token", fcmToken);
+
+                        // Send the message via a Cloud Function or your server
+                        // This is just a placeholder - you'll need to implement the actual sending
+                        Log.d(TAG, "Would send FCM message to token: " + fcmToken);
+                    }
+                });
     }
 
     // Load user transactions

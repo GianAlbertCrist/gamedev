@@ -9,6 +9,7 @@ import java.util.Locale;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 public class Transaction implements Parcelable {
     private String id;
@@ -138,8 +139,11 @@ public class Transaction implements Parcelable {
         // Calculate next due date based on recurring type
         switch (recurring) {
             case "Daily":
-                // Next day
-                calendar.add(Calendar.DAY_OF_YEAR, 1);
+                // For daily transactions, if it's already past 8 AM today, set to tomorrow
+                if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 8 &&
+                        isSameDay(calendar, today)) {
+                    calendar.add(Calendar.DAY_OF_YEAR, 1);
+                }
                 break;
             case "Weekly":
                 // Next week, same day of week
@@ -156,6 +160,7 @@ public class Transaction implements Parcelable {
         }
 
         this.nextDueDate = calendar.getTime();
+        Log.d("Transaction", "Calculated next due date: " + this.nextDueDate + " for recurring: " + recurring);
     }
 
     // Update the next due date after a notification has been sent
@@ -311,5 +316,11 @@ public class Transaction implements Parcelable {
 
     public void setAmount(float amount) {
         this.amount = amount;
+    }
+
+    private boolean isSameDay(Calendar cal1, Calendar cal2) {
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+                cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
     }
 }

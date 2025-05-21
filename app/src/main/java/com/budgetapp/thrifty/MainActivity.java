@@ -27,6 +27,8 @@ import com.budgetapp.thrifty.fragments.NotificationsFragment;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.utils.FirestoreManager;
+import com.budgetapp.thrifty.model.Notification;
+import com.budgetapp.thrifty.transaction.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -80,12 +82,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.bottomNav.setBackground(null);
-
-        NotificationsFragment notificationsFragment = (NotificationsFragment) getSupportFragmentManager()
-                .findFragmentByTag(NotificationsFragment.class.getSimpleName());
-        if (notificationsFragment != null) {
-            TransactionsHandler.checkRecurringTransactions(notificationsFragment);
-        }
     }
 
     private void requestNotificationPermission() {
@@ -153,6 +149,40 @@ public class MainActivity extends AppCompatActivity {
 
         // Update avatar in bottom navigation
         updateBottomNavAvatar();
+
+        // Check for recurring transactions and create notifications
+        checkRecurringTransactions();
+    }
+
+    private void checkRecurringTransactions() {
+        // Create a temporary NotificationsFragment if one doesn't exist
+        NotificationsFragment notificationsFragment = new NotificationsFragment();
+
+        // Check recurring transactions and generate notifications
+        TransactionsHandler.checkRecurringTransactions(notificationsFragment);
+
+        // If notifications were added, update the UI
+        if (!notificationsFragment.getNotificationList().isEmpty()) {
+            Log.d(TAG, "Found " + notificationsFragment.getNotificationList().size() + " notifications");
+
+            // Save notifications to Firestore
+            for (Notification notification : notificationsFragment.getNotificationList()) {
+                // Find the transaction ID for this notification
+                for (Transaction transaction : TransactionsHandler.transactions) {
+                    if (transaction.getRecurring().equals(notification.getRecurring()) &&
+                            notification.getDescription().contains(transaction.getDescription())) {
+                        FirestoreManager.saveNotification(notification, transaction.getId());
+                        break;
+                    }
+                }
+            }
+
+            // If we're currently on the notifications fragment, refresh it
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+            if (currentFragment instanceof NotificationsFragment) {
+                replaceFragment(new NotificationsFragment());
+            }
+        }
     }
 
     private void attachFirestoreListeners() {
