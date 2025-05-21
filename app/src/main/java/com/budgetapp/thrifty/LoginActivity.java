@@ -227,17 +227,62 @@ public class LoginActivity extends AppCompatActivity {
 
     private void saveUserDataToSharedPreferences(DocumentSnapshot documentSnapshot) {
         if (documentSnapshot != null && documentSnapshot.exists()) {
-            String username = documentSnapshot.getString("username");
-            String fullname = documentSnapshot.getString("fullname");
-            Long avatarIdLong = documentSnapshot.getLong("avatarId");
-            int avatarId = avatarIdLong != null ? avatarIdLong.intValue() : 0;
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null) {
+                // First check profile/info document
+                db.collection("users")
+                        .document(user.getUid())
+                        .collection("profile")
+                        .document("info")
+                        .get()
+                        .addOnSuccessListener(profileDoc -> {
+                            String username = profileDoc.getString("username");
+                            String fullname = profileDoc.getString("fullname");
+                            Long avatarIdLong = profileDoc.getLong("avatarId");
 
-            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
-            if (username != null) editor.putString("username", username);
-            if (fullname != null) editor.putString("fullname", fullname);
-            editor.putInt("avatarId", avatarId);
-            editor.apply();
+                            // If profile/info doesn't have the data, use root document data
+                            if (username == null) username = documentSnapshot.getString("username");
+                            if (fullname == null) fullname = documentSnapshot.getString("fullname");
+                            if (avatarIdLong == null) avatarIdLong = documentSnapshot.getLong("avatarId");
+
+                            // Save to SharedPreferences
+                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
+                            if (username != null) editor.putString("username", username);
+                            if (fullname != null) editor.putString("fullname", fullname);
+                            if (avatarIdLong != null) editor.putInt("avatarId", avatarIdLong.intValue());
+                            editor.apply();
+
+                            // Continue with MainActivity launch
+                            FirestoreManager.loadTransactions(transactions -> {
+                                TransactionsHandler.transactions.clear();
+                                TransactionsHandler.transactions.addAll(transactions);
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            });
+                        })
+                        .addOnFailureListener(e -> {
+                            // Fallback to using root document data only
+                            String username = documentSnapshot.getString("username");
+                            String fullname = documentSnapshot.getString("fullname");
+                            Long avatarIdLong = documentSnapshot.getLong("avatarId");
+
+                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
+                            if (username != null) editor.putString("username", username);
+                            if (fullname != null) editor.putString("fullname", fullname);
+                            if (avatarIdLong != null) editor.putInt("avatarId", avatarIdLong.intValue());
+                            editor.apply();
+
+                            // Continue with MainActivity launch
+                            FirestoreManager.loadTransactions(transactions -> {
+                                TransactionsHandler.transactions.clear();
+                                TransactionsHandler.transactions.addAll(transactions);
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            });
+                        });
+            }
         }
     }
 
