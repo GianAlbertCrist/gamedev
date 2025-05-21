@@ -145,39 +145,40 @@ public class FirestoreManager {
     }
 
     // Save a notification
-    public static void saveNotification(Notification notification, String transactionId) {
+    public static void saveNotification(Transaction transaction) {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
 
-        Map<String, Object> notificationData = new HashMap<>();
-        notificationData.put("title", notification.getType());
-        notificationData.put("message", notification.getDescription());
-        notificationData.put("timestamp", new Date());
-        notificationData.put("recurring", notification.getRecurring());
-        notificationData.put("iconID", notification.getIconID());
-        notificationData.put("transactionId", transactionId);
-
-        Log.d(TAG, "Saving notification for transaction: " + transactionId +
-                ", Message: " + notification.getDescription());
+        Map<String, Object> notificationMeta = new HashMap<>();
+        notificationMeta.put("transactionId", transaction.getId());
+        notificationMeta.put("lastNotified", new Date());
+        notificationMeta.put("nextDueDate", transaction.getNextDueDate());
+        notificationMeta.put("recurring", transaction.getRecurring());
 
         db.collection("users")
                 .document(currentUser.getUid())
                 .collection("notifications")
-                .document()
-                .set(notificationData)
+                .document(transaction.getId())
+                .set(notificationMeta)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Notification saved successfully");
-
-                    // Send a push notification
-                    sendPushNotification(notification.getType(), notification.getDescription(), transactionId);
+                    Log.d(TAG, "Notification metadata saved");
+                    sendPushNotification(transaction);
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving notification metadata", e));
     }
 
     // Send a push notification via FCM
-    private static void sendPushNotification(String title, String body, String transactionId) {
+    private static void sendPushNotification(Transaction transaction) {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
+
+        // Format notification title and body
+        String title = transaction.getType() + " Reminder";
+        String body = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
+                transaction.getRecurring(),
+                transaction.getType().toLowerCase(),
+                transaction.getRawAmount(),
+                transaction.getDescription());
 
         // Get the user's FCM token
         db.collection("users")
@@ -189,7 +190,7 @@ public class FirestoreManager {
                     if (documentSnapshot.exists() && documentSnapshot.getString("fcmToken") != null) {
                         String fcmToken = documentSnapshot.getString("fcmToken");
 
-                        // Create a message to send via FCM
+                        // Create FCM message
                         Map<String, Object> message = new HashMap<>();
                         Map<String, Object> notification = new HashMap<>();
                         Map<String, Object> data = new HashMap<>();
@@ -197,17 +198,22 @@ public class FirestoreManager {
                         notification.put("title", title);
                         notification.put("body", body);
 
-                        data.put("transactionId", transactionId);
+                        data.put("transactionId", transaction.getId());
+                        data.put("recurring", transaction.getRecurring());
+                        data.put("type", transaction.getType());
 
                         message.put("notification", notification);
                         message.put("data", data);
                         message.put("token", fcmToken);
 
-                        // Send the message via a Cloud Function or your server
-                        // This is just a placeholder - you'll need to implement the actual sending
-                        Log.d(TAG, "Would send FCM message to token: " + fcmToken);
+                        // Log the notification for debugging
+                        Log.d(TAG, "Sending FCM notification: " + title + " - " + body);
+                        Log.d(TAG, "To token: " + fcmToken);
                     }
-                });
+                })
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error fetching FCM token", e)
+                );
     }
 
     // Load user transactions

@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                 for (Transaction transaction : TransactionsHandler.transactions) {
                     if (transaction.getRecurring().equals(notification.getRecurring()) &&
                             notification.getDescription().contains(transaction.getDescription())) {
-                        FirestoreManager.saveNotification(notification, transaction.getId());
+                        FirestoreManager.saveNotification(transaction);
                         break;
                     }
                 }

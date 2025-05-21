@@ -226,7 +226,7 @@ public class AddIncomeFragment extends Fragment {
                         selectedRecurring,
                         iconRes
                 );
-                FirestoreManager.saveNotification(newNotification, transaction.getId());
+                FirestoreManager.saveNotification(transaction);
             }
 
             // Update reports

@@ -61,13 +61,13 @@ public class NotificationsFragment extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
+        // Get all transactions and generate notifications for recurring ones
         FirebaseFirestore.getInstance().collection("users")
                 .document(currentUser.getUid())
                 .collection("notifications")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    // Check if fragment is still attached to activity and view exists
                     if (!isAdded() || !isViewCreated) {
                         Log.d(TAG, "Fragment not attached or view destroyed, skipping UI update");
                         return;
@@ -77,39 +77,39 @@ public class NotificationsFragment extends Fragment {
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         try {
-                            String title = doc.getString("title");
-                            String message = doc.getString("message");
+                            String type = doc.getString("type");
+                            String description = doc.getString("description");
                             String recurring = doc.getString("recurring");
-                            Long iconIDLong = doc.getLong("iconID");
-                            int iconID = iconIDLong != null ? iconIDLong.intValue() : R.drawable.icnotif_transactions;
+                            Double amount = doc.getDouble("amount");
 
-                            // Create timestamp string from Firestore timestamp
-                            String timestamp = "Unknown time";
-                            if (doc.getDate("timestamp") != null) {
-                                timestamp = doc.getDate("timestamp").toString();
+                            if (recurring != null && amount != null) {
+                                String message = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
+                                        recurring,
+                                        type.toLowerCase(),
+                                        amount,
+                                        description);
+
+                                Notification notification = new Notification(
+                                        type + " Reminder",
+                                        message,
+                                        doc.getDate("nextDueDate") != null ?
+                                                doc.getDate("nextDueDate").toString() : "Unknown time",
+                                        recurring,
+                                        R.drawable.icnotif_transactions
+                                );
+
+                                notificationList.add(notification);
                             }
-
-                            Notification notification = new Notification(
-                                    title != null ? title : "Notification",
-                                    message != null ? message : "",
-                                    timestamp,
-                                    recurring != null ? recurring : "None",
-                                    iconID
-                            );
-
-                            notificationList.add(notification);
                         } catch (Exception e) {
-                            Log.e(TAG, "Error parsing notification", e);
+                            Log.e(TAG, "Error parsing transaction for notification", e);
                         }
                     }
 
-                    // Update UI based on whether we have notifications
                     updateNotificationUI();
-
-                    Log.d(TAG, "Loaded " + notificationList.size() + " notifications");
+                    Log.d(TAG, "Generated " + notificationList.size() + " notifications from transactions");
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading notifications", e);
+                    Log.e(TAG, "Error loading transactions for notifications", e);
                 });
     }
 
