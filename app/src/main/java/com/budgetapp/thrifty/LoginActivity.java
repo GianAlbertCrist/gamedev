@@ -31,6 +31,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.budgetapp.thrifty.utils.NetworkUtils;
+
+import java.util.Date;
 import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
@@ -243,14 +245,16 @@ public class LoginActivity extends AppCompatActivity {
                             // If profile/info doesn't have the data, use root document data
                             if (username == null) username = documentSnapshot.getString("username");
                             if (fullname == null) fullname = documentSnapshot.getString("fullname");
-                            if (avatarIdLong == null) avatarIdLong = documentSnapshot.getLong("avatarId");
+                            if (avatarIdLong == null)
+                                avatarIdLong = documentSnapshot.getLong("avatarId");
 
                             // Save to SharedPreferences
                             SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                             SharedPreferences.Editor editor = prefs.edit();
                             if (username != null) editor.putString("username", username);
                             if (fullname != null) editor.putString("fullname", fullname);
-                            if (avatarIdLong != null) editor.putInt("avatarId", avatarIdLong.intValue());
+                            if (avatarIdLong != null)
+                                editor.putInt("avatarId", avatarIdLong.intValue());
                             editor.apply();
 
                             // Continue with MainActivity launch
@@ -271,7 +275,8 @@ public class LoginActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = prefs.edit();
                             if (username != null) editor.putString("username", username);
                             if (fullname != null) editor.putString("fullname", fullname);
-                            if (avatarIdLong != null) editor.putInt("avatarId", avatarIdLong.intValue());
+                            if (avatarIdLong != null)
+                                editor.putInt("avatarId", avatarIdLong.intValue());
                             editor.apply();
 
                             // Continue with MainActivity launch
@@ -289,19 +294,30 @@ public class LoginActivity extends AppCompatActivity {
     private void saveUserDataToFirestore(FirebaseUser user) {
         if (user == null) return;
 
-        String displayName = user.getDisplayName();
-        if (displayName == null) {
-            displayName = "User|User";
-        }
-        String email = user.getEmail();
+        // Get the existing profile data first
+        db.collection("users")
+                .document(user.getUid())
+                .collection("profile")
+                .document("info")
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    // Only update if the document doesn't exist
+                    if (!documentSnapshot.exists()) {
+                        String displayName = user.getDisplayName();
+                        if (displayName == null) {
+                            displayName = "User|User";
+                        }
+                        String email = user.getEmail();
 
-        int avatarId = 0;
-
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        if (prefs.contains("avatarId")) {
-            avatarId = prefs.getInt("avatarId", 0);
-        }
-
-        FirestoreManager.saveUserProfile(displayName, email, avatarId);
+                        // Use a default avatar only for new users
+                        FirestoreManager.saveUserProfile(displayName, email, 0);
+                    } else {
+                        // If profile exists, don't overwrite avatar
+                        Log.d(TAG, "User profile exists, not overwriting avatar");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error checking user profile", e);
+                });
     }
 }

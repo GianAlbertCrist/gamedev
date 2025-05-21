@@ -731,11 +731,12 @@
         <Button
             android:id="@+id/update_profile_button"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_marginHorizontal="32dp"
             android:layout_marginTop="28dp"
             android:layout_marginBottom="32dp"
             android:backgroundTint="@color/primary_color"
+            android:padding="16dp"
             android:clickable="true"
             android:focusable="true"
             android:fontFamily="@font/poppins"
