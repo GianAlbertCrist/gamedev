@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -68,7 +69,6 @@ public class SplashActivity extends AppCompatActivity {
             loadingText.setVisibility(View.VISIBLE);
             loadingText.setText("Checking account...");
 
-            // ✅ Check root-level role first (preferred location)
             db.collection("users").document(currentUser.getUid())
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
@@ -80,7 +80,7 @@ public class SplashActivity extends AppCompatActivity {
                         finish();
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to check root role, falling back to profile/info", e);
+                        AppLogger.logError(this, TAG, "Failed to check root role, falling back to profile/info", e);
 
                         db.collection("users")
                                 .document(currentUser.getUid())
@@ -96,7 +96,7 @@ public class SplashActivity extends AppCompatActivity {
                                     finish();
                                 })
                                 .addOnFailureListener(error -> {
-                                    Log.e(TAG, "Failed to check fallback profile role", error);
+                                    AppLogger.logError(this, TAG, "Failed to check fallback profile role", error);
                                     startActivity(new Intent(this, MainActivity.class));
                                     finish();
                                 });

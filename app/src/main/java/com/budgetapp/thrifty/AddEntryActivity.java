@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.tabs.TabLayout;
@@ -99,7 +100,7 @@ public class AddEntryActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             } catch (Exception e) {
-                Log.e(TAG, "Error navigating to notifications", e);
+                AppLogger.logError(this, TAG,"Error starting NotificationsActivity", e);
             }
         });
 
@@ -146,7 +147,7 @@ public class AddEntryActivity extends AppCompatActivity {
                     .whereEqualTo("read", false)
                     .addSnapshotListener((value, error) -> {
                         if (error != null) {
-                            Log.e(TAG, "Error loading notifications", error);
+                            AppLogger.logError(this, TAG, "Error loading notifications", error);
                             return;
                         }
 

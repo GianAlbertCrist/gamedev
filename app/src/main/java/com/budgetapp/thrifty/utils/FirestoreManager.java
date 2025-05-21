@@ -42,7 +42,6 @@ public class FirestoreManager {
         userData.put("email", email);
         userData.put("avatarId", avatarId);
 
-        // ✅ Only set role: user if root role is not admin
         db.collection("users").document(uid).get().addOnSuccessListener(snapshot -> {
             String rootRole = snapshot.contains("role") ? snapshot.getString("role") : null;
             if (!"admin".equalsIgnoreCase(rootRole)) {

@@ -168,7 +168,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user == null) {
-                            Log.e("AdminActivity", "No authenticated user found. Redirecting to Login.");
+                            AppLogger.logError(this, TAG, "No authenticated user found. Redirecting to Login.", new Exception());
                             startActivity(new Intent(this, LoginActivity.class));
                             finish();
                             return;
@@ -198,7 +198,7 @@ public class LoginActivity extends AppCompatActivity {
 
                             if (role != null && role.equalsIgnoreCase("admin")) {
 
-                                Log.d(TAG, "Admin detected. Redirecting to AdminActivity...");
+                                AppLogger.log(this, TAG, "Admin detected. Redirecting to AdminActivity...");
                                 startActivity(new Intent(LoginActivity.this, AdminActivity.class));
                                 finish();
                             } else {
@@ -312,12 +312,11 @@ public class LoginActivity extends AppCompatActivity {
                         // Use a default avatar only for new users
                         FirestoreManager.saveUserProfile(displayName, email, 0);
                     } else {
-                        // If profile exists, don't overwrite avatar
-                        Log.d(TAG, "User profile exists, not overwriting avatar");
+                        AppLogger.log(this, TAG, "User profile exists, not overwriting avatar");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error checking user profile", e);
+                    AppLogger.logError(this, TAG, "Error checking user profile", e);
                 });
     }
 }

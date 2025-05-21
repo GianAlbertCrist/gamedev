@@ -24,6 +24,7 @@ import com.budgetapp.thrifty.fragments.ProfileFragment;
 import com.budgetapp.thrifty.fragments.ReportsFragment;
 import com.budgetapp.thrifty.fragments.TransactionsFragment;
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.utils.FirestoreManager;
@@ -100,9 +101,9 @@ public class MainActivity extends AppCompatActivity {
         FirebaseMessaging.getInstance().subscribeToTopic("transaction_reminders")
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "Subscribed to transaction_reminders topic");
+                        AppLogger.log(this, TAG, "Subscribed to transaction_reminders topic");
                     } else {
-                        Log.e(TAG, "Failed to subscribe to transaction_reminders topic", task.getException());
+                        AppLogger.logError(this, TAG, "Failed to subscribe to transaction_reminders topic", task.getException());
                     }
                 });
 
@@ -126,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "onStart called - attaching Firestore listeners");
+        AppLogger.log(this, TAG, "onStart called - attaching Firestore listeners");
         attachFirestoreListeners();
         loadUserData();
     }
@@ -134,14 +135,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG, "onStop called - detaching Firestore listeners");
+        AppLogger.log(this, TAG, "onStop called - detaching Firestore listeners");
         detachFirestoreListeners();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume called");
+        AppLogger.log(this, TAG, "onResume called");
         // Ensure data is loaded when app is brought to foreground
         if (!dataLoaded) {
             loadUserData();
@@ -163,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
 
         // If notifications were added, update the UI
         if (!notificationsFragment.getNotificationList().isEmpty()) {
-            Log.d(TAG, "Found " + notificationsFragment.getNotificationList().size() + " notifications");
+            AppLogger.log(this, TAG, "Found " + notificationsFragment.getNotificationList().size() + " notifications");
 
             // Save notifications to Firestore
             for (Notification notification : notificationsFragment.getNotificationList()) {
@@ -197,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                     .document("info")
                     .addSnapshotListener((document, error) -> {
                         if (error != null) {
-                            Log.e(TAG, "Error listening to profile changes", error);
+                            AppLogger.logError(this, TAG, "Error listening to profile changes", error);
                             return;
                         }
 
@@ -212,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                                 updateAvatarEverywhere(avatarId);
                             }
 
-                            Log.d(TAG, "Profile data updated: username = " + username);
+                            AppLogger.log(this, TAG, "Profile data updated: username = " + username);
                         }
                     });
         }
@@ -228,19 +229,19 @@ public class MainActivity extends AppCompatActivity {
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
-            Log.w(TAG, "No user logged in, redirecting to login");
+            AppLogger.log(this, TAG, "No user logged in, redirecting to login");
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
             finish();
             return;
         }
 
-        Log.d(TAG, "Loading user data for: " + user.getUid());
+        AppLogger.log(this, TAG, "Loading user data for: " + user.getUid());
 
         // Load transactions data
         FirestoreManager.loadTransactions(transactions -> {
             TransactionsHandler.transactions.clear();
             TransactionsHandler.transactions.addAll(transactions);
-            Log.d(TAG, "Loaded " + transactions.size() + " transactions");
+            AppLogger.log(this, TAG, "Loaded " + transactions.size() + " transactions");
 
             dataLoaded = true;
 
@@ -373,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
         if (currentFragment != null) {
             // Refresh the current fragment by replacing it with a new instance
             String className = currentFragment.getClass().getSimpleName();
-            Log.d(TAG, "Refreshing current fragment: " + className);
+            AppLogger.log(this, TAG, "Refreshing current fragment: " + className);
 
             if (className.equals(HomeFragment.class.getSimpleName())) {
                 replaceFragment(new HomeFragment());
@@ -420,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         prefs.edit().putInt("avatarId", avatarId).apply();
 
-        Log.d(TAG, "Updating avatar everywhere to: " + avatarId);
+        AppLogger.log(this, TAG, "Updating avatar everywhere to: " + avatarId);
 
         // Update bottom navigation avatar
         updateBottomNavAvatar();
@@ -473,9 +474,9 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == NOTIFICATION_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "Notification permission granted");
+                AppLogger.log(this, TAG, "Notification permission granted");
             } else {
-                Log.d(TAG, "Notification permission denied");
+                AppLogger.log(this, TAG, "Notification permission denied");
             }
         }
     }
