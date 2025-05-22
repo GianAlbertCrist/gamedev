@@ -138,27 +138,24 @@ public class Transaction implements Parcelable {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
-        // For the first calculation, use today or tomorrow as the start
-        Calendar today = Calendar.getInstance();
-        today.set(Calendar.HOUR_OF_DAY, 0);
-        today.set(Calendar.MINUTE, 0);
-        today.set(Calendar.SECOND, 0);
-        today.set(Calendar.MILLISECOND, 0);
+        // For newly created transactions, always set the next due date to tomorrow or later
+        // to prevent immediate duplication
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_YEAR, 1);
+        tomorrow.set(Calendar.HOUR_OF_DAY, 8);
+        tomorrow.set(Calendar.MINUTE, 0);
+        tomorrow.set(Calendar.SECOND, 0);
+        tomorrow.set(Calendar.MILLISECOND, 0);
 
-        // If the parsed date is in the past, start from today
-        if (calendar.before(today)) {
-            calendar = today;
-            calendar.set(Calendar.HOUR_OF_DAY, 8); // 8:00 AM
+        // If the calculated date would be today or earlier, start from tomorrow
+        if (calendar.before(tomorrow)) {
+            calendar = tomorrow;
         }
 
         // Calculate next due date based on recurring type
         switch (recurring) {
             case "Daily":
-                // For daily transactions, if it's already past 8 AM today, set to tomorrow
-                if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 8 &&
-                        isSameDay(calendar, today)) {
-                    calendar.add(Calendar.DAY_OF_YEAR, 1);
-                }
+                // For daily transactions, we've already set it to tomorrow above
                 break;
             case "Weekly":
                 // Next week, same day of week

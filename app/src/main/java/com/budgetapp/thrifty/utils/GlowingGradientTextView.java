@@ -18,7 +18,6 @@ public class GlowingGradientTextView extends AppCompatTextView {
     private float translateX = 0;
     private int viewWidth = 0;
 
-    // ✅ Add these missing fields:
     private int streak = 0;
     private float speedFactor = 20f;
 

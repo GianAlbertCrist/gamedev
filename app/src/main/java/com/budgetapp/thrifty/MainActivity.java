@@ -129,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         AppLogger.log(this, TAG, "onStart called - attaching Firestore listeners");
         attachFirestoreListeners();
-        loadUserData();
     }
 
     @Override
@@ -152,76 +151,6 @@ public class MainActivity extends AppCompatActivity {
         updateBottomNavAvatar();
     }
 
-    private void checkRecurringTransactions() {
-        // Create a temporary NotificationsFragment if one doesn't exist
-        NotificationsFragment notificationsFragment = new NotificationsFragment();
-
-        // Check recurring transactions and generate notifications
-        TransactionsHandler.checkRecurringTransactions(notificationsFragment);
-
-        // If notifications were added, update the UI
-        if (!notificationsFragment.getNotificationList().isEmpty()) {
-            AppLogger.log(this, TAG, "Found " + notificationsFragment.getNotificationList().size() + " notifications");
-
-            // Save notifications to Firestore
-            for (Notification notification : notificationsFragment.getNotificationList()) {
-                // Find the transaction ID for this notification
-                for (Transaction transaction : TransactionsHandler.transactions) {
-                    if (transaction.getRecurring().equals(notification.getRecurring()) &&
-                            notification.getDescription().contains(transaction.getDescription())) {
-                        FirestoreManager.saveNotification(transaction);
-                        break;
-                    }
-                }
-            }
-
-            // If we're currently on the notifications fragment, refresh it
-            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
-            if (currentFragment instanceof NotificationsFragment) {
-                replaceFragment(new NotificationsFragment());
-            }
-        }
-    }
-
-    private void attachFirestoreListeners() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            String userId = user.getUid();
-
-            // Listen for profile changes in the profile/info document
-            profileListener = db.collection("users")
-                    .document(userId)
-                    .collection("profile")
-                    .document("info")
-                    .addSnapshotListener((document, error) -> {
-                        if (error != null) {
-                            AppLogger.logError(this, TAG, "Error listening to profile changes", error);
-                            return;
-                        }
-
-                        if (document != null && document.exists()) {
-                            String username = document.getString("username");
-                            Long avatarIdLong = document.getLong("avatarId");
-
-                            updateGreetingInFragments(username);
-
-                            if (avatarIdLong != null) {
-                                int avatarId = avatarIdLong.intValue();
-                                updateAvatarEverywhere(avatarId);
-                            }
-
-                            AppLogger.log(this, TAG, "Profile data updated: username = " + username);
-                        }
-                    });
-        }
-    }
-
-    private void detachFirestoreListeners() {
-        if (profileListener != null) {
-            profileListener.remove();
-            profileListener = null;
-        }
-    }
 
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
@@ -242,26 +171,26 @@ public class MainActivity extends AppCompatActivity {
 
             dataLoaded = true;
 
-            // ✅ Now that data is loaded, trigger recurring check
-            NotificationsFragment notificationsFragment = new NotificationsFragment();
-            TransactionsHandler.checkRecurringTransactions(notificationsFragment);
+            // Get the intent that started this activity
+            Intent intent = getIntent();
+            boolean isFromAddEntry = intent.getBooleanExtra("from_add_entry", false);
 
-            // Save notifications if generated
-            if (!notificationsFragment.getNotificationList().isEmpty()) {
-                for (Notification notification : notificationsFragment.getNotificationList()) {
-                    for (Transaction transaction : TransactionsHandler.transactions) {
-                        if (transaction.getRecurring().equals(notification.getRecurring()) &&
-                                notification.getDescription().contains(transaction.getDescription())) {
-                            FirestoreManager.saveNotification(transaction);
-                            break;
-                        }
-                    }
-                }
+            // Only check recurring transactions if not coming from AddEntryActivity
+            if (!isFromAddEntry) {
+                // Create a temporary NotificationsFragment to handle notifications
+                NotificationsFragment notificationsFragment = new NotificationsFragment();
 
+                // Use TransactionsHandler to check recurring transactions
+                TransactionsHandler.checkRecurringTransactions(notificationsFragment);
+
+                // Refresh the notifications fragment if it's currently visible
                 Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
                 if (currentFragment instanceof NotificationsFragment) {
                     replaceFragment(new NotificationsFragment());
                 }
+            } else {
+                // Reset the flag after handling
+                intent.removeExtra("from_add_entry");
             }
 
             refreshAllFragments();
@@ -315,6 +244,46 @@ public class MainActivity extends AppCompatActivity {
                                 });
                     }
                 });
+    }
+
+    private void attachFirestoreListeners() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            String userId = user.getUid();
+
+            // Listen for profile changes in the profile/info document
+            profileListener = db.collection("users")
+                    .document(userId)
+                    .collection("profile")
+                    .document("info")
+                    .addSnapshotListener((document, error) -> {
+                        if (error != null) {
+                            AppLogger.logError(this, TAG, "Error listening to profile changes", error);
+                            return;
+                        }
+
+                        if (document != null && document.exists()) {
+                            String username = document.getString("username");
+                            Long avatarIdLong = document.getLong("avatarId");
+
+                            updateGreetingInFragments(username);
+
+                            if (avatarIdLong != null) {
+                                int avatarId = avatarIdLong.intValue();
+                                updateAvatarEverywhere(avatarId);
+                            }
+
+                            AppLogger.log(this, TAG, "Profile data updated: username = " + username);
+                        }
+                    });
+        }
+    }
+
+    private void detachFirestoreListeners() {
+        if (profileListener != null) {
+            profileListener.remove();
+            profileListener = null;
+        }
     }
 
     private void setupBottomNavigation() {
