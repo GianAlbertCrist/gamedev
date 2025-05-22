@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -83,7 +84,8 @@ public class NotificationsFragment extends Fragment {
                             Double amount = doc.getDouble("amount");
 
                             if (recurring != null && amount != null) {
-                                String message = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
+                                assert type != null;
+                                @SuppressLint("DefaultLocale") String message = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
                                         recurring,
                                         type.toLowerCase(),
                                         amount,
