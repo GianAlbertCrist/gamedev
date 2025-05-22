@@ -45,6 +45,7 @@ public class BarChartManager {
         barChart.getDescription().setEnabled(false);
         barChart.setMaxVisibleValueCount(7);
         barChart.setVisibleXRangeMaximum(7);
+        barChart.setExtraBottomOffset(12f);
         barChart.setHighlightPerTapEnabled(false);
         barChart.setHighlightPerDragEnabled(false);
         barChart.setPinchZoom(false);
@@ -89,8 +90,6 @@ public class BarChartManager {
 
         // Get current date info
         Calendar now = Calendar.getInstance();
-        int currentYear = now.get(Calendar.YEAR);
-        int currentMonth = now.get(Calendar.MONTH);
 
         // Debug current date
         Log.d(TAG, "Current date: " + now.getTime().toString());
