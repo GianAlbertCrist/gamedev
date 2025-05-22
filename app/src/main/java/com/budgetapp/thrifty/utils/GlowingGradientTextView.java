@@ -104,6 +104,11 @@ public class GlowingGradientTextView extends AppCompatTextView {
         if (viewWidth == 0) return;
 
         int gradientWidth = viewWidth * 3;
+
+        if (colors == null || colors.length < 2) {
+            return;
+        }
+
         gradient = new LinearGradient(0, 0, gradientWidth, 0, colors, null, Shader.TileMode.MIRROR);
         paint.setShader(gradient);
         paint.setAntiAlias(true);

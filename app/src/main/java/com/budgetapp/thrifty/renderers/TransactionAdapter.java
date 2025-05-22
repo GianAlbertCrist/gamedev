@@ -84,6 +84,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             holder.amount.setText("");
             holder.datetime.setText("");
             holder.description.setVisibility(View.GONE);
+            return; // prevent accessing transactions.get(-1)
         }
 
         int index = transactions.size() - 1 - position;
@@ -140,6 +141,10 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @Override
     public int getItemCount() {
         int size = transactions.size();
-        return size >= maxVisibleItems - 1 ? maxVisibleItems : size;
+        if (size >= maxVisibleItems - 1) {
+            return maxVisibleItems; // 7 items + 1 spacer
+        }
+        return size;
     }
+
 }

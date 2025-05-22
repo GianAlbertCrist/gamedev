@@ -192,7 +192,7 @@ public class HomeFragment extends Fragment {
             updateAvatarImage(profileIcon, avatarId);
         }
 
-//        handleStreak(requireContext());
+        handleStreak(requireContext());
     }
 
     @Override
@@ -241,29 +241,29 @@ public class HomeFragment extends Fragment {
         }
     }
 
-//    private void handleStreak(Context context) {
-//        SharedPreferences prefs = context.getSharedPreferences("streak_data", Context.MODE_PRIVATE);
-//        long lastLogin = prefs.getLong("last_login", 0);
-//        int currentStreak = prefs.getInt("streak", 0);
-//
-//        long today = System.currentTimeMillis();
-//        long oneDayMillis = 24 * 60 * 60 * 1000;
-//
-//        if (System.currentTimeMillis() - lastLogin >= oneDayMillis && System.currentTimeMillis() - lastLogin < 2 * oneDayMillis) {
-//            currentStreak++; // New day, +1 streak
-//        } else if (System.currentTimeMillis() - lastLogin >= 2 * oneDayMillis) {
-//            currentStreak = 1; // Missed a day, reset streak
-//        } else if (lastLogin == 0) {
-//            currentStreak = 1; // First time login
-//        }
-//
-//        prefs.edit()
-//                .putInt("streak", currentStreak)
-//                .putLong("last_login", today)
-//                .apply();
-//
-//        updateStreakDisplay(currentStreak);
-//    }
+    private void handleStreak(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("streak_data", Context.MODE_PRIVATE);
+        long lastLogin = prefs.getLong("last_login", 0);
+        int currentStreak = prefs.getInt("streak", 0);
+
+        long today = System.currentTimeMillis();
+        long oneDayMillis = 24 * 60 * 60 * 1000;
+
+        if (System.currentTimeMillis() - lastLogin >= oneDayMillis && System.currentTimeMillis() - lastLogin < 2 * oneDayMillis) {
+            currentStreak++; // New day, +1 streak
+        } else if (System.currentTimeMillis() - lastLogin >= 2 * oneDayMillis) {
+            currentStreak = 1; // Missed a day, reset streak
+        } else if (lastLogin == 0) {
+            currentStreak = 1; // First time login
+        }
+
+        prefs.edit()
+                .putInt("streak", currentStreak)
+                .putLong("last_login", today)
+                .apply();
+
+        updateStreakDisplay(currentStreak);
+    }
 
     // FOR TESTING
 //    private void handleStreak(Context context) {
@@ -278,15 +278,15 @@ public class HomeFragment extends Fragment {
 //        updateStreakDisplay(currentStreak);
 //    }
 
-//    @SuppressLint("SetTextI18n")
-//    private void updateStreakDisplay(int currentStreak) {
-//        if (getView() == null) return;
-//        GlowingGradientTextView streakTextView = getView().findViewById(R.id.streakTextView);
-//        if (streakTextView != null) {
-//            streakTextView.setText("Streak " + currentStreak);
-//            streakTextView.setStreak(currentStreak);
-//        }
-//    }
+    @SuppressLint("SetTextI18n")
+    private void updateStreakDisplay(int currentStreak) {
+        if (getView() == null) return;
+        GlowingGradientTextView streakTextView = getView().findViewById(R.id.streakTextView);
+        if (streakTextView != null) {
+            streakTextView.setText("Streak " + currentStreak);
+            streakTextView.setStreak(currentStreak);
+        }
+    }
 
     private void openNotificationsFragment() {
         NotificationsFragment notificationsFragment = new NotificationsFragment();
