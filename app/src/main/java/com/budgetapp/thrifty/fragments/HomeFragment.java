@@ -1,6 +1,7 @@
 package com.budgetapp.thrifty.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import com.budgetapp.thrifty.renderers.TransactionAdapter;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FormatUtils;
+import com.budgetapp.thrifty.utils.GlowingGradientTextView;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -183,13 +185,14 @@ public class HomeFragment extends Fragment {
         refreshUserGreeting();
         loadNotificationCount();
 
-        // Also refresh avatar
-        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                requireActivity().MODE_PRIVATE);
+        // Refresh avatar
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
         int avatarId = prefs.getInt("avatarId", 0);
         if (avatarId > 0) {
             updateAvatarImage(profileIcon, avatarId);
         }
+
+        handleStreak(requireContext());
     }
 
     @Override
@@ -235,6 +238,51 @@ public class HomeFragment extends Fragment {
 
             TransactionAdapter adapter = new TransactionAdapter(getContext(), reversedList);
             recyclerView.setAdapter(adapter);
+        }
+    }
+
+    private void handleStreak(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("streak_data", Context.MODE_PRIVATE);
+        long lastLogin = prefs.getLong("last_login", 0);
+        int currentStreak = prefs.getInt("streak", 0);
+
+        long today = System.currentTimeMillis();
+        long oneDayMillis = 24 * 60 * 60 * 1000;
+
+        if (System.currentTimeMillis() - lastLogin >= oneDayMillis && System.currentTimeMillis() - lastLogin < 2 * oneDayMillis) {
+            currentStreak++; // New day, +1 streak
+        } else if (System.currentTimeMillis() - lastLogin >= 2 * oneDayMillis) {
+            currentStreak = 1; // Missed a day, reset streak
+        } else if (lastLogin == 0) {
+            currentStreak = 1; // First time login
+        }
+
+        prefs.edit()
+                .putInt("streak", currentStreak)
+                .putLong("last_login", today)
+                .apply();
+
+        updateStreakDisplay(currentStreak);
+    }
+
+    // FOR TESTING
+//    private void handleStreak(Context context) {
+//        int currentStreak = 7; // 🚀 Force it for testing
+//
+//        SharedPreferences prefs = context.getSharedPreferences("streak_data", Context.MODE_PRIVATE);
+//        prefs.edit()
+//                .putInt("streak", currentStreak)
+//                .putLong("last_login", System.currentTimeMillis())
+//                .apply();
+//
+//        updateStreakDisplay(currentStreak);
+//    }
+
+    private void updateStreakDisplay(int currentStreak) {
+        GlowingGradientTextView streakTextView = getView().findViewById(R.id.streakTextView);
+        if (streakTextView != null) {
+            streakTextView.setText("Streak " + currentStreak);
+            streakTextView.setStreak(currentStreak); // updates color & speed
         }
     }
 

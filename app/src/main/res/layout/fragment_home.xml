@@ -51,28 +51,44 @@
         </androidx.cardview.widget.CardView>
 
         <HorizontalScrollView
+            android:id="@+id/horizontalScrollView2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
             android:fillViewport="true"
             android:paddingStart="10dp"
+            android:scrollbars="none"
             app:layout_constraintBottom_toBottomOf="@+id/profile_image_container"
-            app:layout_constraintStart_toEndOf="@+id/profile_image_container"
             app:layout_constraintEnd_toStartOf="@id/notification_container"
+            app:layout_constraintHorizontal_bias="0.1"
+            app:layout_constraintStart_toEndOf="@+id/profile_image_container"
             app:layout_constraintTop_toTopOf="@+id/profile_image_container"
-            app:layout_constraintHorizontal_bias="0.1">
+            app:layout_constraintVertical_bias="0.25">
 
             <TextView
                 android:id="@+id/user_greet"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:fontFamily="@font/poppins"
+                android:singleLine="true"
                 android:text="Hello, ?!"
                 android:textColor="@color/white"
-                android:textSize="18sp"
-                android:singleLine="true"
-                android:ellipsize="end"/>
+                android:textSize="18sp" />
         </HorizontalScrollView>
+
+        <com.budgetapp.thrifty.utils.GlowingGradientTextView
+            android:id="@+id/streakTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Streak 0"
+            android:textSize="18sp"
+            android:fontFamily="@font/poppins"
+            android:textStyle="bold"
+            android:paddingStart="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/background_view"
+            app:layout_constraintStart_toEndOf="@+id/profile_image_container"
+            app:layout_constraintTop_toBottomOf="@+id/horizontalScrollView2"
+            app:layout_constraintVertical_bias="0.0" />
 
         <FrameLayout
             android:id="@+id/notification_container"
