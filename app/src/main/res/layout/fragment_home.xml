@@ -8,6 +8,7 @@
     tools:context=".fragments.HomeFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -178,9 +179,6 @@
             </HorizontalScrollView>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Rest of the layout remains the same -->
-        <!-- ... -->
-
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/income_view"
             android:layout_width="0dp"
@@ -296,19 +294,49 @@
             </HorizontalScrollView>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <TextView
-            android:id="@+id/home_transactions_text"
-            android:layout_width="wrap_content"
+        <!-- Moved the notepad handle to be between expense view and transactions text -->
+        <LinearLayout
+            android:id="@+id/transactions_header_container"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:fontFamily="@font/poppins"
-            android:text="Recent Transactions"
-            android:textColor="@color/white"
-            android:textSize="15sp"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/income_view" />
+            app:layout_constraintTop_toBottomOf="@+id/income_view">
+
+            <TextView
+                android:id="@+id/home_transactions_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="20dp"
+                android:fontFamily="@font/poppins"
+                android:text="Recent Transactions"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
+            <!-- Notepad Handle -->
+            <FrameLayout
+                android:id="@+id/notepad_handle_container"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="20dp">
+
+                <View
+                    android:id="@+id/notepad_handle"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/notepad_handle" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_notepad"
+                    android:contentDescription="Notepad" />
+            </FrameLayout>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/empty_message"
@@ -324,7 +352,7 @@
             app:layout_constraintBottom_toTopOf="@+id/home_transactions"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/home_transactions_text" />
+            app:layout_constraintTop_toBottomOf="@+id/transactions_header_container" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/home_transactions"
@@ -340,9 +368,21 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/home_transactions_text"
+            app:layout_constraintTop_toBottomOf="@id/transactions_header_container"
             tools:listitem="@layout/item_transaction" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Notepad Panel (initially hidden) - Now outside the main constraint layout -->
+    <FrameLayout
+        android:id="@+id/notepad_panel_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="180dp"
+        android:layout_marginBottom="60dp"
+        android:visibility="gone">
+
+        <include layout="@layout/notepad_panel" />
+    </FrameLayout>
 
 </FrameLayout>

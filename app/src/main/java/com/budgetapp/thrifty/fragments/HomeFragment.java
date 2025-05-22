@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty.fragments;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -7,9 +8,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -22,6 +27,7 @@ import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FormatUtils;
 import com.budgetapp.thrifty.utils.GlowingGradientTextView;
+import com.budgetapp.thrifty.utils.NotepadManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -44,6 +50,11 @@ public class HomeFragment extends Fragment {
     private FirebaseFirestore db;
     private ListenerRegistration profileListener;
     private ListenerRegistration notificationsListener;
+    private FrameLayout notepadPanelContainer;
+    private View notepadHandle;
+    private ConstraintLayout mainContent;
+    private boolean isPanelOpen = false;
+    private NotepadManager notepadManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -61,6 +72,7 @@ public class HomeFragment extends Fragment {
         userGreet = rootView.findViewById(R.id.user_greet);
         profileIcon = rootView.findViewById(R.id.ic_profile);
         notificationBadge = rootView.findViewById(R.id.notification_badge);
+        mainContent = rootView.findViewById(R.id.main_content);
 
         ImageButton notificationButton = rootView.findViewById(R.id.ic_notifications);
         notificationButton.setOnClickListener(v -> openNotificationsFragment());
@@ -77,7 +89,48 @@ public class HomeFragment extends Fragment {
         // Load notification count
         loadNotificationCount();
 
+        setupNotepad();
         return rootView;
+    }
+
+    private void setupNotepad() {
+        // Initialize notepad components
+        notepadPanelContainer = rootView.findViewById(R.id.notepad_panel_container);
+        notepadHandle = rootView.findViewById(R.id.notepad_handle);
+
+        // Initialize NotepadManager
+        notepadManager = new NotepadManager(requireContext());
+
+        // Setup EditText with auto-save
+        EditText notepadContent = rootView.findViewById(R.id.notepad_content);
+        notepadManager.setupAutoSave(notepadContent);
+
+        // Setup touch listener for the handle
+        notepadHandle.setOnClickListener(v -> toggleNotepadPanel());
+
+        // Setup back button
+        ImageButton backButton = rootView.findViewById(R.id.notepad_back_button);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> closeNotepad());
+        }
+    }
+
+    private void toggleNotepadPanel() {
+        if (isPanelOpen) {
+            closeNotepad();
+        } else {
+            // Show and open the panel
+            notepadPanelContainer.setVisibility(View.VISIBLE);
+            mainContent.setAlpha(0.3f); // Dim the main content
+            isPanelOpen = true;
+        }
+    }
+
+    private void closeNotepad() {
+        // Close the panel
+        notepadPanelContainer.setVisibility(View.GONE);
+        mainContent.setAlpha(1.0f);
+        isPanelOpen = false;
     }
 
     private void loadNotificationCount() {
@@ -193,6 +246,11 @@ public class HomeFragment extends Fragment {
         }
 
         handleStreak(requireContext());
+
+        // Close notepad if it was open
+        if (isPanelOpen) {
+            closeNotepad();
+        }
     }
 
     @Override
