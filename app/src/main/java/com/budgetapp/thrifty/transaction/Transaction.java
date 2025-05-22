@@ -11,6 +11,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.budgetapp.thrifty.R;
+
 public class Transaction implements Parcelable {
     private String id;
     // Income or Expense
@@ -41,6 +43,19 @@ public class Transaction implements Parcelable {
     // Constructor with default recurring = "None"
     public Transaction(String type, String category, float amount, int iconID, String description) {
         this(type, category, amount, iconID, description, "None");
+    }
+
+    public Transaction(String type, String category, String description, float amount, String recurring, Date timestamp, int iconID) {
+        this.type = type;
+        this.category = category;
+        this.description = description;
+        this.amount = amount;
+        this.recurring = recurring;
+        this.parsedDate = timestamp;
+        this.iconID = iconID;
+        this.dateAndTime = getCurrentDateTime();
+        this.id = java.util.UUID.randomUUID().toString();
+        calculateNextDueDate();
     }
 
     // Full constructor with description and recurring

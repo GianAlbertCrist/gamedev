@@ -8,6 +8,8 @@ import com.budgetapp.thrifty.utils.FirestoreManager;
 
 import java.util.Calendar;
 import java.util.ArrayList;
+
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 public class TransactionsHandler {
@@ -102,36 +104,43 @@ public class TransactionsHandler {
                         ", Recurring: " + transaction.getRecurring() +
                         ", Next due date: " + nextDueDate.getTime());
 
-                // Generate notifications for all missed due dates
+                // While it's due today or earlier, repeat
                 while (nextDueDate.before(today) || isSameDay(nextDueDate, today)) {
-                    Log.d("TransactionsHandler", "Creating notification for transaction: " + transaction.getId());
+                    Log.d("TransactionsHandler", "Recurring due, cloning: " + transaction.getId());
 
-                    // Create notification message
-                    String notificationMessage = createNotificationMessage(transaction);
-
-                    // Get the corresponding notification icon
-                    int iconResId = getNotificationIcon(transaction.getRecurring());
-
-                    // Create the notification
-                    Notification notification = new Notification(
-                            "Expense Reminder",
-                            notificationMessage,
-                            getCurrentTime(),
+                    // Create a new transaction clone with current date
+                    Transaction clone = new Transaction(
+                            transaction.getType(),
+                            transaction.getCategory(),
+                            transaction.getDescription(),
+                            transaction.getRawAmount(),
                             transaction.getRecurring(),
-                            iconResId
+                            new java.util.Date(),
+                            transaction.getIconID()
                     );
 
-                    // Add notification to the NotificationsFragment
-                    notificationsFragment.addNotification(notification);
-                    Log.d("TransactionsHandler", "Added notification to fragment: " + notificationMessage);
+                    // Save the cloned transaction
+                    FirestoreManager.saveTransaction(clone);
 
-                    // Update next due date
+                    // Create and add a notification
+                    String message = createNotificationMessage(transaction);
+                    Notification notification = new Notification(
+                            "Recurring Reminder",
+                            message,
+                            getCurrentTime(),
+                            transaction.getRecurring(),
+                            getNotificationIcon(transaction.getRecurring())
+                    );
+                    notificationsFragment.addNotification(notification);
+
+                    // Update original transaction's next due date
                     transaction.updateNextDueDate();
                     nextDueDate.setTime(transaction.getNextDueDate());
-                    Log.d("TransactionsHandler", "Updated next due date to: " + nextDueDate.getTime());
+
+                    Log.d("TransactionsHandler", "Next due date updated to: " + nextDueDate.getTime());
                 }
 
-                // Save the updated transaction to Firestore
+                // Save updated nextDueDate in the original transaction
                 FirestoreManager.updateTransaction(transaction);
             }
         }
@@ -143,6 +152,7 @@ public class TransactionsHandler {
                 date1.get(Calendar.DAY_OF_YEAR) == date2.get(Calendar.DAY_OF_YEAR);
     }
 
+    @SuppressLint("DefaultLocale")
     private static String createNotificationMessage(Transaction transaction) {
         // Check if the transaction type is Income or Expense
         if ("Income".equalsIgnoreCase(transaction.getType())) {

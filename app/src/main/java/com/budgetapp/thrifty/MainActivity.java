@@ -150,9 +150,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Update avatar in bottom navigation
         updateBottomNavAvatar();
-
-        // Check for recurring transactions and create notifications
-        checkRecurringTransactions();
     }
 
     private void checkRecurringTransactions() {
@@ -245,7 +242,28 @@ public class MainActivity extends AppCompatActivity {
 
             dataLoaded = true;
 
-            // Refresh fragments with new data
+            // ✅ Now that data is loaded, trigger recurring check
+            NotificationsFragment notificationsFragment = new NotificationsFragment();
+            TransactionsHandler.checkRecurringTransactions(notificationsFragment);
+
+            // Save notifications if generated
+            if (!notificationsFragment.getNotificationList().isEmpty()) {
+                for (Notification notification : notificationsFragment.getNotificationList()) {
+                    for (Transaction transaction : TransactionsHandler.transactions) {
+                        if (transaction.getRecurring().equals(notification.getRecurring()) &&
+                                notification.getDescription().contains(transaction.getDescription())) {
+                            FirestoreManager.saveNotification(transaction);
+                            break;
+                        }
+                    }
+                }
+
+                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                if (currentFragment instanceof NotificationsFragment) {
+                    replaceFragment(new NotificationsFragment());
+                }
+            }
+
             refreshAllFragments();
         });
 
