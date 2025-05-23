@@ -247,7 +247,6 @@ public class HomeFragment extends Fragment {
 
         handleStreak(requireContext());
 
-        // Close notepad if it was open
         if (isPanelOpen) {
             closeNotepad();
         }

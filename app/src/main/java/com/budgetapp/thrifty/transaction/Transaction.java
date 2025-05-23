@@ -84,7 +84,7 @@ public class Transaction implements Parcelable {
         recurring = in.readString();
         description = in.readString();
         long time = in.readLong();
-        parsedDate = time > 0 ? new Date(time) : new Date();  // fallback to now
+        parsedDate = time > 0 ? new Date(time) : new Date();
         long nextDueTime = in.readLong();
         nextDueDate = nextDueTime > 0 ? new Date(nextDueTime) : null;
     }

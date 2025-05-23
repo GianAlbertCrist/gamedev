@@ -163,7 +163,11 @@ public class MainActivity extends AppCompatActivity {
 
         AppLogger.log(this, TAG, "Loading user data for: " + user.getUid());
 
-        // Load transactions data
+        loadTransactionsAndHandleRecurring();
+        loadUserProfileData(user.getUid());
+    }
+
+    private void loadTransactionsAndHandleRecurring() {
         FirestoreManager.loadTransactions(transactions -> {
             TransactionsHandler.transactions.clear();
             TransactionsHandler.transactions.addAll(transactions);
@@ -171,79 +175,68 @@ public class MainActivity extends AppCompatActivity {
 
             dataLoaded = true;
 
-            // Get the intent that started this activity
             Intent intent = getIntent();
             boolean isFromAddEntry = intent.getBooleanExtra("from_add_entry", false);
 
-            // Only check recurring transactions if not coming from AddEntryActivity
             if (!isFromAddEntry) {
-                // Create a temporary NotificationsFragment to handle notifications
                 NotificationsFragment notificationsFragment = new NotificationsFragment();
-
-                // Use TransactionsHandler to check recurring transactions
                 TransactionsHandler.checkRecurringTransactions(notificationsFragment);
 
-                // Refresh the notifications fragment if it's currently visible
-                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
-                if (currentFragment instanceof NotificationsFragment) {
-                    replaceFragment(new NotificationsFragment());
-                }
+                // RELOAD transactions after handling recurring
+                FirestoreManager.loadTransactions(updatedTransactions -> {
+                    TransactionsHandler.transactions.clear();
+                    TransactionsHandler.transactions.addAll(updatedTransactions);
+
+                    Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                    if (currentFragment instanceof NotificationsFragment) {
+                        replaceFragment(new NotificationsFragment());
+                    }
+
+                    refreshAllFragments();
+                });
             } else {
-                // Reset the flag after handling
                 intent.removeExtra("from_add_entry");
+                refreshAllFragments();
             }
-
-            refreshAllFragments();
         });
+    }
 
-        // Load user profile data
+    private void loadUserProfileData(String userId) {
         db.collection("users")
-                .document(user.getUid())
+                .document(userId)
                 .collection("profile")
                 .document("info")
                 .get()
                 .addOnSuccessListener(document -> {
                     if (document.exists()) {
-                        String username = document.getString("username");
-                        Long avatarIdLong = document.getLong("avatarId");
-
-                        if (username != null) {
-                            updateGreetingInFragments(username);
-
-                            // Save to SharedPreferences
-                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                            prefs.edit().putString("username", username).apply();
-                        }
-
-                        if (avatarIdLong != null) {
-                            int avatarId = avatarIdLong.intValue();
-                            updateAvatarEverywhere(avatarId);
-
-                            // Save to SharedPreferences
-                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                            prefs.edit().putInt("avatarId", avatarId).apply();
-                        }
+                        handleProfileDocument(document);
                     } else {
                         // If profile/info doesn't exist, check the root document
-                        db.collection("users").document(user.getUid())
+                        db.collection("users").document(userId)
                                 .get()
-                                .addOnSuccessListener(rootDoc -> {
-                                    if (rootDoc.exists()) {
-                                        String username = rootDoc.getString("username");
-                                        Long avatarIdLong = rootDoc.getLong("avatarId");
-
-                                        if (username != null) {
-                                            updateGreetingInFragments(username);
-                                        }
-
-                                        if (avatarIdLong != null) {
-                                            int avatarId = avatarIdLong.intValue();
-                                            updateAvatarEverywhere(avatarId);
-                                        }
-                                    }
-                                });
+                                .addOnSuccessListener(this::handleProfileDocument);
                     }
                 });
+    }
+
+    private void handleProfileDocument(com.google.firebase.firestore.DocumentSnapshot document) {
+        String username = document.getString("username");
+        Long avatarIdLong = document.getLong("avatarId");
+
+        if (username != null) {
+            updateGreetingInFragments(username);
+
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            prefs.edit().putString("username", username).apply();
+        }
+
+        if (avatarIdLong != null) {
+            int avatarId = avatarIdLong.intValue();
+            updateAvatarEverywhere(avatarId);
+
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            prefs.edit().putInt("avatarId", avatarId).apply();
+        }
     }
 
     private void attachFirestoreListeners() {

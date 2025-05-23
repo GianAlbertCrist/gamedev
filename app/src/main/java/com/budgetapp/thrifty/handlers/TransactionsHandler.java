@@ -114,7 +114,7 @@ public class TransactionsHandler {
                             transaction.getCategory(),
                             transaction.getDescription(),
                             transaction.getRawAmount(),
-                            transaction.getRecurring(),
+                            "None",
                             new java.util.Date(),
                             transaction.getIconID()
                     );
