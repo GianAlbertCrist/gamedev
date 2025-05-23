@@ -4,6 +4,7 @@ import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 
 import java.util.Calendar;
@@ -121,6 +122,7 @@ public class TransactionsHandler {
 
                     // Save the cloned transaction
                     FirestoreManager.saveTransaction(clone);
+                    FirestoreManager.saveNotification(clone);
 
                     // Create and add a notification
                     String message = createNotificationMessage(transaction);

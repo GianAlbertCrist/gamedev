@@ -44,6 +44,10 @@ public class NotificationsFragment extends Fragment {
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        NotificationsFragment.setNotificationListener(notification -> {
+            requireActivity().runOnUiThread(() -> addNotification(notification));
+        });
+
         isViewCreated = true;
 
         // Load notifications from Firestore
@@ -62,7 +66,6 @@ public class NotificationsFragment extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
-        // Get all transactions and generate notifications for recurring ones
         FirebaseFirestore.getInstance().collection("users")
                 .document(currentUser.getUid())
                 .collection("notifications")
@@ -77,33 +80,9 @@ public class NotificationsFragment extends Fragment {
                     notificationList.clear();
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        try {
-                            String type = doc.getString("type");
-                            String description = doc.getString("description");
-                            String recurring = doc.getString("recurring");
-                            Double amount = doc.getDouble("amount");
-
-                            if (recurring != null && amount != null) {
-                                assert type != null;
-                                @SuppressLint("DefaultLocale") String message = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
-                                        recurring,
-                                        type.toLowerCase(),
-                                        amount,
-                                        description);
-
-                                Notification notification = new Notification(
-                                        type + " Reminder",
-                                        message,
-                                        doc.getDate("nextDueDate") != null ?
-                                                doc.getDate("nextDueDate").toString() : "Unknown time",
-                                        recurring,
-                                        R.drawable.icnotif_transactions
-                                );
-
-                                notificationList.add(notification);
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error parsing transaction for notification", e);
+                        Notification notification = parseNotificationFromDocument(doc);
+                        if (notification != null) {
+                            notificationList.add(notification);
                         }
                     }
 
@@ -113,6 +92,35 @@ public class NotificationsFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading transactions for notifications", e);
                 });
+    }
+
+    private Notification parseNotificationFromDocument(DocumentSnapshot doc) {
+        try {
+            String type = doc.getString("type");
+            String description = doc.getString("description");
+            String recurring = doc.getString("recurring");
+            Double amount = doc.getDouble("amount");
+
+            if (recurring != null && amount != null && type != null) {
+                @SuppressLint("DefaultLocale") String message = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
+                        recurring,
+                        type.toLowerCase(),
+                        amount,
+                        description);
+
+                return new Notification(
+                        type + " Reminder",
+                        message,
+                        doc.getDate("nextDueDate") != null ?
+                                doc.getDate("nextDueDate").toString() : "Unknown time",
+                        recurring,
+                        R.drawable.icnotif_transactions
+                );
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing transaction for notification", e);
+        }
+        return null;
     }
 
     private void updateNotificationUI() {
@@ -141,6 +149,23 @@ public class NotificationsFragment extends Fragment {
     public void addNotification(Notification notification) {
         notificationList.add(notification);
         updateNotificationUI();
+    }
+
+    // In NotificationsFragment.java
+    public interface NotificationListener {
+        void onNewNotification(Notification notification);
+    }
+
+    private static NotificationListener notificationListener;
+
+    public static void setNotificationListener(NotificationListener listener) {
+        notificationListener = listener;
+    }
+
+    public static void notifyNewNotification(Notification notification) {
+        if (notificationListener != null) {
+            notificationListener.onNewNotification(notification);
+        }
     }
 
     public ArrayList<Notification> getNotificationList() {

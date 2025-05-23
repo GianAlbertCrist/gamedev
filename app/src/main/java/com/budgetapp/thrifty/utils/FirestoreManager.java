@@ -3,6 +3,9 @@ package com.budgetapp.thrifty.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+
+import com.budgetapp.thrifty.R;
+import com.budgetapp.thrifty.fragments.NotificationsFragment;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.transaction.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
@@ -15,10 +18,13 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class FirestoreManager {
@@ -148,22 +154,43 @@ public class FirestoreManager {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
 
-        Map<String, Object> notificationMeta = new HashMap<>();
-        notificationMeta.put("transactionId", transaction.getId());
-        notificationMeta.put("lastNotified", new Date());
-        notificationMeta.put("nextDueDate", transaction.getNextDueDate());
-        notificationMeta.put("recurring", transaction.getRecurring());
+        // Build notification data for Firestore
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("transactionId", transaction.getId());
+        notificationData.put("lastNotified", new Date());
+        notificationData.put("nextDueDate", transaction.getNextDueDate());
+        notificationData.put("recurring", transaction.getRecurring());
+
+        String type = transaction.getType() + " Reminder";
+        String description = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
+                transaction.getRecurring(),
+                transaction.getType().toLowerCase(),
+                transaction.getRawAmount(),
+                transaction.getDescription());
+        String time = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault()).format(new Date());
+        int iconID = R.drawable.icnotif_transactions;
+
+        notificationData.put("type", type);
+        notificationData.put("description", description);
+        notificationData.put("time", time);
+        notificationData.put("iconID", iconID);
+
+        Notification notification = new Notification(type, description, time, transaction.getRecurring(), iconID);
+        NotificationsFragment.notifyNewNotification(notification);
+
+        // Use a unique document ID (e.g., transactionId + timestamp)
+        String docId = transaction.getId() + "_" + System.currentTimeMillis();
 
         db.collection("users")
                 .document(currentUser.getUid())
                 .collection("notifications")
-                .document(transaction.getId())
-                .set(notificationMeta)
+                .document(docId)
+                .set(notificationData)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Notification metadata saved");
+                    Log.d(TAG, "Notification saved");
                     sendPushNotification(transaction);
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error saving notification metadata", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
     }
 
     // Send a push notification via FCM
