@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
             navigateToProfileFragment();
         } else if (navigateTo != null && navigateTo.equals("transactions") && transactionId != null) {
             navigateToTransactionDetails(transactionId);
-        } else {
+        } else if (savedInstanceState == null) {
             replaceFragment(new HomeFragment());
         }
 
@@ -188,15 +188,24 @@ public class MainActivity extends AppCompatActivity {
                     TransactionsHandler.transactions.addAll(updatedTransactions);
 
                     Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+
                     if (currentFragment instanceof NotificationsFragment) {
                         replaceFragment(new NotificationsFragment());
+                    } else if (currentFragment instanceof HomeFragment) {
+                        ((HomeFragment) currentFragment).refreshTransactionList();
                     }
 
-                    refreshAllFragments();
+                    refreshAllFragments(); // Optional: keep or remove based on design
                 });
             } else {
                 intent.removeExtra("from_add_entry");
-                refreshAllFragments();
+
+                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                if (currentFragment instanceof HomeFragment) {
+                    ((HomeFragment) currentFragment).refreshTransactionList();
+                }
+
+                refreshAllFragments(); // Optional
             }
         });
     }
@@ -316,11 +325,19 @@ public class MainActivity extends AppCompatActivity {
     // Replace current fragment with the new fragment
     public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment currentFragment = fragmentManager.findFragmentById(R.id.frame_layout);
+
+        // Avoid replacing with the same fragment
+        if (currentFragment != null && currentFragment.getClass().equals(fragment.getClass())) {
+            return;
+        }
+
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         String tag = fragment.getClass().getSimpleName();
         fragmentTransaction.replace(R.id.frame_layout, fragment, tag);
         fragmentTransaction.commitNow();
     }
+
 
     public void appBttmBarColorAjuster() {
         boolean isDarkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;

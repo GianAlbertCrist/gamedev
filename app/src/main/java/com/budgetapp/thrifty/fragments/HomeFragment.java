@@ -55,10 +55,13 @@ public class HomeFragment extends Fragment {
     private ConstraintLayout mainContent;
     private boolean isPanelOpen = false;
     private NotepadManager notepadManager;
+    private View loadingSpinner;
 
+    @SuppressLint("CutPasteId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_home, container, false);
+        loadingSpinner = rootView.findViewById(R.id.loading_spinner);
 
         ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
@@ -78,7 +81,13 @@ public class HomeFragment extends Fragment {
         notificationButton.setOnClickListener(v -> openNotificationsFragment());
 
         ImageButton profileButton = rootView.findViewById(R.id.ic_profile);
-        profileButton.setOnClickListener(v -> openProfileFragment());
+
+        profileButton.setOnClickListener(v -> {
+            Fragment currentFragment = requireActivity().getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+            if (!(currentFragment instanceof ProfileFragment)) {
+                openProfileFragment();
+            }
+        });
 
         // Load user profile data
         loadUserProfile();
@@ -185,16 +194,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadUserProfile() {
-        // Load username
+        // Load username greeting
         refreshUserGreeting();
 
-        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                requireActivity().MODE_PRIVATE);
-
-        int avatarId = prefs.getInt("avatarId", 0);
-
-        // Show default or cached avatar while loading Firestore
-        updateAvatarImage(profileIcon, avatarId);  // This shows what we have for now
+        // Load avatar from cache and display
+        refreshAvatarFromPrefs();
 
         // Try to fetch the latest avatarId from Firestore
         FirebaseUser user = mAuth.getCurrentUser();
@@ -204,51 +208,55 @@ public class HomeFragment extends Fragment {
                     .get()
                     .addOnSuccessListener(document -> {
                         if (document.exists()) {
-                            Long avatarIdLong = document.getLong("avatarId");
-                            if (avatarIdLong != null) {
-                                int newAvatarId = avatarIdLong.intValue();
-                                updateAvatarImage(profileIcon, newAvatarId);
-                                prefs.edit().putInt("avatarId", newAvatarId).apply(); // Update cached copy
-                            }
+                            updateAvatarFromDocument(document);
                         } else {
-                            // Fallback: check the root document
+                            // Fallback to root user document
                             db.collection("users").document(user.getUid())
                                     .get()
-                                    .addOnSuccessListener(rootDoc -> {
-                                        if (rootDoc.exists()) {
-                                            Long avatarIdLong = rootDoc.getLong("avatarId");
-                                            if (avatarIdLong != null) {
-                                                int newAvatarId = avatarIdLong.intValue();
-                                                updateAvatarImage(profileIcon, newAvatarId);
-                                                prefs.edit().putInt("avatarId", newAvatarId).apply(); // Update cache
-                                            }
-                                        }
-                                    });
+                                    .addOnSuccessListener(this::updateAvatarFromDocument);
                         }
                     });
         }
     }
 
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadTransactions();
-        updateBalances();
-        refreshUserGreeting();
-        loadNotificationCount();
-
-        // Refresh avatar
+    private void refreshAvatarFromPrefs() {
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
         int avatarId = prefs.getInt("avatarId", 0);
         if (avatarId > 0) {
             updateAvatarImage(profileIcon, avatarId);
         }
+    }
 
+    private void updateAvatarFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
+        if (document.exists()) {
+            Long avatarIdLong = document.getLong("avatarId");
+            if (avatarIdLong != null) {
+                int avatarId = avatarIdLong.intValue();
+                updateAvatarImage(profileIcon, avatarId);
+
+                SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                prefs.edit().putInt("avatarId", avatarId).apply();
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshUserGreeting();
+        refreshAvatarFromPrefs();
+        loadNotificationCount();
+        updateBalances();
+
+        // Refresh avatar
         handleStreak(requireContext());
 
         if (isPanelOpen) {
             closeNotepad();
+        }
+
+        if (!TransactionsHandler.transactions.isEmpty()) {
+            loadTransactions();
         }
     }
 
@@ -281,20 +289,32 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadTransactions() {
-        if (TransactionsHandler.transactions.isEmpty()) {
-            emptyMessage.setVisibility(View.VISIBLE);
-            recyclerView.setVisibility(View.GONE);
-        } else {
-            emptyMessage.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.VISIBLE);
+        showLoading(true);
 
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.postDelayed(() -> {
+            if (TransactionsHandler.transactions.isEmpty()) {
+                emptyMessage.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+            } else {
+                emptyMessage.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
 
-            List<Transaction> reversedList = new ArrayList<>(TransactionsHandler.transactions);
-            Collections.reverse(reversedList);
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-            TransactionAdapter adapter = new TransactionAdapter(getContext(), reversedList);
-            recyclerView.setAdapter(adapter);
+                List<Transaction> reversedList = new ArrayList<>(TransactionsHandler.transactions);
+                Collections.reverse(reversedList);
+
+                TransactionAdapter adapter = new TransactionAdapter(getContext(), reversedList);
+                recyclerView.setAdapter(adapter);
+            }
+
+            showLoading(false);
+        }, 100); // short delay to simulate async and ensure UI updates
+    }
+
+    private void showLoading(boolean show) {
+        if (loadingSpinner != null) {
+            loadingSpinner.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
@@ -365,6 +385,14 @@ public class HomeFragment extends Fragment {
         fragmentTransaction.replace(R.id.frame_layout, profileFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
+    }
+
+    public void refreshTransactionList() {
+        if (getView() != null) {
+            showLoading(true);
+            loadTransactions();
+            updateBalances();
+        }
     }
 
     private void updateAvatarImage(ImageView imageView, int avatarId) {
