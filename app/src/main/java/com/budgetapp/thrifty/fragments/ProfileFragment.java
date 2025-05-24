@@ -1,6 +1,8 @@
 package com.budgetapp.thrifty.fragments;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,11 +25,16 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileFragment extends Fragment {
 
+    private SharedPreferences prefs;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private TextView usernameText, fullnameText, emailDisplay;
     private ImageView userAvatar;
     private LinearLayout editProfileButton, securityButton, logoutButton, deleteAccountButton;
+
+    private Uri rootCustomUri;
+    private static final String PREFS_NAME = "UserPrefs";
+    private static final String KEY_CUSTOM_AVATAR_URI = "custom_avatar_uri";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -58,18 +66,31 @@ public class ProfileFragment extends Fragment {
 
         // Set up fragment result listener for profile updates
         getParentFragmentManager().setFragmentResultListener("profileUpdate", this, (requestKey, result) -> {
+            int avatarId = result.getInt("avatarId", 0);
+            String customAvatarUriStr = result.getString("custom_avatar_uri");
             String username = result.getString("username");
             String fullname = result.getString("fullname");
-            int avatarId = result.getInt("avatarId", 0);
 
-            if (username != null) {
+            if (userAvatar != null) {
+                if (customAvatarUriStr != null) {
+                    Uri customUri = Uri.parse(customAvatarUriStr);
+                    Glide.with(this)
+                            .load(customUri)
+                            .circleCrop()
+                            .placeholder(R.drawable.sample_profile)
+                            .error(R.drawable.sample_profile)
+                            .into(userAvatar);
+                } else if (avatarId > 0) {
+                    updateAvatarImage(userAvatar, avatarId);
+                }
+            }
+
+            if (usernameText != null && username != null) {
                 usernameText.setText(username);
             }
-            if (fullname != null) {
+
+            if (fullnameText != null && fullname != null) {
                 fullnameText.setText(fullname.toUpperCase());
-            }
-            if (avatarId > 0) {
-                updateAvatarImage(userAvatar, avatarId);
             }
         });
 
@@ -79,24 +100,10 @@ public class ProfileFragment extends Fragment {
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            // First try to get from SharedPreferences for faster loading
-            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
-                    requireActivity().MODE_PRIVATE);
-            String username = prefs.getString("username", null);
-            String fullname = prefs.getString("fullname", null);
-            int avatarId = prefs.getInt("avatarId", 0);
             String userEmail = user.getEmail();
             emailDisplay.setText(userEmail);
 
-            if (username != null) {
-                usernameText.setText(username);
-            }
-            if (fullname != null) {
-                fullnameText.setText(fullname.toUpperCase());
-            }
-            if (avatarId > 0) {
-                updateAvatarImage(userAvatar, avatarId);
-            }
+            refreshAvatarFromPrefs();
 
             DocumentReference userRef = db.collection("users").document(user.getUid());
             userRef.collection("profile").document("info")
@@ -106,63 +113,92 @@ public class ProfileFragment extends Fragment {
                             String firestoreUsername = document.getString("username");
                             String firestoreFullname = document.getString("fullname");
                             Long avatarIdLong = document.getLong("avatarId");
+                            String firestoreCustomUri = document.getString("customAvatarUri"); // Fixed field name
+
+                            SharedPreferences prefs = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
 
                             if (firestoreUsername != null) {
                                 usernameText.setText(firestoreUsername);
-                                prefs.edit().putString("username", firestoreUsername).apply();
+                                editor.putString("username", firestoreUsername);
                             }
                             if (firestoreFullname != null) {
                                 fullnameText.setText(firestoreFullname.toUpperCase());
-                                prefs.edit().putString("fullname", firestoreFullname).apply();
+                                editor.putString("fullname", firestoreFullname);
                             }
-                            if (avatarIdLong != null) {
+                            if (firestoreCustomUri != null && !firestoreCustomUri.isEmpty()) {
+                                editor.putString(KEY_CUSTOM_AVATAR_URI, firestoreCustomUri);
+                                editor.putInt("avatarId", 0);
+                                Glide.with(this)
+                                        .load(Uri.parse(firestoreCustomUri))
+                                        .circleCrop()
+                                        .placeholder(R.drawable.sample_profile)
+                                        .error(R.drawable.sample_profile)
+                                        .into(userAvatar);
+                            } else if (avatarIdLong != null) {
                                 int newAvatarId = avatarIdLong.intValue();
+                                editor.putInt("avatarId", newAvatarId);
+                                editor.remove(KEY_CUSTOM_AVATAR_URI);
                                 updateAvatarImage(userAvatar, newAvatarId);
-                                prefs.edit().putInt("avatarId", newAvatarId).apply();
                             }
-                        } else {
-                            // If profile/info doesn't exist, check the root document
-                            userRef.get()
-                                    .addOnSuccessListener(rootDoc -> {
-                                        if (rootDoc.exists()) {
-                                            String rootUsername = rootDoc.getString("username");
-                                            String rootFullname = rootDoc.getString("fullname");
-                                            Long rootAvatarId = rootDoc.getLong("avatarId");
-
-                                            if (rootUsername != null) {
-                                                usernameText.setText(rootUsername);
-                                                prefs.edit().putString("username", rootUsername).apply();
-                                            }
-                                            if (rootFullname != null) {
-                                                fullnameText.setText(rootFullname.toUpperCase());
-                                                prefs.edit().putString("fullname", rootFullname).apply();
-                                            }
-                                            if (rootAvatarId != null) {
-                                                updateAvatarImage(userAvatar, rootAvatarId.intValue());
-                                                prefs.edit().putInt("avatarId", rootAvatarId.intValue()).apply();
-                                            }
-                                        }
-                                    });
+                            editor.apply();
                         }
                     });
         }
     }
 
+
     private void updateAvatarImage(ImageView imageView, int avatarId) {
         int resourceId;
         switch (avatarId) {
-            case 1: resourceId = R.drawable.profile2; break;
-            case 2: resourceId = R.drawable.profile3; break;
-            case 3: resourceId = R.drawable.profile4; break;
-            case 4: resourceId = R.drawable.profile5; break;
-            case 5: resourceId = R.drawable.profile6; break;
-            case 6: resourceId = R.drawable.profile7; break;
-            case 8: resourceId = R.drawable.profile8; break;
-            case 9: resourceId = R.drawable.profile9; break;
-            default: resourceId = R.drawable.sample_profile; break;
+            case 1:
+                resourceId = R.drawable.profile2;
+                break;
+            case 2:
+                resourceId = R.drawable.profile3;
+                break;
+            case 3:
+                resourceId = R.drawable.profile4;
+                break;
+            case 4:
+                resourceId = R.drawable.profile5;
+                break;
+            case 5:
+                resourceId = R.drawable.profile6;
+                break;
+            case 6:
+                resourceId = R.drawable.profile7;
+                break;
+            case 8:
+                resourceId = R.drawable.profile8;
+                break;
+            case 9:
+                resourceId = R.drawable.profile9;
+                break;
+            default:
+                resourceId = R.drawable.sample_profile;
+                break;
         }
         imageView.setImageResource(resourceId);
     }
+
+        private void refreshAvatarFromPrefs() {
+            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+            String customAvatarUriStr = prefs.getString("custom_avatar_uri", null);
+
+            if (customAvatarUriStr != null) {
+                Uri customUri = Uri.parse(customAvatarUriStr);
+                Glide.with(this)
+                        .load(customUri)
+                        .circleCrop()
+                        .into(userAvatar);
+            } else {
+                int avatarId = prefs.getInt("avatarId", 0);
+                if (avatarId > 0) {
+                    updateAvatarImage(userAvatar, avatarId);
+                }
+            }
+        }
 
     private void openEditProfileFragment() {
         EditProfileFragment editProfileFragment = new EditProfileFragment();
@@ -201,4 +237,21 @@ public class ProfileFragment extends Fragment {
         DeleteAccountFragment deleteAccountFragment = new DeleteAccountFragment();
         deleteAccountFragment.show(getParentFragmentManager(), "DeleteAccountDialog");
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshAvatarFromPrefs();
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        String username = prefs.getString("username", null);
+        String fullname = prefs.getString("fullname", null);
+
+        if (username != null && usernameText != null) {
+            usernameText.setText(username);
+        }
+        if (fullname != null && fullnameText != null) {
+            fullnameText.setText(fullname.toUpperCase());
+        }
+    }
+
 }
+

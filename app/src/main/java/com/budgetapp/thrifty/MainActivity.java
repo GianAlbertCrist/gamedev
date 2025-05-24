@@ -1,9 +1,13 @@
 package com.budgetapp.thrifty;
 
+
+import com.bumptech.glide.Glide;
+import android.net.Uri;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -32,6 +36,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.messaging.FirebaseMessaging;
+import androidx.annotation.Nullable;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -237,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (avatarIdLong != null) {
             int avatarId = avatarIdLong.intValue();
-            updateAvatarEverywhere(avatarId);
+            updateAvatarEverywhere(avatarId, null);
 
             SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
             prefs.edit().putInt("avatarId", avatarId).apply();
@@ -268,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
 
                             if (avatarIdLong != null) {
                                 int avatarId = avatarIdLong.intValue();
-                                updateAvatarEverywhere(avatarId);
+                                updateAvatarEverywhere(avatarId, null);
                             }
 
                             AppLogger.log(this, TAG, "Profile data updated: username = " + username);
@@ -402,65 +407,106 @@ public class MainActivity extends AppCompatActivity {
 
                             if (avatarIdLong != null) {
                                 int avatarId = avatarIdLong.intValue();
-                                updateAvatarEverywhere(avatarId);
+                                updateAvatarEverywhere(avatarId, null);
                             }
                         }
                     });
         }
     }
 
-    public void updateAvatarEverywhere(int avatarId) {
-        // Update SharedPreferences
+    public void updateAvatarEverywhere(int avatarId, @Nullable String customAvatarUri) {
+
+        AppLogger.log(this, TAG, "Updating avatar everywhere - avatarId: " + avatarId + ", customAvatarUri: " + customAvatarUri);
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        prefs.edit().putInt("avatarId", avatarId).apply();
+        SharedPreferences.Editor editor = prefs.edit();
 
-        AppLogger.log(this, TAG, "Updating avatar everywhere to: " + avatarId);
+        editor.putInt("avatarId", avatarId);
 
-        // Update bottom navigation avatar
+        if (customAvatarUri != null) {
+            editor.putString("custom_avatar_uri", customAvatarUri);
+        } else {
+            editor.remove("custom_avatar_uri");
+        }
+
+        editor.apply();
+
+        // Then update UI like bottom nav and current fragment avatar as usual
         updateBottomNavAvatar();
 
-        // Update current fragment if it's HomeFragment
-        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
-        if (currentFragment instanceof HomeFragment) {
-            View fragmentView = currentFragment.getView();
-            if (fragmentView != null) {
-                ImageView profileIcon = fragmentView.findViewById(R.id.ic_profile);
-                if (profileIcon != null) {
-                    updateAvatarImage(profileIcon, avatarId);
+        FragmentManager fm = getSupportFragmentManager();
+        for (Fragment fragment : fm.getFragments()) {
+            if (fragment instanceof HomeFragment || fragment instanceof ProfileFragment) {
+                if (fragment.getView() != null) {
+                    ImageView avatarView = fragment.getView().findViewById(
+                            fragment instanceof HomeFragment ? R.id.ic_profile : R.id.user_avatar);
+                    if (avatarView != null) {
+                        updateAvatarImageView(avatarView, avatarId, customAvatarUri);
+                    }
                 }
             }
         }
+
+        // Also notify fragments using Fragment Result API
+        Bundle result = new Bundle();
+        result.putInt("avatarId", avatarId);
+        if (customAvatarUri != null) {
+            result.putString("custom_avatar_uri", customAvatarUri);
+        }
+        fm.setFragmentResult("profileUpdate", result);
     }
 
     private void updateBottomNavAvatar() {
         // Get avatar ID from SharedPreferences
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         int avatarId = prefs.getInt("avatarId", 0);
+        String customAvatarUri = prefs.getString("custom_avatar_uri", null);
 
         // Find the profile icon in the bottom navigation
         View profileItem = binding.bottomNav.findViewById(R.id.ic_profile);
         if (profileItem != null && profileItem instanceof ImageView) {
-            updateAvatarImage((ImageView) profileItem, avatarId);
+            updateAvatarImageView((ImageView) profileItem, avatarId, customAvatarUri);
         }
     }
 
-    private void updateAvatarImage(ImageView imageView, int avatarId) {
-        int resourceId = -1;
-        switch (avatarId) {
-            case 1: resourceId = R.drawable.profile2; break;
-            case 2: resourceId = R.drawable.profile3; break;
-            case 3: resourceId = R.drawable.profile4; break;
-            case 4: resourceId = R.drawable.profile5; break;
-            case 5: resourceId = R.drawable.profile6; break;
-            case 6: resourceId = R.drawable.profile7; break;
-            case 8: resourceId = R.drawable.profile8; break;
-            case 9: resourceId = R.drawable.profile9; break;
-        }
-
-        if (resourceId != -1) {
+    private void updateAvatarImageView(ImageView imageView, int avatarId, @Nullable String customAvatarUri) {
+        if (customAvatarUri != null && !customAvatarUri.isEmpty()) {
+            // Load custom avatar from URI
+            try {
+                Uri uri = Uri.parse(customAvatarUri);
+                Glide.with(this)
+                        .load(uri)
+                        .circleCrop()
+                        .placeholder(R.drawable.sample_profile)
+                        .error(R.drawable.sample_profile)
+                        .into(imageView);
+            } catch (Exception e) {
+                // Fallback to default avatar if URI is invalid
+                imageView.setImageResource(R.drawable.sample_profile);
+                Log.e(TAG, "Error loading custom avatar", e);
+            }
+        } else {
+            // Load predefined avatar
+            int resourceId = getAvatarResourceId(avatarId);
             imageView.setImageResource(resourceId);
         }
     }
+
+
+    // 4. Add this helper method to MainActivity
+    private int getAvatarResourceId(int avatarId) {
+        switch (avatarId) {
+            case 1: return R.drawable.profile2;
+            case 2: return R.drawable.profile3;
+            case 3: return R.drawable.profile4;
+            case 4: return R.drawable.profile5;
+            case 5: return R.drawable.profile6;
+            case 6: return R.drawable.profile7;
+            case 8: return R.drawable.profile8;
+            case 9: return R.drawable.profile9;
+            default: return R.drawable.sample_profile;
+        }
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -474,3 +520,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+

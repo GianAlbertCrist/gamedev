@@ -1,10 +1,12 @@
 package com.budgetapp.thrifty.fragments;
 
+import com.bumptech.glide.Glide;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,6 +90,29 @@ public class HomeFragment extends Fragment {
         loadTransactions();
         loadNotificationCount();
         setupNotepad();
+
+        getParentFragmentManager().setFragmentResultListener("profileUpdate", this, (requestKey, result) -> {
+            int avatarId = result.getInt("avatarId", 0);
+            String customAvatarUriStr = result.getString("custom_avatar_uri");
+            String username = result.getString("username");
+
+            if (profileIcon != null) {
+                if (customAvatarUriStr != null) {
+                    Uri customUri = Uri.parse(customAvatarUriStr);
+                    Glide.with(this)
+                            .load(customUri)
+                            .circleCrop()
+                            .into(profileIcon);
+                } else if (avatarId > 0) {
+                    updateAvatarImage(profileIcon, avatarId);
+                }
+            }
+
+            if (userGreet != null && username != null) {
+                userGreet.setText("Hello, " + username + "!");
+            }
+        });
+
         return rootView;
     }
 
@@ -181,10 +206,13 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadUserProfile() {
+        // Load username greeting
         refreshUserGreeting();
 
+        // Load avatar from cache and display
         refreshAvatarFromPrefs();
 
+        // Try to fetch the latest avatarId from Firestore
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             db.collection("users").document(user.getUid())
@@ -205,24 +233,60 @@ public class HomeFragment extends Fragment {
 
     private void refreshAvatarFromPrefs() {
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        String customAvatarUriStr = prefs.getString("custom_avatar_uri", null);
         int avatarId = prefs.getInt("avatarId", 0);
-        if (avatarId > 0) {
+
+
+        if (customAvatarUriStr != null && !customAvatarUriStr.isEmpty()) {
+            // Load custom avatar
+            Uri customUri = Uri.parse(customAvatarUriStr);
+            Glide.with(this)
+                    .load(customUri)
+                    .circleCrop()
+                    .placeholder(R.drawable.sample_profile)
+                    .error(R.drawable.sample_profile)
+                    .into(profileIcon);
+        } else if (avatarId > 0) {
+            // Load predefined avatar
             updateAvatarImage(profileIcon, avatarId);
+        } else {
+            // Fallback to default avatar
+            profileIcon.setImageResource(R.drawable.sample_profile);
         }
     }
+
 
     private void updateAvatarFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
         if (document.exists()) {
             Long avatarIdLong = document.getLong("avatarId");
-            if (avatarIdLong != null) {
-                int avatarId = avatarIdLong.intValue();
-                updateAvatarImage(profileIcon, avatarId);
+            String customAvatarUri = document.getString("customAvatarUri"); // Fixed field name
+            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
 
-                SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-                prefs.edit().putInt("avatarId", avatarId).apply();
+            if (customAvatarUri != null && !customAvatarUri.isEmpty()) {
+                // Custom avatar found
+                editor.putString("custom_avatar_uri", customAvatarUri);
+                editor.putInt("avatarId", 0);
+                editor.apply();
+
+                Glide.with(this)
+                        .load(Uri.parse(customAvatarUri))
+                        .circleCrop()
+                        .placeholder(R.drawable.sample_profile)
+                        .error(R.drawable.sample_profile)
+                        .into(profileIcon);
+            } else if (avatarIdLong != null) {
+                // Predefined avatar
+                int avatarId = avatarIdLong.intValue();
+                editor.putInt("avatarId", avatarId);
+                editor.remove("custom_avatar_uri");
+                editor.apply();
+
+                updateAvatarImage(profileIcon, avatarId);
             }
         }
     }
+
 
     @Override
     public void onResume() {
