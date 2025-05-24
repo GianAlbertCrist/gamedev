@@ -14,12 +14,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.renderers.NotificationAdapter;
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 
@@ -64,8 +67,12 @@ public class NotificationsFragment extends Fragment {
 
     private void loadNotificationsFromFirestore() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) return;
+        if (currentUser == null) {
+            Log.e(TAG, "Current user is null, cannot load notifications");
+            return;
+        }
 
+        Log.d(TAG, "Starting to load notifications from Firestore");
         FirebaseFirestore.getInstance().collection("users")
                 .document(currentUser.getUid())
                 .collection("notifications")
@@ -73,18 +80,28 @@ public class NotificationsFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!isAdded() || !isViewCreated) {
-                        Log.d(TAG, "Fragment not attached or view destroyed, skipping UI update");
+                        Log.w(TAG, "Fragment not attached or view destroyed, skipping UI update");
                         return;
                     }
 
                     notificationList.clear();
 
+                    int processedCount = 0;
+                    int failedCount = 0;
+
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         Notification notification = parseNotificationFromDocument(doc);
                         if (notification != null) {
                             notificationList.add(notification);
+                            processedCount++;
+                        } else {
+                            failedCount++;
                         }
                     }
+
+                    Log.d(TAG, String.format("Processed %d notifications, %d failed parsing",
+                            processedCount, failedCount));
+                    updateNotificationUI();
 
                     updateNotificationUI();
                     Log.d(TAG, "Generated " + notificationList.size() + " notifications from transactions");

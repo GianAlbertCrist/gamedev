@@ -101,10 +101,13 @@ public class Transaction implements Parcelable {
         }
     };
 
-    // Method to check if this transaction is due for notification
     public boolean isDueForNotification() {
+        if (recurring.equals("None")) {
+            return false;
+        }
+
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(parsedDate); // Set the calendar to the transaction date
+        calendar.setTime(parsedDate);
 
         switch (recurring) {
             case "Daily":
