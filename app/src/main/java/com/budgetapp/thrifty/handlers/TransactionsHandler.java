@@ -84,7 +84,6 @@ public class TransactionsHandler {
         return total;
     }
 
-    // Method to check recurring transactions and trigger notifications
     public static void checkRecurringTransactions(NotificationsFragment notificationsFragment) {
         if (notificationsFragment == null) {
             Log.e("TransactionsHandler", "NotificationsFragment is null, cannot add notifications");

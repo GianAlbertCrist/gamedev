@@ -16,6 +16,7 @@ import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.renderers.NotificationAdapter;
 import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.ThemeSync;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -113,29 +114,27 @@ public class NotificationsFragment extends Fragment {
 
     private Notification parseNotificationFromDocument(DocumentSnapshot doc) {
         try {
-            String type = doc.getString("type");
-            String description = doc.getString("description");
+            String type = doc.getString("title");
+            String description = doc.getString("message");
             String recurring = doc.getString("recurring");
-            Double amount = doc.getDouble("amount");
+            Timestamp timestamp = doc.getTimestamp("timestamp");
+            String time = timestamp != null ? timestamp.toDate().toString() : "Unknown time";
+            Long iconID = doc.getLong("iconID");
 
-            if (recurring != null && amount != null && type != null) {
-                @SuppressLint("DefaultLocale") String message = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
-                        recurring,
-                        type.toLowerCase(),
-                        amount,
-                        description);
-
+            if (type != null && description != null && recurring != null && iconID != null) {
                 return new Notification(
-                        type + " Reminder",
-                        message,
-                        doc.getDate("nextDueDate") != null ?
-                                doc.getDate("nextDueDate").toString() : "Unknown time",
+                        type,
+                        description,
+                        time,
                         recurring,
-                        R.drawable.icnotif_transactions
+                        iconID.intValue()
                 );
             }
+
+            Log.w(TAG, "Missing required fields in notification document: " + doc.getId());
         } catch (Exception e) {
-            Log.e(TAG, "Error parsing transaction for notification", e);
+            Log.e(TAG, "Error parsing notification document: " + doc.getId(), e);
+            Log.e(TAG, "Exception details: ", e);
         }
         return null;
     }
