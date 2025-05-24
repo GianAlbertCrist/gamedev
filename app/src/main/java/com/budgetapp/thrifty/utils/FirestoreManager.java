@@ -133,13 +133,11 @@ public class FirestoreManager {
                 .collection("transactions")
                 .document();
 
-        // Set the ID on the transaction object
         String transactionId = newTransactionRef.getId();
         transaction.setId(transactionId);
 
         Log.d(TAG, "Saving transaction with ID: " + transactionId);
 
-        // Save to Firestore
         newTransactionRef.set(transactionData)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Transaction successfully saved with ID: " + transactionId);
@@ -149,7 +147,7 @@ public class FirestoreManager {
                 });
     }
 
-    // Save a notification
+
     public static void saveNotification(Transaction transaction) {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
@@ -306,7 +304,7 @@ public class FirestoreManager {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading transactions", e);
-                    listener.onTransactionsLoaded(new ArrayList<>()); // Return empty list on error
+                    listener.onTransactionsLoaded(new ArrayList<>());
                 });
     }
 
@@ -585,10 +583,6 @@ public class FirestoreManager {
                         Log.e(TAG, "Error updating next due date", e));
     }
 
-    // Listener interfaces
-    public interface OnProfileLoadedListener {
-        void onProfileLoaded(Map<String, Object> profileData);
-    }
 
     public interface OnTransactionsLoadedListener {
         void onTransactionsLoaded(List<Transaction> transactions);

@@ -32,7 +32,7 @@ public class NotificationsFragment extends Fragment {
     private ArrayList<Notification> notificationList = new ArrayList<>();
     private RecyclerView recyclerView;
     private NotificationAdapter adapter;
-    private TextView noNotificationsText, notificationDescriptionTextView;
+    private TextView noNotificationsText;
     private boolean isViewCreated = false;
 
     @Override
@@ -54,7 +54,6 @@ public class NotificationsFragment extends Fragment {
 
         isViewCreated = true;
 
-        // Load notifications from Firestore
         loadNotificationsFromFirestore();
 
         return view;

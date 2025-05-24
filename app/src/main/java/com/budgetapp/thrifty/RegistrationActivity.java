@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.NetworkUtils;
 import com.budgetapp.thrifty.utils.OfflineAccountManager;
@@ -46,17 +47,14 @@ public class RegistrationActivity extends AppCompatActivity {
 
         ThemeSync.syncNotificationBarColor(getWindow(), this);
 
-        // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // Get references to input containers
         TextInputLayout firstNameLayout = findViewById(R.id.first_name_container);
         TextInputLayout surnameLayout = findViewById(R.id.surname_container);
         TextInputLayout emailLayout = findViewById(R.id.email_container);
         TextInputLayout passwordLayout = findViewById(R.id.password_container);
         TextInputLayout confirmPasswordLayout = findViewById(R.id.confirm_password_container);
 
-        // Get the TextInputEditText from each layout
         EditText firstNameInput = firstNameLayout.getEditText();
         EditText surnameInput = surnameLayout.getEditText();
         EditText emailInput = emailLayout.getEditText();
@@ -66,7 +64,7 @@ public class RegistrationActivity extends AppCompatActivity {
         Button registerButton = findViewById(R.id.register_button);
         TextView loginRedirect = findViewById(R.id.login_redirect);
 
-        // Set click listener for the register button
+
         registerButton.setOnClickListener(v -> {
             // Retrieve input values
             String firstName = Objects.requireNonNull(firstNameInput).getText().toString().trim();
@@ -75,7 +73,7 @@ public class RegistrationActivity extends AppCompatActivity {
             String password = Objects.requireNonNull(passwordInput).getText().toString();
             String confirmPassword = Objects.requireNonNull(confirmPasswordInput).getText().toString();
 
-            // Validate inputs
+
             if (TextUtils.isEmpty(firstName) || TextUtils.isEmpty(surname) ||
                     TextUtils.isEmpty(email) || TextUtils.isEmpty(password) ||
                     TextUtils.isEmpty(confirmPassword)) {
@@ -103,6 +101,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 Toast.makeText(RegistrationActivity.this, "Account will be created when you're back online.", Toast.LENGTH_SHORT).show();
                 return;
             }
+            AppLogger.log(this, TAG,"Validation Complete.");
             createAccount(firstName, surname, email, password);
         });
 
@@ -123,7 +122,7 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void updateDrawState(@NonNull TextPaint ds) {
                 super.updateDrawState(ds);
-                ds.setUnderlineText(false); // Optional: remove underline
+                ds.setUnderlineText(false);
             }
         };
 
@@ -137,7 +136,6 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     private void createAccount(String firstName, String surname, String email, String password) {
-        // Show loading indicator
         Toast.makeText(RegistrationActivity.this, "Creating account...", Toast.LENGTH_SHORT).show();
 
         mAuth.createUserWithEmailAndPassword(email, password)
@@ -146,10 +144,8 @@ public class RegistrationActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             String fullName = firstName + " " + surname;
-                            String username = firstName; // Using first name as username for simplicity
                             String displayNameWithFullName = firstName + "|" + fullName;
 
-                            // Update Firebase Auth profile
                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                     .setDisplayName(displayNameWithFullName)
                                     .build();
@@ -157,19 +153,19 @@ public class RegistrationActivity extends AppCompatActivity {
                             user.updateProfile(profileUpdates)
                                     .addOnCompleteListener(profileTask -> {
                                         if (profileTask.isSuccessful()) {
-                                            saveUserToFirestore(user, username, fullName, 0);
+                                            saveUserToFirestore(user, firstName, fullName, 0);
                                             FirestoreManager.saveUserProfile(displayNameWithFullName, email, 0);
                                             mAuth.signOut();
                                             Toast.makeText(RegistrationActivity.this,
                                                     "Registration successful. Please log in.",
                                                     Toast.LENGTH_SHORT).show();
+                                            AppLogger.log(this, TAG, "Registration successful.");
                                             startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
                                             finish();
                                         }
                                     });
                         }
                     } else {
-                        // If registration fails, display a message to the user
                         if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                             Toast.makeText(RegistrationActivity.this,
                                     "An account may already exist with these credentials.",
@@ -201,7 +197,6 @@ public class RegistrationActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Registration", "User profile saved to Firestore");
 
-                    // Save to SharedPreferences
                     SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                     prefs.edit()
                             .putString("username", username)

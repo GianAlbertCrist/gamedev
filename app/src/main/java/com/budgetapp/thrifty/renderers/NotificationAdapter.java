@@ -47,32 +47,28 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.notificationTime.setText(notification.getTime());
 
         // Set the recurring type (Daily, Weekly, etc.)
-        holder.notificationRecurring.setText(notification.getRecurring());  // Set recurring type dynamically
+        holder.notificationRecurring.setText(notification.getRecurring());
 
         // Set the appropriate icon based on transaction type (Income/Expense)
-        if ("Income".equalsIgnoreCase(notification.getDescription())) {
-            holder.notificationIcon.setImageResource(R.drawable.ic_income); // Set income icon
-        } else if ("Expense".equalsIgnoreCase(notification.getDescription())) {
-            holder.notificationIcon.setImageResource(R.drawable.ic_expense); // Set expense icon
+        if ("Income Reminder".equalsIgnoreCase(notification.getType())) {
+            holder.notificationIcon.setImageResource(R.drawable.ic_income);
+        } else if ("Expense Reminder".equalsIgnoreCase(notification.getType())) {
+            holder.notificationIcon.setImageResource(R.drawable.ic_expense);
         } else {
-            holder.notificationIcon.setImageResource(R.drawable.icnotif_transactions); // Default transaction icon
+            holder.notificationIcon.setImageResource(R.drawable.icnotif_transactions);
         }
     }
 
-    /**
-     * Format amount in description if it contains a currency value
-     * Expected format: "Category | ₱amount"
-     */
     private String formatDescriptionAmount(String description) {
         try {
-            // Check if description contains a currency amount pattern
+
             Pattern pattern = Pattern.compile("(.*\\|\\s*₱)(\\d+(\\.\\d+)?)(.*)");
             Matcher matcher = pattern.matcher(description);
 
             if (matcher.find()) {
-                String prefix = matcher.group(1); // "Category | ₱"
-                String amountStr = matcher.group(2); // "1234.56"
-                String suffix = matcher.group(4); // Any text after the amount
+                String prefix = matcher.group(1);
+                String amountStr = matcher.group(2);
+                String suffix = matcher.group(4);
 
                 assert amountStr != null;
                 double amount = Double.parseDouble(amountStr);
@@ -84,7 +80,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             Log.e(TAG, "Error formatting notification description: " + e.getMessage());
         }
 
-        // Return original description if no formatting needed or if an error occurred
         return description;
     }
 
@@ -94,7 +89,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
-        TextView notificationTitle, notificationDescription, notificationTime, notificationRecurring; // Added notificationRecurring
+        TextView notificationTitle, notificationDescription, notificationTime, notificationRecurring;
         ImageView notificationIcon;
 
         public NotificationViewHolder(@NonNull View itemView) {
@@ -104,7 +99,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             notificationDescription = itemView.findViewById(R.id.notificationDescription);
             notificationTime = itemView.findViewById(R.id.notificationTime);
             notificationIcon = itemView.findViewById(R.id.notificationIcon);
-            notificationRecurring = itemView.findViewById(R.id.notificationRecurring);  // Initialize the recurring TextView
+            notificationRecurring = itemView.findViewById(R.id.notificationRecurring);
         }
     }
 }

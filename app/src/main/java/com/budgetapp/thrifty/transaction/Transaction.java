@@ -123,7 +123,6 @@ public class Transaction implements Parcelable {
         }
     }
 
-    // Calculate the next due date based on recurring type
     public void calculateNextDueDate() {
         if (recurring.equals("None")) {
             this.nextDueDate = null;
@@ -135,14 +134,11 @@ public class Transaction implements Parcelable {
             calendar.setTime(parsedDate);
         }
 
-        // Set time to beginning of day for consistent notifications
         calendar.set(Calendar.HOUR_OF_DAY, 8); // 8:00 AM
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
-        // For newly created transactions, always set the next due date to tomorrow or later
-        // to prevent immediate duplication
         Calendar tomorrow = Calendar.getInstance();
         tomorrow.add(Calendar.DAY_OF_YEAR, 1);
         tomorrow.set(Calendar.HOUR_OF_DAY, 8);
@@ -150,26 +146,20 @@ public class Transaction implements Parcelable {
         tomorrow.set(Calendar.SECOND, 0);
         tomorrow.set(Calendar.MILLISECOND, 0);
 
-        // If the calculated date would be today or earlier, start from tomorrow
         if (calendar.before(tomorrow)) {
             calendar = tomorrow;
         }
 
-        // Calculate next due date based on recurring type
         switch (recurring) {
             case "Daily":
-                // For daily transactions, we've already set it to tomorrow above
                 break;
             case "Weekly":
-                // Next week, same day of week
                 calendar.add(Calendar.WEEK_OF_YEAR, 1);
                 break;
             case "Monthly":
-                // Next month, same day of month
                 calendar.add(Calendar.MONTH, 1);
                 break;
             case "Yearly":
-                // Next year, same day of year
                 calendar.add(Calendar.YEAR, 1);
                 break;
         }
@@ -178,7 +168,6 @@ public class Transaction implements Parcelable {
         Log.d("Transaction", "Calculated next due date: " + this.nextDueDate + " for recurring: " + recurring);
     }
 
-    // Update the next due date after a notification has been sent
     public void updateNextDueDate() {
         if (nextDueDate == null || recurring.equals("None")) {
             return;
