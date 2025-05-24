@@ -32,7 +32,7 @@ public class NotificationsFragment extends Fragment {
     private ArrayList<Notification> notificationList = new ArrayList<>();
     private RecyclerView recyclerView;
     private NotificationAdapter adapter;
-    private TextView noNotificationsText;
+    private TextView noNotificationsText, notificationDescriptionTextView;
     private boolean isViewCreated = false;
 
     @Override
@@ -114,8 +114,8 @@ public class NotificationsFragment extends Fragment {
 
     private Notification parseNotificationFromDocument(DocumentSnapshot doc) {
         try {
-            String type = doc.getString("title");
-            String description = doc.getString("message");
+            String type = doc.getString("type");
+            String description = doc.getString("description");
             String recurring = doc.getString("recurring");
             Timestamp timestamp = doc.getTimestamp("timestamp");
             String time = timestamp != null ? timestamp.toDate().toString() : "Unknown time";

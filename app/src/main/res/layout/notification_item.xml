@@ -35,17 +35,26 @@
             app:layout_constraintStart_toEndOf="@id/notificationIcon"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
+        <HorizontalScrollView
             android:id="@+id/notificationDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:fillViewport="true"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="10dp"
+            app:layout_constraintStart_toEndOf="@id/notificationIcon"
+            app:layout_constraintTop_toBottomOf="@id/notificationTitle"
+            app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="52dp"
             android:layout_marginTop="4dp"
             android:text="A new transaction has been registered"
             android:textColor="@color/black"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/notificationTitle" />
+            android:textSize="14sp" />
+        </HorizontalScrollView>
 
         <TextView
             android:id="@+id/notificationRecurring"
@@ -63,7 +72,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="12:29 AM - April 9"
+            android:text="Date"
             android:textColor="@color/black"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
