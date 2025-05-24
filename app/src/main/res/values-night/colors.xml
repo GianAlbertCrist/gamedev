@@ -10,4 +10,5 @@
     <color name="income_green">#2E7D32</color>
     <color name="lock_green">#087224</color>
     <color name="grey">#989898</color>
+    <color name="edit_profile">#FFFFFFFF</color>
 </resources>

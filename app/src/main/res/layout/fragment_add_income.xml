@@ -19,6 +19,19 @@
         android:paddingVertical="15dp"
         android:paddingBottom="200dp">
 
+        <TextView
+            android:padding="5dp"
+            android:id="@+id/recurring_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:layout_marginVertical="20dp"
+            android:background="@drawable/rounded_background"
+            android:backgroundTint="@color/primary_color"
+            android:text="Not Recurring"
+            android:textAlignment="center"
+            android:fontFamily="@font/poppins"/>
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">

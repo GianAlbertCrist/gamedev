@@ -40,7 +40,7 @@ public class AddIncomeFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_add_income, container, false);
     }
 
-    @SuppressLint("NonConstantResourceId")
+    @SuppressLint({"NonConstantResourceId", "SetTextI18n"})
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -57,6 +57,7 @@ public class AddIncomeFragment extends Fragment {
         EditText numberInput = view.findViewById(R.id.number_input);
         EditText descriptionInput = view.findViewById(R.id.income_description);
         ImageButton recurringButton = view.findViewById(R.id.ic_recurring);
+        TextView selectedRecurringView = view.findViewById(R.id.recurring_text);
 
         Button confirmBtn = view.findViewById(R.id.confirm_button);
         Button cancelBtn = view.findViewById(R.id.cancel_button);
@@ -84,22 +85,27 @@ public class AddIncomeFragment extends Fragment {
             // Set click listeners
             popupView.findViewById(R.id.option_none).setOnClickListener(item -> {
                 selectedRecurring = "None";
+                selectedRecurringView.setText("Not Recurring");
                 popupWindow.dismiss();
             });
             popupView.findViewById(R.id.option_daily).setOnClickListener(item -> {
                 selectedRecurring = "Daily";
+                selectedRecurringView.setText(selectedRecurring);
                 popupWindow.dismiss();
             });
             popupView.findViewById(R.id.option_weekly).setOnClickListener(item -> {
                 selectedRecurring = "Weekly";
+                selectedRecurringView.setText(selectedRecurring);
                 popupWindow.dismiss();
             });
             popupView.findViewById(R.id.option_monthly).setOnClickListener(item -> {
                 selectedRecurring = "Monthly";
+                selectedRecurringView.setText(selectedRecurring);
                 popupWindow.dismiss();
             });
             popupView.findViewById(R.id.option_yearly).setOnClickListener(item -> {
                 selectedRecurring = "Yearly";
+                selectedRecurringView.setText(selectedRecurring);
                 popupWindow.dismiss();
             });
 
@@ -214,7 +220,7 @@ public class AddIncomeFragment extends Fragment {
             }
 
             // Add to local list
-            TransactionsHandler.transactions.add(transaction);
+            TransactionsHandler.transactions.add(0, transaction);
 
             // Handle recurring notification
             if (!selectedRecurring.equals("None")) {

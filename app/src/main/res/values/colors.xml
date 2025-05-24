@@ -19,4 +19,5 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="lime_green">#9ACD32</color>
+    <color name="edit_profile">#FF000000</color>
 </resources>
