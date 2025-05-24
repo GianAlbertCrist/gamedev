@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,8 +27,6 @@ import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.utils.FirestoreManager;
-import com.budgetapp.thrifty.model.Notification;
-import com.budgetapp.thrifty.transaction.Transaction;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -147,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
             loadUserData();
         }
 
-        // Update avatar in bottom navigation
         updateBottomNavAvatar();
     }
 

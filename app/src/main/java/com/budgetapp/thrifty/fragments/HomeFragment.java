@@ -40,22 +40,17 @@ import java.util.List;
 
 public class HomeFragment extends Fragment {
 
-    private View rootView;
+    private View rootView, loadingSpinner;
     private RecyclerView recyclerView;
-    private TextView emptyMessage;
-    private TextView userGreet;
+    private TextView emptyMessage, userGreet, notificationBadge;
     private ImageView profileIcon;
-    private TextView notificationBadge;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private ListenerRegistration profileListener;
-    private ListenerRegistration notificationsListener;
+    private ListenerRegistration profileListener, notificationsListener;
     private FrameLayout notepadPanelContainer;
-    private View notepadHandle;
     private ConstraintLayout mainContent;
     private boolean isPanelOpen = false;
-    private NotepadManager notepadManager;
-    private View loadingSpinner;
+
 
     @SuppressLint("CutPasteId")
     @Override
@@ -89,15 +84,9 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Load user profile data
         loadUserProfile();
-
-        // Load transactions
         loadTransactions();
-
-        // Load notification count
         loadNotificationCount();
-
         setupNotepad();
         return rootView;
     }
@@ -105,10 +94,10 @@ public class HomeFragment extends Fragment {
     private void setupNotepad() {
         // Initialize notepad components
         notepadPanelContainer = rootView.findViewById(R.id.notepad_panel_container);
-        notepadHandle = rootView.findViewById(R.id.notepad_handle);
+        View notepadHandle = rootView.findViewById(R.id.notepad_handle);
 
         // Initialize NotepadManager
-        notepadManager = new NotepadManager(requireContext());
+        NotepadManager notepadManager = new NotepadManager(requireContext());
 
         // Setup EditText with auto-save
         EditText notepadContent = rootView.findViewById(R.id.notepad_content);
@@ -128,15 +117,13 @@ public class HomeFragment extends Fragment {
         if (isPanelOpen) {
             closeNotepad();
         } else {
-            // Show and open the panel
             notepadPanelContainer.setVisibility(View.VISIBLE);
-            mainContent.setAlpha(0.3f); // Dim the main content
+            mainContent.setAlpha(0.3f);
             isPanelOpen = true;
         }
     }
 
     private void closeNotepad() {
-        // Close the panel
         notepadPanelContainer.setVisibility(View.GONE);
         mainContent.setAlpha(1.0f);
         isPanelOpen = false;
@@ -194,13 +181,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadUserProfile() {
-        // Load username greeting
         refreshUserGreeting();
 
-        // Load avatar from cache and display
         refreshAvatarFromPrefs();
 
-        // Try to fetch the latest avatarId from Firestore
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             db.collection("users").document(user.getUid())
@@ -248,7 +232,6 @@ public class HomeFragment extends Fragment {
         loadNotificationCount();
         updateBalances();
 
-        // Refresh avatar
         handleStreak(requireContext());
 
         if (isPanelOpen) {
@@ -309,7 +292,7 @@ public class HomeFragment extends Fragment {
             }
 
             showLoading(false);
-        }, 100); // short delay to simulate async and ensure UI updates
+        }, 100);
     }
 
     private void showLoading(boolean show) {
@@ -327,11 +310,11 @@ public class HomeFragment extends Fragment {
         long oneDayMillis = 24 * 60 * 60 * 1000;
 
         if (System.currentTimeMillis() - lastLogin >= oneDayMillis && System.currentTimeMillis() - lastLogin < 2 * oneDayMillis) {
-            currentStreak++; // New day, +1 streak
+            currentStreak++;
         } else if (System.currentTimeMillis() - lastLogin >= 2 * oneDayMillis) {
-            currentStreak = 1; // Missed a day, reset streak
+            currentStreak = 1;
         } else if (lastLogin == 0) {
-            currentStreak = 1; // First time login
+            currentStreak = 1;
         }
 
         prefs.edit()
@@ -344,7 +327,7 @@ public class HomeFragment extends Fragment {
 
 //    FOR TESTING
 //    private void handleStreak(Context context) {
-//        int currentStreak = 150; // 🚀 Force it for testing
+//        int currentStreak = 150;
 //
 //        SharedPreferences prefs = context.getSharedPreferences("streak_data", Context.MODE_PRIVATE);
 //        prefs.edit()

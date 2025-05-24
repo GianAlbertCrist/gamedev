@@ -5,13 +5,11 @@ import android.os.Bundle;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import com.budgetapp.thrifty.utils.ThemeSync;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class FirstActivity extends AppCompatActivity {
 
     private Button registerButton, signInButton;
     private static final String TAG = "FirstActivity";
-    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

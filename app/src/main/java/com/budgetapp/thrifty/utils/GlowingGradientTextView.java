@@ -47,7 +47,7 @@ public class GlowingGradientTextView extends AppCompatTextView {
                 invalidate();
             }
 
-            postDelayed(this, 50); // ~20 FPS
+            postDelayed(this, 50);
         }
     };
 
@@ -71,19 +71,18 @@ public class GlowingGradientTextView extends AppCompatTextView {
     public void setStreak(int streak) {
         this.streak = streak;
 
-        // Fallback to 1 if 0 or negative
         int safeStreak = Math.max(streak, 1);
 
         int[] allColors = new int[]{
-                Color.parseColor("#AFFF33"), // Lime
+                Color.parseColor("#AFFF33"),
                 Color.YELLOW,
                 Color.GREEN,
                 Color.BLUE,
                 Color.WHITE,
-                Color.parseColor("#4B0082"), // Indigo
-                Color.parseColor("#32CD32"), // LimeGreen (OKX)
+                Color.parseColor("#4B0082"),
+                Color.parseColor("#32CD32"),
                 Color.BLACK,
-                Color.parseColor("#FFD700"), // Gold
+                Color.parseColor("#FFD700"),
                 Color.RED,
                 Color.MAGENTA,
                 Color.CYAN
@@ -98,7 +97,7 @@ public class GlowingGradientTextView extends AppCompatTextView {
         System.arraycopy(allColors, 0, colors, 0, useColors);
 
         // Adjust speed — higher streak = faster
-        speedFactor = Math.max(30f - (streak * 2), 6f); // Minimum speedFactor = 6
+        speedFactor = Math.max(30f - (streak * 2), 6f);
 
         if (viewWidth == 0) return;
 

@@ -5,7 +5,6 @@ public class User {
     private boolean disabled;
 
     public User() {
-        // Default constructor required for Firebase or JSON deserialization
     }
 
     public User(String uid, String email, String displayName, boolean disabled) {

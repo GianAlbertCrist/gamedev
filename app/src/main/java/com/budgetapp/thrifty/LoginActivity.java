@@ -157,31 +157,42 @@ public class LoginActivity extends AppCompatActivity {
         ProgressBar progressBar = findViewById(R.id.login_progress);
         Button loginButton = binding.loginButton;
 
-        progressBar.setVisibility(View.VISIBLE);
-        loginButton.setEnabled(false);
+        showLoadingState(progressBar, loginButton, true);
 
         Toast.makeText(LoginActivity.this, "Signing in...", Toast.LENGTH_SHORT).show();
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    progressBar.setVisibility(View.GONE);
-                    loginButton.setEnabled(true);
+                    showLoadingState(progressBar, loginButton, false);
                     if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user == null) {
-                            AppLogger.logError(this, TAG, "No authenticated user found. Redirecting to Login.", new Exception());
-                            startActivity(new Intent(this, LoginActivity.class));
-                            finish();
-                            return;
-                        }
-                        saveUserDataToFirestore(user);
-                        updateUI(user);
+                        handleSuccessfulSignIn();
                     } else {
-                        Toast.makeText(LoginActivity.this,
-                                "Authentication failed: Invalid password or email.",
-                                Toast.LENGTH_SHORT).show();
-                        updateUI(null);
+                        handleFailedSignIn();
                     }
                 });
+    }
+
+    private void showLoadingState(ProgressBar progressBar, Button loginButton, boolean isLoading) {
+        progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        loginButton.setEnabled(!isLoading);
+    }
+
+    private void handleSuccessfulSignIn() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            AppLogger.logError(this, TAG, "No authenticated user found. Redirecting to Login.", new Exception());
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+        saveUserDataToFirestore(user);
+        updateUI(user);
+    }
+
+    private void handleFailedSignIn() {
+        Toast.makeText(LoginActivity.this,
+                "Authentication failed: Invalid password or email.",
+                Toast.LENGTH_SHORT).show();
+        updateUI(null);
     }
 
     private void updateUI(FirebaseUser user) {
@@ -207,12 +218,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                 saveUserDataToSharedPreferences(documentSnapshot);
 
-                                FirestoreManager.loadTransactions(transactions -> {
-                                    TransactionsHandler.transactions.clear();
-                                    TransactionsHandler.transactions.addAll(transactions);
-                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                    finish();
-                                });
+                                launchMainActivity();
                             }
                         } else {
                             AppLogger.log(this, TAG, "User document not found. Treating as regular user.");
@@ -231,64 +237,61 @@ public class LoginActivity extends AppCompatActivity {
         if (documentSnapshot != null && documentSnapshot.exists()) {
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null) {
-                // First check profile/info document
                 db.collection("users")
                         .document(user.getUid())
                         .collection("profile")
                         .document("info")
                         .get()
                         .addOnSuccessListener(profileDoc -> {
-                            String username = profileDoc.getString("username");
-                            String fullname = profileDoc.getString("fullname");
-                            Long avatarIdLong = profileDoc.getLong("avatarId");
+                            String username = getFieldOrFallback(profileDoc, documentSnapshot, "username");
+                            String fullname = getFieldOrFallback(profileDoc, documentSnapshot, "fullname");
+                            Long avatarIdLong = getLongFieldOrFallback(profileDoc, documentSnapshot, "avatarId");
 
-                            // If profile/info doesn't have the data, use root document data
-                            if (username == null) username = documentSnapshot.getString("username");
-                            if (fullname == null) fullname = documentSnapshot.getString("fullname");
-                            if (avatarIdLong == null)
-                                avatarIdLong = documentSnapshot.getLong("avatarId");
+                            saveToSharedPreferences(username, fullname, avatarIdLong);
 
-                            // Save to SharedPreferences
-                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                            SharedPreferences.Editor editor = prefs.edit();
-                            if (username != null) editor.putString("username", username);
-                            if (fullname != null) editor.putString("fullname", fullname);
-                            if (avatarIdLong != null)
-                                editor.putInt("avatarId", avatarIdLong.intValue());
-                            editor.apply();
-
-                            // Continue with MainActivity launch
-                            FirestoreManager.loadTransactions(transactions -> {
-                                TransactionsHandler.transactions.clear();
-                                TransactionsHandler.transactions.addAll(transactions);
-                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                finish();
-                            });
+                            launchMainActivity();
                         })
                         .addOnFailureListener(e -> {
-                            // Fallback to using root document data only
                             String username = documentSnapshot.getString("username");
                             String fullname = documentSnapshot.getString("fullname");
                             Long avatarIdLong = documentSnapshot.getLong("avatarId");
 
-                            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                            SharedPreferences.Editor editor = prefs.edit();
-                            if (username != null) editor.putString("username", username);
-                            if (fullname != null) editor.putString("fullname", fullname);
-                            if (avatarIdLong != null)
-                                editor.putInt("avatarId", avatarIdLong.intValue());
-                            editor.apply();
+                            saveToSharedPreferences(username, fullname, avatarIdLong);
 
-                            // Continue with MainActivity launch
-                            FirestoreManager.loadTransactions(transactions -> {
-                                TransactionsHandler.transactions.clear();
-                                TransactionsHandler.transactions.addAll(transactions);
-                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                finish();
-                            });
+                            launchMainActivity();
                         });
             }
         }
+    }
+
+    private String getFieldOrFallback(DocumentSnapshot primary, DocumentSnapshot fallback, String field) {
+        String value = primary.getString(field);
+        if (value == null) value = fallback.getString(field);
+        return value;
+    }
+
+    private Long getLongFieldOrFallback(DocumentSnapshot primary, DocumentSnapshot fallback, String field) {
+        Long value = primary.getLong(field);
+        if (value == null) value = fallback.getLong(field);
+        return value;
+    }
+
+    private void saveToSharedPreferences(String username, String fullname, Long avatarIdLong) {
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        if (username != null) editor.putString("username", username);
+        if (fullname != null) editor.putString("fullname", fullname);
+        if (avatarIdLong != null) editor.putInt("avatarId", avatarIdLong.intValue());
+        editor.apply();
+    }
+
+    private void launchMainActivity() {
+        FirestoreManager.loadTransactions(transactions -> {
+            TransactionsHandler.transactions.clear();
+            TransactionsHandler.transactions.addAll(transactions);
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+        });
     }
 
     private void saveUserDataToFirestore(FirebaseUser user) {
