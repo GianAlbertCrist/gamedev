@@ -211,7 +211,6 @@ public class AddExpenseFragment extends Fragment {
                 FirestoreManager.saveTransaction(transaction);
             }
 
-            // Add to local list
             TransactionsHandler.transactions.add(transaction);
 
             // Handle recurring notification

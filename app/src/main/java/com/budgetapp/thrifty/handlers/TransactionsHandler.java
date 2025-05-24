@@ -33,25 +33,25 @@ public class TransactionsHandler {
                     }
                     break;
                 case "Days":
-                    now.add(Calendar.DAY_OF_YEAR, -7);  // Filter for the last 7 days
+                    now.add(Calendar.DAY_OF_YEAR, -7);
                     if (t.getParsedDate().after(now.getTime())) {
                         filtered.add(t);
                     }
-                    now.add(Calendar.DAY_OF_YEAR, 7); // Reset to the current date
+                    now.add(Calendar.DAY_OF_YEAR, 7);
                     break;
                 case "Weeks":
-                    now.add(Calendar.WEEK_OF_YEAR, -4);  // Filter for the last 4 weeks
+                    now.add(Calendar.WEEK_OF_YEAR, -4);
                     if (t.getParsedDate().after(now.getTime())) {
                         filtered.add(t);
                     }
-                    now.add(Calendar.WEEK_OF_YEAR, 4); // Reset to the current date
+                    now.add(Calendar.WEEK_OF_YEAR, 4);
                     break;
                 case "Months":
-                    now.add(Calendar.MONTH, -1);  // Filter for the last 1 month
+                    now.add(Calendar.MONTH, -1);
                     if (t.getParsedDate().after(now.getTime())) {
                         filtered.add(t);
                     }
-                    now.add(Calendar.MONTH, 1); // Reset to the current date
+                    now.add(Calendar.MONTH, 1);
                     break;
             }
         }
@@ -120,9 +120,10 @@ public class TransactionsHandler {
                             transaction.getIconID()
                     );
 
-                    // Save the cloned transaction
                     FirestoreManager.saveTransaction(clone);
-                    FirestoreManager.saveNotification(clone);
+                    if (!clone.getRecurring().equals("None")) {
+                        FirestoreManager.saveNotification(clone);
+                    }
 
                     // Create and add a notification
                     String message = createNotificationMessage(transaction);
