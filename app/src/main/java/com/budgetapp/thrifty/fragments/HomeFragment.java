@@ -65,25 +65,18 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_home, container, false);
-        loadingSpinner = rootView.findViewById(R.id.loading_spinner);
 
         ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        loadingSpinner = rootView.findViewById(R.id.loading_spinner);
         recyclerView = rootView.findViewById(R.id.home_transactions);
         emptyMessage = rootView.findViewById(R.id.empty_message);
         userGreet = rootView.findViewById(R.id.user_greet);
         profileIcon = rootView.findViewById(R.id.ic_profile);
         mainContent = rootView.findViewById(R.id.main_content);
-
-        getParentFragmentManager().setFragmentResultListener("notificationsViewed", this, (requestKey, result) -> {
-            boolean notificationsViewed = result.getBoolean("notificationsViewed", false);
-            if (notificationsViewed) {
-                updateNotificationBadge();
-            }
-        });
 
         ImageButton notificationButton = rootView.findViewById(R.id.ic_notifications);
         notificationButton.setOnClickListener(v -> openNotificationsFragment());
@@ -249,24 +242,67 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadUserProfile() {
-        refreshUserGreeting();
-
-        refreshAvatarFromPrefs();
-
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
+            updateAvatarFallback();
+
             db.collection("users").document(user.getUid())
                     .collection("profile").document("info")
                     .get()
                     .addOnSuccessListener(document -> {
                         if (document.exists()) {
-                            updateAvatarFromDocument(document);
+                            updateAvatarFromDocumentIfNewer(document);
                         } else {
                             db.collection("users").document(user.getUid())
                                     .get()
-                                    .addOnSuccessListener(this::updateAvatarFromDocument);
+                                    .addOnSuccessListener(this::updateAvatarFromDocumentIfNewer);
                         }
                     });
+        }
+    }
+
+    private void updateAvatarFromDocumentIfNewer(DocumentSnapshot document) {
+        if (document.exists()) {
+            String firestoreCustomUri = document.getString("customAvatarUri");
+            Long firestoreAvatarId = document.getLong("avatarId");
+
+            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+            String localCustomUri = prefs.getString("custom_avatar_uri", null);
+            int localAvatarId = prefs.getInt("avatarId", 0);
+
+            // Only update if Firestore data is different and not null
+            boolean shouldUpdate = false;
+
+            if (firestoreCustomUri != null && !firestoreCustomUri.equals(localCustomUri)) {
+                shouldUpdate = true;
+            } else if (firestoreCustomUri == null && firestoreAvatarId != null &&
+                    firestoreAvatarId.intValue() != localAvatarId && firestoreAvatarId.intValue() > 0) {
+                shouldUpdate = true;
+            }
+
+            if (shouldUpdate) {
+                updateAvatarFromDocument(document);
+            }
+        }
+    }
+
+    private void updateAvatarFallback() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        String customAvatarUriStr = prefs.getString("custom_avatar_uri", null);
+        int avatarId = prefs.getInt("avatarId", 0);
+
+        if (customAvatarUriStr != null && !customAvatarUriStr.isEmpty()) {
+            Uri customUri = Uri.parse(customAvatarUriStr);
+            Glide.with(this)
+                    .load(customUri)
+                    .circleCrop()
+                    .placeholder(R.drawable.sample_profile)
+                    .error(R.drawable.sample_profile)
+                    .into(profileIcon);
+        } else if (avatarId > 0) {
+            updateAvatarImage(profileIcon, avatarId);
+        } else {
+            profileIcon.setImageResource(R.drawable.sample_profile);
         }
     }
 
@@ -291,7 +327,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-
     private void updateAvatarFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
         if (document.exists()) {
             Long avatarIdLong = document.getLong("avatarId");
@@ -310,6 +345,7 @@ public class HomeFragment extends Fragment {
                         .placeholder(R.drawable.sample_profile)
                         .error(R.drawable.sample_profile)
                         .into(profileIcon);
+
             } else if (avatarIdLong != null) {
                 // Predefined avatar
                 int avatarId = avatarIdLong.intValue();
@@ -322,16 +358,16 @@ public class HomeFragment extends Fragment {
         }
     }
 
-
     @Override
     public void onResume() {
         super.onResume();
         refreshUserGreeting();
+
         refreshAvatarFromPrefs();
+
         loadNotificationCount();
         updateBalances();
         updateNotificationBadge();
-
         handleStreak(requireContext());
 
         if (isPanelOpen) {
@@ -342,6 +378,7 @@ public class HomeFragment extends Fragment {
             loadTransactions();
         }
     }
+
 
     @Override
     public void onDestroyView() {

@@ -415,44 +415,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateAvatarEverywhere(int avatarId, @Nullable String customAvatarUri) {
-
         AppLogger.log(this, TAG, "Updating avatar everywhere - avatarId: " + avatarId + ", customAvatarUri: " + customAvatarUri);
+
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        editor.putInt("avatarId", avatarId);
+        // Only update if there's actually a change
+        int currentAvatarId = prefs.getInt("avatarId", 0);
+        String currentCustomUri = prefs.getString("custom_avatar_uri", null);
 
-        if (customAvatarUri != null) {
-            editor.putString("custom_avatar_uri", customAvatarUri);
-        } else {
-            editor.remove("custom_avatar_uri");
+        boolean hasChanges = false;
+
+        if (avatarId != currentAvatarId) {
+            editor.putInt("avatarId", avatarId);
+            hasChanges = true;
         }
 
-        editor.apply();
-
-        // Then update UI like bottom nav and current fragment avatar as usual
-        updateBottomNavAvatar();
-
-        FragmentManager fm = getSupportFragmentManager();
-        for (Fragment fragment : fm.getFragments()) {
-            if (fragment instanceof HomeFragment || fragment instanceof ProfileFragment) {
-                if (fragment.getView() != null) {
-                    ImageView avatarView = fragment.getView().findViewById(
-                            fragment instanceof HomeFragment ? R.id.ic_profile : R.id.user_avatar);
-                    if (avatarView != null) {
-                        updateAvatarImageView(avatarView, avatarId, customAvatarUri);
-                    }
-                }
+        if ((customAvatarUri == null && currentCustomUri != null) ||
+                (customAvatarUri != null && !customAvatarUri.equals(currentCustomUri))) {
+            if (customAvatarUri != null) {
+                editor.putString("custom_avatar_uri", customAvatarUri);
+            } else {
+                editor.remove("custom_avatar_uri");
             }
+            hasChanges = true;
         }
 
-        // Also notify fragments using Fragment Result API
-        Bundle result = new Bundle();
-        result.putInt("avatarId", avatarId);
-        if (customAvatarUri != null) {
-            result.putString("custom_avatar_uri", customAvatarUri);
+        if (hasChanges) {
+            editor.apply();
+
+            // Update UI
+            updateBottomNavAvatar();
+
+            // Notify fragments
+            Bundle result = new Bundle();
+            result.putInt("avatarId", avatarId);
+            if (customAvatarUri != null) {
+                result.putString("custom_avatar_uri", customAvatarUri);
+            }
+            getSupportFragmentManager().setFragmentResult("profileUpdate", result);
         }
-        fm.setFragmentResult("profileUpdate", result);
     }
 
     private void updateBottomNavAvatar() {
