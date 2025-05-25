@@ -21,6 +21,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -161,17 +162,26 @@ public class FirestoreManager {
         // Build notification data for Firestore
         Map<String, Object> notificationData = new HashMap<>();
         notificationData.put("transactionId", transaction.getId());
-        notificationData.put("lastNotified", new Date());
+        notificationData.put("lastNotified", null); // Will be set when actually notified
         notificationData.put("nextDueDate", transaction.getNextDueDate());
         notificationData.put("recurring", transaction.getRecurring());
-        notificationData.put("timestamp", new Date()); // Add timestamp for ordering
+        notificationData.put("timestamp", new Date());
+        notificationData.put("isNotified", false); // Mark as not yet notified
 
         String type = transaction.getType() + " Reminder";
-        String description = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
-                transaction.getRecurring(),
-                transaction.getType().toLowerCase(),
-                transaction.getRawAmount(),
-                transaction.getDescription());
+        String description;
+        if (transaction.getDescription() == null || transaction.getDescription().isEmpty()) {
+             description = String.format("%s %s reminder: ₱%.2f - is due today.",
+                    transaction.getRecurring(),
+                    transaction.getType().toLowerCase(),
+                    transaction.getRawAmount());
+        } else {
+             description = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
+                    transaction.getRecurring(),
+                    transaction.getType().toLowerCase(),
+                    transaction.getRawAmount(),
+                    transaction.getDescription());
+        }
         String time = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault()).format(new Date());
         int iconID = R.drawable.icnotif_transactions;
 
@@ -180,8 +190,8 @@ public class FirestoreManager {
         notificationData.put("time", time);
         notificationData.put("iconID", iconID);
 
-        // Use a unique document ID (e.g., transactionId + timestamp)
-        String docId = transaction.getId() + "_" + System.currentTimeMillis();
+        // Use a unique document ID based on transaction ID and due date
+        String docId = transaction.getId() + "_" + transaction.getNextDueDate().getTime();
 
         db.collection("users")
                 .document(currentUser.getUid())
@@ -192,14 +202,100 @@ public class FirestoreManager {
                     Log.d(TAG, "Notification saved with next due date: " + transaction.getNextDueDate());
 
                     // Only create in-app notification if due date is today or past
-                    Date currentDate = new Date();  
+                    Date currentDate = new Date();
                     if (transaction.getNextDueDate().compareTo(currentDate) <= 0) {
                         Notification notification = new Notification(type, description, time, transaction.getRecurring(), iconID);
                         NotificationsFragment.notifyNewNotification(notification);
                         sendPushNotification(transaction);
+
+                        // Mark as notified and create next occurrence
+                        markNotificationAsNotified(docId);
+
+                        // Calculate and create next recurring notification
+                        if (!transaction.getRecurring().equals("None")) {
+                            Date nextDueDate = calculateNextDueDate(transaction.getNextDueDate(), transaction.getRecurring());
+                            if (nextDueDate != null) {
+                                // Update the transaction's next due date
+                                updateTransactionNextDueDate(transaction.getId(), nextDueDate);
+                            }
+                        }
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
+    }
+
+    public static void createNextRecurringNotification(DocumentSnapshot currentNotificationDoc, Date newNextDueDate) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        try {
+            // Get data from current notification
+            String transactionId = currentNotificationDoc.getString("transactionId");
+            String type = currentNotificationDoc.getString("type");
+            String description = currentNotificationDoc.getString("description");
+            String recurring = currentNotificationDoc.getString("recurring");
+            Long iconID = currentNotificationDoc.getLong("iconID");
+
+            if (transactionId == null || type == null || description == null ||
+                    recurring == null || iconID == null) {
+                Log.e(TAG, "Missing required fields in current notification");
+                return;
+            }
+
+            // Create new notification data for next occurrence
+            Map<String, Object> newNotificationData = new HashMap<>();
+            newNotificationData.put("transactionId", transactionId);
+            newNotificationData.put("lastNotified", null); // Will be set when actually notified
+            newNotificationData.put("nextDueDate", newNextDueDate);
+            newNotificationData.put("recurring", recurring);
+            newNotificationData.put("timestamp", new Date());
+            newNotificationData.put("type", type);
+            newNotificationData.put("description", description);
+            newNotificationData.put("time", new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault()).format(new Date()));
+            newNotificationData.put("iconID", iconID);
+            newNotificationData.put("isNotified", false); // Mark as not yet notified
+
+            // Create unique document ID for next occurrence
+            String newDocId = transactionId + "_" + newNextDueDate.getTime();
+
+            db.collection("users")
+                    .document(currentUser.getUid())
+                    .collection("notifications")
+                    .document(newDocId)
+                    .set(newNotificationData)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, String.format("Next recurring notification created for transaction %s, due: %s",
+                                transactionId,
+                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(newNextDueDate)));
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error creating next recurring notification", e);
+                    });
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing recurring notification", e);
+        }
+    }
+
+    public static void markNotificationAsNotified(String notificationId) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("isNotified", true);
+        updates.put("lastNotified", new Date());
+
+        db.collection("users")
+                .document(currentUser.getUid())
+                .collection("notifications")
+                .document(notificationId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Notification marked as notified: " + notificationId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error marking notification as notified", e);
+                });
     }
 
     // Send a push notification via FCM
@@ -593,6 +689,54 @@ public class FirestoreManager {
                 .addOnFailureListener(e ->
                         Log.e(TAG, "Error updating next due date", e));
     }
+
+    private static Date calculateNextDueDate(Date currentDueDate, String recurring) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDueDate);
+
+        switch (recurring.toLowerCase()) {
+            case "daily":
+                calendar.add(Calendar.DAY_OF_MONTH, 1);
+                break;
+            case "weekly":
+                calendar.add(Calendar.WEEK_OF_YEAR, 1);
+                break;
+            case "monthly":
+                calendar.add(Calendar.MONTH, 1);
+                break;
+            case "yearly":
+                calendar.add(Calendar.YEAR, 1);
+                break;
+            default:
+                Log.w(TAG, "Unknown recurring type: " + recurring);
+                return null;
+        }
+
+        return calendar.getTime();
+    }
+
+    private static void updateTransactionNextDueDate(String transactionId, Date newNextDueDate) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) return;
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nextDueDate", newNextDueDate);
+
+        db.collection("users")
+                .document(currentUser.getUid())
+                .collection("transactions")
+                .document(transactionId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, String.format("Transaction %s next due date updated to: %s",
+                            transactionId,
+                            new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(newNextDueDate)));
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error updating transaction next due date", e);
+                });
+    }
+
 
 
     public interface OnTransactionsLoadedListener {

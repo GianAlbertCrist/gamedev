@@ -19,6 +19,7 @@ import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.renderers.NotificationAdapter;
 import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.ThemeSync;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -99,6 +100,7 @@ public class NotificationsFragment extends Fragment {
                     notificationList.clear();
                     int processedCount = 0;
                     int filteredCount = 0;
+                    ArrayList<DocumentSnapshot> notificationsToProcess = new ArrayList<>();
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         // Check if this notification should be shown based on due date
@@ -107,6 +109,9 @@ public class NotificationsFragment extends Fragment {
                             if (notification != null) {
                                 notificationList.add(notification);
                                 processedCount++;
+
+                                // Add to list for processing recurring updates
+                                notificationsToProcess.add(doc);
                             }
                         } else {
                             filteredCount++;
@@ -116,6 +121,9 @@ public class NotificationsFragment extends Fragment {
                     Log.d(TAG, String.format("Processed %d due notifications, filtered out %d not-due notifications",
                             processedCount, filteredCount));
 
+                    // Process recurring notifications that are due
+                    processRecurringNotifications(notificationsToProcess, todayStart);
+
                     updateNotificationUI();
                     Log.d(TAG, "Generated " + notificationList.size() + " due notifications");
                 })
@@ -124,8 +132,69 @@ public class NotificationsFragment extends Fragment {
                 });
     }
 
+    private void processRecurringNotifications(ArrayList<DocumentSnapshot> dueNotifications, Date todayStart) {
+        for (DocumentSnapshot doc : dueNotifications) {
+            String recurring = doc.getString("recurring");
+            String transactionId = doc.getString("transactionId");
+            Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
+
+            if (recurring != null && !recurring.equals("None") &&
+                    nextDueTimestamp != null && transactionId != null) {
+
+                Date currentDueDate = nextDueTimestamp.toDate();
+
+                // Calculate the next due date based on recurring type
+                Date newNextDueDate = calculateNextDueDate(currentDueDate, recurring);
+
+                if (newNextDueDate != null) {
+                    Log.d(TAG, String.format("Processing recurring notification for transaction %s. " +
+                                    "Current due: %s, Next due: %s",
+                            transactionId,
+                            new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDueDate),
+                            new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(newNextDueDate)));
+
+                    // Create new notification for next occurrence
+                    FirestoreManager.createNextRecurringNotification(doc, newNextDueDate);
+
+                }
+            }
+        }
+    }
+
+    private Date calculateNextDueDate(Date currentDueDate, String recurring) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDueDate);
+
+        switch (recurring.toLowerCase()) {
+            case "daily":
+                calendar.add(Calendar.DAY_OF_MONTH, 1);
+                break;
+            case "weekly":
+                calendar.add(Calendar.WEEK_OF_YEAR, 1);
+                break;
+            case "monthly":
+                calendar.add(Calendar.MONTH, 1);
+                break;
+            case "yearly":
+                calendar.add(Calendar.YEAR, 1);
+                break;
+            default:
+                Log.w(TAG, "Unknown recurring type: " + recurring);
+                return null;
+        }
+
+        return calendar.getTime();
+    }
+
     private boolean shouldShowNotification(DocumentSnapshot doc, Date todayStart) {
         try {
+            // Check if notification was already notified
+            Boolean isNotified = doc.getBoolean("isNotified");
+            if (isNotified != null && isNotified) {
+                Log.d(TAG, "Notification " + doc.getId() + " already notified, skipping");
+                return false;
+            }
+
             // Get the next due date from the notification document
             Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
             if (nextDueTimestamp == null) {
