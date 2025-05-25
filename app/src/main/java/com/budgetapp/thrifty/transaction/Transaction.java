@@ -257,8 +257,7 @@ public class Transaction implements Parcelable {
 
     private String getCurrentDateTime() {
         Calendar calendar = Calendar.getInstance();
-        Date now = calendar.getTime();
-        this.parsedDate = now != null ? now : new Date();
+        this.parsedDate = calendar.getTime();
         SimpleDateFormat format = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault());
         return format.format(parsedDate);
     }

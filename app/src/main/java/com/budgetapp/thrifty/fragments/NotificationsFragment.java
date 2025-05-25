@@ -1,6 +1,7 @@
 package com.budgetapp.thrifty.fragments;
 
-import android.annotation.SuppressLint;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,7 +24,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 
@@ -53,7 +53,6 @@ public class NotificationsFragment extends Fragment {
         });
 
         isViewCreated = true;
-
         loadNotificationsFromFirestore();
 
         return view;
@@ -85,7 +84,6 @@ public class NotificationsFragment extends Fragment {
                     }
 
                     notificationList.clear();
-
                     int processedCount = 0;
                     int failedCount = 0;
 
@@ -117,7 +115,11 @@ public class NotificationsFragment extends Fragment {
             String description = doc.getString("description");
             String recurring = doc.getString("recurring");
             Timestamp timestamp = doc.getTimestamp("timestamp");
-            String time = timestamp != null ? timestamp.toDate().toString() : "Unknown time";
+            String time = "Unknown time";
+            if (timestamp != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("h:mm a - EEE, MMMM d, yyyy", Locale.getDefault());
+                time = sdf.format(timestamp.toDate());
+            }
             Long iconID = doc.getLong("iconID");
 
             if (type != null && description != null && recurring != null && iconID != null) {

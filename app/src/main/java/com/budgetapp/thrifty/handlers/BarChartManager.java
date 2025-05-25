@@ -88,22 +88,24 @@ public class BarChartManager {
         ArrayList<String> xLabels = getLastSevenDays();
         float[] dailyTotals = new float[7];
 
-        // Get current date info
-        Calendar now = Calendar.getInstance();
+        // Get the start of the current week (Monday)
+        Calendar weekStart = Calendar.getInstance();
+        int dayOfWeek = weekStart.get(Calendar.DAY_OF_WEEK);
+        int daysToSubtract = dayOfWeek - Calendar.MONDAY;
+        if (daysToSubtract < 0) daysToSubtract += 7;
+        weekStart.add(Calendar.DAY_OF_YEAR, -daysToSubtract);
+        weekStart.set(Calendar.HOUR_OF_DAY, 0);
+        weekStart.set(Calendar.MINUTE, 0);
+        weekStart.set(Calendar.SECOND, 0);
+        weekStart.set(Calendar.MILLISECOND, 0);
 
-        // Debug current date
-        Log.d(TAG, "Current date: " + now.getTime().toString());
-
-        // Get current week's dates for comparison
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY); // Start from Monday
+        // Create array of week dates for comparison
         ArrayList<Calendar> weekDates = new ArrayList<>();
-
         for (int i = 0; i < 7; i++) {
-            Calendar day = (Calendar) calendar.clone();
+            Calendar day = (Calendar) weekStart.clone();
+            day.add(Calendar.DAY_OF_YEAR, i);
             weekDates.add(day);
-            Log.d(TAG, "Week day " + i + ": " + day.getTime().toString());
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
+            Log.d(TAG, "Week day " + i + ": " + day.getTime());
         }
 
         // Debug transactions count

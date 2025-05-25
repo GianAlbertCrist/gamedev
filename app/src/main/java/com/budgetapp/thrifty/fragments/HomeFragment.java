@@ -391,7 +391,7 @@ public class HomeFragment extends Fragment {
 
 //    FOR TESTING
 //    private void handleStreak(Context context) {
-//        int currentStreak = 150;
+//        int currentStreak = 1500;
 //
 //        SharedPreferences prefs = context.getSharedPreferences("streak_data", Context.MODE_PRIVATE);
 //        prefs.edit()
