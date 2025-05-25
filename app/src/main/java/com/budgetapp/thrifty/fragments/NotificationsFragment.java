@@ -1,6 +1,8 @@
 package com.budgetapp.thrifty.fragments;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,7 +25,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-
 
 import java.util.ArrayList;
 
@@ -53,7 +54,7 @@ public class NotificationsFragment extends Fragment {
         });
 
         isViewCreated = true;
-        loadNotificationsFromFirestore();
+        loadDueNotificationsFromFirestore();
 
         return view;
     }
@@ -64,14 +65,26 @@ public class NotificationsFragment extends Fragment {
         isViewCreated = false;
     }
 
-    private void loadNotificationsFromFirestore() {
+    private void loadDueNotificationsFromFirestore() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             Log.e(TAG, "Current user is null, cannot load notifications");
             return;
         }
 
-        Log.d(TAG, "Starting to load notifications from Firestore");
+        Log.d(TAG, "Starting to load due notifications from Firestore");
+
+        // Get current date for comparison
+        Date currentDate = new Date();
+        Calendar currentCal = Calendar.getInstance();
+        currentCal.setTime(currentDate);
+        // Reset time to start of day for accurate comparison
+        currentCal.set(Calendar.HOUR_OF_DAY, 0);
+        currentCal.set(Calendar.MINUTE, 0);
+        currentCal.set(Calendar.SECOND, 0);
+        currentCal.set(Calendar.MILLISECOND, 0);
+        Date todayStart = currentCal.getTime();
+
         FirebaseFirestore.getInstance().collection("users")
                 .document(currentUser.getUid())
                 .collection("notifications")
@@ -85,27 +98,67 @@ public class NotificationsFragment extends Fragment {
 
                     notificationList.clear();
                     int processedCount = 0;
-                    int failedCount = 0;
+                    int filteredCount = 0;
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        Notification notification = parseNotificationFromDocument(doc);
-                        if (notification != null) {
-                            notificationList.add(notification);
-                            processedCount++;
+                        // Check if this notification should be shown based on due date
+                        if (shouldShowNotification(doc, todayStart)) {
+                            Notification notification = parseNotificationFromDocument(doc);
+                            if (notification != null) {
+                                notificationList.add(notification);
+                                processedCount++;
+                            }
                         } else {
-                            failedCount++;
+                            filteredCount++;
                         }
                     }
 
-                    Log.d(TAG, String.format("Processed %d notifications, %d failed parsing",
-                            processedCount, failedCount));
+                    Log.d(TAG, String.format("Processed %d due notifications, filtered out %d not-due notifications",
+                            processedCount, filteredCount));
 
                     updateNotificationUI();
-                    Log.d(TAG, "Generated " + notificationList.size() + " notifications from transactions");
+                    Log.d(TAG, "Generated " + notificationList.size() + " due notifications");
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading transactions for notifications", e);
+                    Log.e(TAG, "Error loading notifications", e);
                 });
+    }
+
+    private boolean shouldShowNotification(DocumentSnapshot doc, Date todayStart) {
+        try {
+            // Get the next due date from the notification document
+            Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
+            if (nextDueTimestamp == null) {
+                Log.w(TAG, "No nextDueDate found for notification: " + doc.getId());
+                return false;
+            }
+
+            Date nextDueDate = nextDueTimestamp.toDate();
+
+            // Reset time to start of day for accurate comparison
+            Calendar dueCal = Calendar.getInstance();
+            dueCal.setTime(nextDueDate);
+            dueCal.set(Calendar.HOUR_OF_DAY, 0);
+            dueCal.set(Calendar.MINUTE, 0);
+            dueCal.set(Calendar.SECOND, 0);
+            dueCal.set(Calendar.MILLISECOND, 0);
+            Date dueStart = dueCal.getTime();
+
+            // Show notification if due date is today or in the past (overdue)
+            boolean isDue = dueStart.compareTo(todayStart) <= 0;
+
+            Log.d(TAG, String.format("Notification %s - Due: %s, Today: %s, Should show: %s",
+                    doc.getId(),
+                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(dueStart),
+                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(todayStart),
+                    isDue));
+
+            return isDue;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking if notification should be shown: " + doc.getId(), e);
+            return false;
+        }
     }
 
     private Notification parseNotificationFromDocument(DocumentSnapshot doc) {
@@ -134,7 +187,6 @@ public class NotificationsFragment extends Fragment {
             Log.w(TAG, "Missing required fields in notification document: " + doc.getId());
         } catch (Exception e) {
             Log.e(TAG, "Error parsing notification document: " + doc.getId(), e);
-            Log.e(TAG, "Exception details: ", e);
         }
         return null;
     }

@@ -152,12 +152,19 @@ public class FirestoreManager {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
 
+        // Only create notification if transaction has a valid next due date
+        if (transaction.getNextDueDate() == null) {
+            Log.w(TAG, "No next due date for transaction, skipping notification creation");
+            return;
+        }
+
         // Build notification data for Firestore
         Map<String, Object> notificationData = new HashMap<>();
         notificationData.put("transactionId", transaction.getId());
         notificationData.put("lastNotified", new Date());
         notificationData.put("nextDueDate", transaction.getNextDueDate());
         notificationData.put("recurring", transaction.getRecurring());
+        notificationData.put("timestamp", new Date()); // Add timestamp for ordering
 
         String type = transaction.getType() + " Reminder";
         String description = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
@@ -173,9 +180,6 @@ public class FirestoreManager {
         notificationData.put("time", time);
         notificationData.put("iconID", iconID);
 
-        Notification notification = new Notification(type, description, time, transaction.getRecurring(), iconID);
-        NotificationsFragment.notifyNewNotification(notification);
-
         // Use a unique document ID (e.g., transactionId + timestamp)
         String docId = transaction.getId() + "_" + System.currentTimeMillis();
 
@@ -185,8 +189,15 @@ public class FirestoreManager {
                 .document(docId)
                 .set(notificationData)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Notification saved");
-                    sendPushNotification(transaction);
+                    Log.d(TAG, "Notification saved with next due date: " + transaction.getNextDueDate());
+
+                    // Only create in-app notification if due date is today or past
+                    Date currentDate = new Date();  
+                    if (transaction.getNextDueDate().compareTo(currentDate) <= 0) {
+                        Notification notification = new Notification(type, description, time, transaction.getRecurring(), iconID);
+                        NotificationsFragment.notifyNewNotification(notification);
+                        sendPushNotification(transaction);
+                    }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
     }
