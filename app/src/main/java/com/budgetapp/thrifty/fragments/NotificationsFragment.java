@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty.fragments;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -56,15 +57,27 @@ public class NotificationsFragment extends Fragment {
 
         isViewCreated = true;
         loadDueNotificationsFromFirestore();
+        FirestoreManager.markAllDueNotificationsAsViewed();
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        FirestoreManager.markAllDueNotificationsAsViewed();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         isViewCreated = false;
+
+        Bundle result = new Bundle();
+        result.putBoolean("notificationsViewed", true);
+        getParentFragmentManager().setFragmentResult("notificationsViewed", result);
     }
+
 
     private void loadDueNotificationsFromFirestore() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -126,6 +139,9 @@ public class NotificationsFragment extends Fragment {
 
                     updateNotificationUI();
                     Log.d(TAG, "Generated " + notificationList.size() + " due notifications");
+
+                    // Mark all displayed notifications as viewed
+                    FirestoreManager.markAllDueNotificationsAsViewed();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading notifications", e);
@@ -188,45 +204,22 @@ public class NotificationsFragment extends Fragment {
 
     private boolean shouldShowNotification(DocumentSnapshot doc, Date todayStart) {
         try {
-            // Check if notification was already notified
-            Boolean isNotified = doc.getBoolean("isNotified");
-            if (isNotified != null && isNotified) {
-                Log.d(TAG, "Notification " + doc.getId() + " already notified, skipping");
-                return false;
+            String dueDateStr = doc.getString("dueDate");
+            if (dueDateStr == null || dueDateStr.isEmpty()) {
+                return true; // Show notifications without a due date
             }
 
-            // Get the next due date from the notification document
-            Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
-            if (nextDueTimestamp == null) {
-                Log.w(TAG, "No nextDueDate found for notification: " + doc.getId());
-                return false;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date dueDate = sdf.parse(dueDateStr);
+
+            if (dueDate != null) {
+                return !dueDate.before(todayStart); // Show if due date is today or in the future
+            } else {
+                return true; // Show if there's an issue parsing the date
             }
-
-            Date nextDueDate = nextDueTimestamp.toDate();
-
-            // Reset time to start of day for accurate comparison
-            Calendar dueCal = Calendar.getInstance();
-            dueCal.setTime(nextDueDate);
-            dueCal.set(Calendar.HOUR_OF_DAY, 0);
-            dueCal.set(Calendar.MINUTE, 0);
-            dueCal.set(Calendar.SECOND, 0);
-            dueCal.set(Calendar.MILLISECOND, 0);
-            Date dueStart = dueCal.getTime();
-
-            // Show notification if due date is today or in the past (overdue)
-            boolean isDue = dueStart.compareTo(todayStart) <= 0;
-
-            Log.d(TAG, String.format("Notification %s - Due: %s, Today: %s, Should show: %s",
-                    doc.getId(),
-                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(dueStart),
-                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(todayStart),
-                    isDue));
-
-            return isDue;
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error checking if notification should be shown: " + doc.getId(), e);
-            return false;
+        } catch (ParseException e) {
+            Log.e(TAG, "Error parsing due date", e);
+            return true; // Show if there's an error
         }
     }
 

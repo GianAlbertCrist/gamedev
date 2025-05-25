@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import com.budgetapp.thrifty.transaction.AddExpenseFragment;
 import com.budgetapp.thrifty.transaction.AddIncomeFragment;
 import com.budgetapp.thrifty.utils.AppLogger;
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.android.material.tabs.TabLayout;
@@ -104,6 +105,14 @@ public class AddEntryActivity extends AppCompatActivity {
             }
         });
 
+        getSupportFragmentManager().setFragmentResultListener("notificationsViewed", this, (requestKey, result) -> {
+            boolean notificationsViewed = result.getBoolean("notificationsViewed", false);
+            if (notificationsViewed) {
+                // Refresh the notification badge count
+                loadNotificationCount();
+            }
+        });
+
         // Setup touch outside to dismiss keyboard
         setupTouchOutsideToDismissKeyboard();
 
@@ -129,6 +138,7 @@ public class AddEntryActivity extends AppCompatActivity {
                         getColor(tab.getPosition() == 0 ? R.color.red : R.color.primary_color),
                         getColor(color)
                 );
+
             }
 
             @Override
@@ -140,36 +150,24 @@ public class AddEntryActivity extends AppCompatActivity {
     }
 
     private void loadNotificationCount() {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user != null) {
-            notificationsListener = db.collection("users").document(user.getUid())
-                    .collection("notifications")
-                    .whereEqualTo("read", false)
-                    .addSnapshotListener((value, error) -> {
-                        if (error != null) {
-                            AppLogger.logError(this, TAG, "Error loading notifications", error);
-                            return;
-                        }
-
-                        if (value != null && !value.isEmpty()) {
-                            int unreadCount = value.size();
-                            updateNotificationBadge(unreadCount);
-                        } else {
-                            updateNotificationBadge(0);
-                        }
-                    });
-        }
+        updateNotificationBadge();
     }
 
-    private void updateNotificationBadge(int count) {
-        if (notificationBadge != null) {
-            if (count > 0) {
-                notificationBadge.setVisibility(View.VISIBLE);
-                notificationBadge.setText(String.valueOf(count > 99 ? "99+" : count));
-            } else {
-                notificationBadge.setVisibility(View.GONE);
-            }
-        }
+    private void updateNotificationBadge() {
+        FirestoreManager.getDueNotificationCount(count -> {
+            runOnUiThread(() -> {
+                if (notificationBadge != null) {
+                    if (count > 0) {
+                        notificationBadge.setText(String.valueOf(count));
+                        notificationBadge.setVisibility(View.VISIBLE);
+                        Log.d(TAG, "Showing notification badge with count: " + count);
+                    } else {
+                        notificationBadge.setVisibility(View.GONE);
+                        Log.d(TAG, "Hiding notification badge - no due notifications");
+                    }
+                }
+            });
+        });
     }
 
     @Override

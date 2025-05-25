@@ -57,6 +57,9 @@ public class HomeFragment extends Fragment {
     private ConstraintLayout mainContent;
     private boolean isPanelOpen = false;
 
+    public HomeFragment() {
+    }
+
 
     @SuppressLint("CutPasteId")
     @Override
@@ -73,8 +76,14 @@ public class HomeFragment extends Fragment {
         emptyMessage = rootView.findViewById(R.id.empty_message);
         userGreet = rootView.findViewById(R.id.user_greet);
         profileIcon = rootView.findViewById(R.id.ic_profile);
-        TextView notificationBadge = rootView.findViewById(R.id.notification_badge);
         mainContent = rootView.findViewById(R.id.main_content);
+
+        getParentFragmentManager().setFragmentResultListener("notificationsViewed", this, (requestKey, result) -> {
+            boolean notificationsViewed = result.getBoolean("notificationsViewed", false);
+            if (notificationsViewed) {
+                updateNotificationBadge();
+            }
+        });
 
         ImageButton notificationButton = rootView.findViewById(R.id.ic_notifications);
         notificationButton.setOnClickListener(v -> openNotificationsFragment());

@@ -32,6 +32,7 @@ public class FirestoreManager {
     private static final String TAG = "FirestoreManager";
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private static final FirebaseAuth auth = FirebaseAuth.getInstance();
+    int markedCount;
 
     // Save user profile data
     public static void saveUserProfile(String displayName, String email, int avatarId) {
@@ -347,10 +348,11 @@ public class FirestoreManager {
                 );
     }
 
-    public static void getDueNotificationCount(OnNotificationCountListener listener) {
+    public static void getDueNotificationCount(NotificationCountCallback callback) {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-            listener.onCountReceived(0);
+            Log.w(TAG, "Current user is null, cannot get notification count");
+            callback.onCountReceived(0);
             return;
         }
 
@@ -370,25 +372,28 @@ public class FirestoreManager {
                 .collection("notifications")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    int dueCount = 0;
-
+                    int count = 0;
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         if (shouldShowNotificationForBadge(doc, todayStart)) {
-                            dueCount++;
+                            count++;
                         }
                     }
-
-                    Log.d(TAG, "Due notifications count for badge: " + dueCount);
-                    listener.onCountReceived(dueCount);
+                    callback.onCountReceived(count);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error getting notification count", e);
-                    listener.onCountReceived(0);
+                    callback.onCountReceived(-1); // Indicate an error
                 });
     }
 
     private static boolean shouldShowNotificationForBadge(DocumentSnapshot doc, Date todayStart) {
         try {
+            // Check if notification was already viewed
+            Boolean isViewed = doc.getBoolean("isViewed");
+            if (isViewed != null && isViewed) {
+                return false;
+            }
+
             // Get the next due date from the notification document
             com.google.firebase.Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
             if (nextDueTimestamp == null) {
@@ -429,7 +434,59 @@ public class FirestoreManager {
         }
     }
 
-    public interface OnNotificationCountListener {
+    public static void markAllDueNotificationsAsViewed() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            Log.w(TAG, "Current user is null, cannot mark notifications as viewed");
+            return;
+        }
+
+        // Get current date for comparison
+        Date currentDate = new Date();
+        Calendar currentCal = Calendar.getInstance();
+        currentCal.setTime(currentDate);
+        // Reset time to start of day for accurate comparison
+        currentCal.set(Calendar.HOUR_OF_DAY, 0);
+        currentCal.set(Calendar.MINUTE, 0);
+        currentCal.set(Calendar.SECOND, 0);
+        currentCal.set(Calendar.MILLISECOND, 0);
+        Date todayStart = currentCal.getTime();
+
+        db.collection("users")
+                .document(currentUser.getUid())
+                .collection("notifications")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    WriteBatch batch = db.batch();
+                    int markedCount = 0;
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        if (shouldShowNotificationForBadge(doc, todayStart)) {
+                            // Mark this notification as viewed
+                            Map<String, Object> updates = new HashMap<>();
+                            updates.put("isViewed", true);
+                            updates.put("viewedAt", new Date());
+
+                            batch.update(doc.getReference(), updates);
+                            markedCount++;
+                        }
+                    }
+
+                    if (markedCount > 0) {
+                        batch.commit()
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error marking notifications as viewed", e);
+                                });
+                    } else {
+                        Log.d(TAG, "No due notifications to mark as viewed");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting notifications to mark as viewed", e);
+                });
+    }
+
+    public interface NotificationCountCallback {
         void onCountReceived(int count);
     }
 
