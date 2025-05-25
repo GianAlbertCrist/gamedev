@@ -3,6 +3,7 @@ package com.budgetapp.thrifty.model;
 public class Notification {
     private String type, description, time, recurring;
     private int iconID;
+    private boolean isNotified;
 
     public Notification(String type, String description, String time, String recurring, int iconID) {
         this.type = type;
@@ -33,10 +34,6 @@ public class Notification {
         return time;
     }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
-
     public String getRecurring() {
         return recurring;
     }
@@ -45,12 +42,15 @@ public class Notification {
         this.recurring = recurring;
     }
 
-    public int getIconID() {
-        return iconID;
+    public boolean isNotified() {
+        return isNotified;
     }
 
-    public void setIconID(int iconID) {
-        this.iconID = iconID;
+    public void setNotified(boolean notified) {
+        this.isNotified = notified;
+    }
+    public int getIconID() {
+        return iconID;
     }
 
     @Override

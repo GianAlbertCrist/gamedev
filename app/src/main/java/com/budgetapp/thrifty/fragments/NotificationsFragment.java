@@ -32,6 +32,7 @@ import java.util.ArrayList;
 public class NotificationsFragment extends Fragment {
     private static final String TAG = "NotificationsFragment";
     private ArrayList<Notification> notificationList = new ArrayList<>();
+    private final ArrayList<DocumentSnapshot> notificationsToMarkRead = new ArrayList<>();
     private RecyclerView recyclerView;
     private NotificationAdapter adapter;
     private TextView noNotificationsText;
@@ -57,13 +58,72 @@ public class NotificationsFragment extends Fragment {
         isViewCreated = true;
         loadDueNotificationsFromFirestore();
 
+        requireActivity()
+                .getSupportFragmentManager()
+                .setFragmentResult("notificationsViewed", new Bundle());
+
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (isViewCreated) {
+            loadDueNotificationsFromFirestore();
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         isViewCreated = false;
+
+        for (DocumentSnapshot doc : notificationsToMarkRead) {
+            markNotificationAsRead(doc);
+        }
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            FirebaseFirestore.getInstance().collection("users")
+                    .document(user.getUid())
+                    .collection("notifications")
+                    .whereEqualTo("isNotified", false)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        int count = 0;
+                        Date today = resetToStartOfDay(new Date());
+
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            Timestamp nextDue = doc.getTimestamp("nextDueDate");
+                            if (nextDue != null && !nextDue.toDate().after(today)) {
+                                count++;
+                            }
+                        }
+
+                        Bundle result = new Bundle();
+                        result.putInt("unreadCount", count);
+                        requireActivity()
+                                .getSupportFragmentManager()
+                                .setFragmentResult("notificationsViewed", result);
+                    })
+                    .addOnFailureListener(e -> {
+                        // Optional fallback in case of failure
+                        Log.e(TAG, "Failed to fetch updated unread count", e);
+                        requireActivity()
+                                .getSupportFragmentManager()
+                                .setFragmentResult("notificationsViewed", new Bundle());
+                    });
+        }
+    }
+
+    private Date resetToStartOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 
     private void loadDueNotificationsFromFirestore() {
@@ -75,11 +135,9 @@ public class NotificationsFragment extends Fragment {
 
         Log.d(TAG, "Starting to load due notifications from Firestore");
 
-        // Get current date for comparison
         Date currentDate = new Date();
         Calendar currentCal = Calendar.getInstance();
         currentCal.setTime(currentDate);
-        // Reset time to start of day for accurate comparison
         currentCal.set(Calendar.HOUR_OF_DAY, 0);
         currentCal.set(Calendar.MINUTE, 0);
         currentCal.set(Calendar.SECOND, 0);
@@ -98,20 +156,18 @@ public class NotificationsFragment extends Fragment {
                     }
 
                     notificationList.clear();
+                    notificationsToMarkRead.clear(); // 🛠 Clear before use
+
                     int processedCount = 0;
                     int filteredCount = 0;
-                    ArrayList<DocumentSnapshot> notificationsToProcess = new ArrayList<>();
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        // Check if this notification should be shown based on due date
                         if (shouldShowNotification(doc, todayStart)) {
                             Notification notification = parseNotificationFromDocument(doc);
                             if (notification != null) {
                                 notificationList.add(notification);
                                 processedCount++;
-
-                                // Add to list for processing recurring updates
-                                notificationsToProcess.add(doc);
+                                notificationsToMarkRead.add(doc); // ✅ Save for marking later
                             }
                         } else {
                             filteredCount++;
@@ -121,15 +177,20 @@ public class NotificationsFragment extends Fragment {
                     Log.d(TAG, String.format("Processed %d due notifications, filtered out %d not-due notifications",
                             processedCount, filteredCount));
 
-                    // Process recurring notifications that are due
-                    processRecurringNotifications(notificationsToProcess, todayStart);
-
+                    processRecurringNotifications(notificationsToMarkRead, todayStart);
                     updateNotificationUI();
+
                     Log.d(TAG, "Generated " + notificationList.size() + " due notifications");
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading notifications", e);
                 });
+    }
+
+    private void markNotificationAsRead(DocumentSnapshot doc) {
+        doc.getReference().update("isNotified", true)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Notification marked as read: " + doc.getId()))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to mark notification as read: " + doc.getId(), e));
     }
 
     private void processRecurringNotifications(ArrayList<DocumentSnapshot> dueNotifications, Date todayStart) {
@@ -244,13 +305,18 @@ public class NotificationsFragment extends Fragment {
             Long iconID = doc.getLong("iconID");
 
             if (type != null && description != null && recurring != null && iconID != null) {
-                return new Notification(
+                Notification notification = new Notification(
                         type,
                         description,
                         time,
                         recurring,
                         iconID.intValue()
                 );
+                Boolean notified = doc.getBoolean("isNotified");
+                if (notified != null) {
+                    notification.setNotified(notified);
+                }
+                return notification;
             }
 
             Log.w(TAG, "Missing required fields in notification document: " + doc.getId());

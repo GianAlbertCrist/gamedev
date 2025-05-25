@@ -46,6 +46,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
         holder.notificationRecurring.setText(notification.getRecurring());
 
+        if (notification.isNotified()) {
+            holder.itemView.setAlpha(0.5f);
+        } else {
+            holder.itemView.setAlpha(1.0f);
+        }
+
         if ("Income Reminder".equalsIgnoreCase(notification.getType())) {
             holder.notificationIcon.setImageResource(R.drawable.ic_income);
         } else if ("Expense Reminder".equalsIgnoreCase(notification.getType())) {
