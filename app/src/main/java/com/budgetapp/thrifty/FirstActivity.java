@@ -9,11 +9,15 @@ import com.budgetapp.thrifty.utils.ThemeSync;
 public class FirstActivity extends AppCompatActivity {
 
     private Button registerButton, signInButton;
-    private static final String TAG = "FirstActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (!isTaskRoot()) {
+            finish();
+            return;
+        }
 
         setContentView(R.layout.activity_first);
         ThemeSync.syncNotificationBarColor(getWindow(), this);
@@ -24,11 +28,13 @@ public class FirstActivity extends AppCompatActivity {
         signInButton.setOnClickListener(v -> {
             Intent intent = new Intent(FirstActivity.this, LoginActivity.class);
             startActivity(intent);
+            finish();
         });
 
         registerButton.setOnClickListener(v -> {
             Intent intent = new Intent(FirstActivity.this, RegistrationActivity.class);
             startActivity(intent);
+            finish();
         });
     }
 
