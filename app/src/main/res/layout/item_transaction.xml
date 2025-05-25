@@ -31,6 +31,7 @@
             <TextView
                 android:id="@+id/transaction_category"
                 android:layout_width="wrap_content"
+                android:fontFamily="@font/poppins"
                 android:layout_height="wrap_content"
                 android:text="Category"
                 android:layout_marginTop="0dp"
@@ -50,6 +51,7 @@
                 android:layout_height="wrap_content"
                 android:text="Description"
                 android:textSize="14sp"
+                android:fontFamily="@font/poppins"
                 android:textColor="@android:color/darker_gray"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -77,6 +79,7 @@
             <TextView
                 android:id="@+id/transaction_amount"
                 android:layout_width="wrap_content"
+                android:fontFamily="@font/poppins"
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:text="amount"
@@ -88,6 +91,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="time"
+            android:fontFamily="@font/poppins"
             android:textColor="@color/black"
             android:textSize="15sp" />
     </LinearLayout>

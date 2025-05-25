@@ -120,7 +120,11 @@ public class DeleteAccountFragment extends DialogFragment {
                                     user.delete().addOnCompleteListener(deleteTask -> {
                                         if (deleteTask.isSuccessful()) {
                                             SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", requireActivity().MODE_PRIVATE);
-                                            prefs.edit().clear().apply();
+                                            prefs.edit()
+                                                    .clear()
+                                                    .putInt("streak", 1)
+                                                    .putLong("last_login", System.currentTimeMillis())
+                                                    .apply();
 
                                             Toast.makeText(requireContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
 

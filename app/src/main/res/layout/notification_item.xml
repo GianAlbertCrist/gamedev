@@ -28,8 +28,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:fontFamily="@font/poppins"
             android:text="Transactions"
-            android:textColor="@color/black"
+            android:textColor="@color/edit_profile"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/notificationIcon"
@@ -50,10 +51,11 @@
         <TextView
             android:id="@+id/notificationDescription"
             android:layout_width="wrap_content"
+            android:fontFamily="@font/poppins"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="A new transaction has been registered"
-            android:textColor="@color/black"
+            android:textColor="@color/edit_profile"
             android:textSize="14sp" />
         </HorizontalScrollView>
 
@@ -63,7 +65,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Daily"
-            android:textColor="@color/black"
+            android:textColor="@color/edit_profile"
+            android:fontFamily="@font/poppins"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/notificationDescriptionContainer" />
@@ -74,7 +77,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Date"
-            android:textColor="@color/black"
+            android:fontFamily="@font/poppins"
+            android:textColor="@color/edit_profile"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.986"

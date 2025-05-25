@@ -36,20 +36,16 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         Notification notification = notificationList.get(position);
 
-        // Set notification title
         holder.notificationTitle.setText(notification.getType());
 
-        // Format amount in description if it contains a currency value
         String description = notification.getDescription();
         String formattedDescription = formatDescriptionAmount(description);
         holder.notificationDescription.setText(formattedDescription);
 
         holder.notificationTime.setText(notification.getTime());
 
-        // Set the recurring type (Daily, Weekly, etc.)
         holder.notificationRecurring.setText(notification.getRecurring());
 
-        // Set the appropriate icon based on transaction type (Income/Expense)
         if ("Income Reminder".equalsIgnoreCase(notification.getType())) {
             holder.notificationIcon.setImageResource(R.drawable.ic_income);
         } else if ("Expense Reminder".equalsIgnoreCase(notification.getType())) {
@@ -61,7 +57,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     private String formatDescriptionAmount(String description) {
         try {
-
             Pattern pattern = Pattern.compile("(.*\\|\\s*₱)(\\d+(\\.\\d+)?)(.*)");
             Matcher matcher = pattern.matcher(description);
 
@@ -74,13 +69,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 double amount = Double.parseDouble(amountStr);
                 String formattedAmount = FormatUtils.formatAmount(amount, true);
 
-                return prefix + formattedAmount + suffix;
+                String result = prefix + formattedAmount + suffix;
+                return result.replaceAll("\\{\\}", "").trim();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error formatting notification description: " + e.getMessage());
         }
 
-        return description;
+        return description.replaceAll("\\{\\}", "").trim();
     }
 
     @Override

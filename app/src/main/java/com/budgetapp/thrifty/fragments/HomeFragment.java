@@ -1,7 +1,7 @@
 package com.budgetapp.thrifty.fragments;
 
 import com.bumptech.glide.Glide;
-import android.animation.ObjectAnimator;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -26,7 +25,6 @@ import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
 import com.budgetapp.thrifty.renderers.TransactionAdapter;
 import com.budgetapp.thrifty.transaction.Transaction;
-import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FormatUtils;
 import com.budgetapp.thrifty.utils.GlowingGradientTextView;
 import com.budgetapp.thrifty.utils.NotepadManager;
@@ -37,6 +35,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,11 +61,9 @@ public class HomeFragment extends Fragment {
 
         ThemeSync.syncNotificationBarColor(getActivity().getWindow(), this.getContext());
 
-        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Initialize UI components
         recyclerView = rootView.findViewById(R.id.home_transactions);
         emptyMessage = rootView.findViewById(R.id.empty_message);
         userGreet = rootView.findViewById(R.id.user_greet);
@@ -78,7 +75,6 @@ public class HomeFragment extends Fragment {
         notificationButton.setOnClickListener(v -> openNotificationsFragment());
 
         ImageButton profileButton = rootView.findViewById(R.id.ic_profile);
-
         profileButton.setOnClickListener(v -> {
             Fragment currentFragment = requireActivity().getSupportFragmentManager().findFragmentById(R.id.frame_layout);
             if (!(currentFragment instanceof ProfileFragment)) {
@@ -111,6 +107,10 @@ public class HomeFragment extends Fragment {
             if (userGreet != null && username != null) {
                 userGreet.setText("Hello, " + username + "!");
             }
+        });
+
+        getParentFragmentManager().setFragmentResultListener("notificationsViewed", this, (requestKey, result) -> {
+            loadNotificationCount(); // Refresh badge after notifications are read
         });
 
         return rootView;
@@ -187,7 +187,6 @@ public class HomeFragment extends Fragment {
     }
 
     public void refreshUserGreeting() {
-        // First try to get from SharedPreferences
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs",
                 requireActivity().MODE_PRIVATE);
         String username = prefs.getString("username", null);
@@ -195,7 +194,6 @@ public class HomeFragment extends Fragment {
         if (username != null) {
             userGreet.setText("Hello, " + username + "!");
         } else {
-            // If not in SharedPreferences, try Firebase Auth
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null && user.getDisplayName() != null) {
                 String[] userData = user.getDisplayName().split("\\|");
@@ -206,13 +204,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadUserProfile() {
-        // Load username greeting
         refreshUserGreeting();
 
-        // Load avatar from cache and display
         refreshAvatarFromPrefs();
 
-        // Try to fetch the latest avatarId from Firestore
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             db.collection("users").document(user.getUid())
@@ -222,7 +217,6 @@ public class HomeFragment extends Fragment {
                         if (document.exists()) {
                             updateAvatarFromDocument(document);
                         } else {
-                            // Fallback to root user document
                             db.collection("users").document(user.getUid())
                                     .get()
                                     .addOnSuccessListener(this::updateAvatarFromDocument);
@@ -238,7 +232,6 @@ public class HomeFragment extends Fragment {
 
 
         if (customAvatarUriStr != null && !customAvatarUriStr.isEmpty()) {
-            // Load custom avatar
             Uri customUri = Uri.parse(customAvatarUriStr);
             Glide.with(this)
                     .load(customUri)
@@ -247,10 +240,8 @@ public class HomeFragment extends Fragment {
                     .error(R.drawable.sample_profile)
                     .into(profileIcon);
         } else if (avatarId > 0) {
-            // Load predefined avatar
             updateAvatarImage(profileIcon, avatarId);
         } else {
-            // Fallback to default avatar
             profileIcon.setImageResource(R.drawable.sample_profile);
         }
     }
@@ -264,7 +255,6 @@ public class HomeFragment extends Fragment {
             SharedPreferences.Editor editor = prefs.edit();
 
             if (customAvatarUri != null && !customAvatarUri.isEmpty()) {
-                // Custom avatar found
                 editor.putString("custom_avatar_uri", customAvatarUri);
                 editor.putInt("avatarId", 0);
                 editor.apply();
@@ -370,23 +360,39 @@ public class HomeFragment extends Fragment {
         long lastLogin = prefs.getLong("last_login", 0);
         int currentStreak = prefs.getInt("streak", 0);
 
-        long today = System.currentTimeMillis();
-        long oneDayMillis = 24 * 60 * 60 * 1000;
+        long diffDays = getDiffDays(lastLogin);
 
-        if (System.currentTimeMillis() - lastLogin >= oneDayMillis && System.currentTimeMillis() - lastLogin < 2 * oneDayMillis) {
+        if (lastLogin == 0 || diffDays == 1) {
             currentStreak++;
-        } else if (System.currentTimeMillis() - lastLogin >= 2 * oneDayMillis) {
-            currentStreak = 1;
-        } else if (lastLogin == 0) {
+        } else if (diffDays > 1) {
             currentStreak = 1;
         }
 
         prefs.edit()
                 .putInt("streak", currentStreak)
-                .putLong("last_login", today)
+                .putLong("last_login", System.currentTimeMillis())
                 .apply();
 
         updateStreakDisplay(currentStreak);
+    }
+
+    private static long getDiffDays(long lastLogin) {
+        Calendar lastLoginCal = Calendar.getInstance();
+        lastLoginCal.setTimeInMillis(lastLogin);
+        // Set to midnight to normalize
+        lastLoginCal.set(Calendar.HOUR_OF_DAY, 0);
+        lastLoginCal.set(Calendar.MINUTE, 0);
+        lastLoginCal.set(Calendar.SECOND, 0);
+        lastLoginCal.set(Calendar.MILLISECOND, 0);
+
+        Calendar todayCal = Calendar.getInstance();
+        todayCal.set(Calendar.HOUR_OF_DAY, 0);
+        todayCal.set(Calendar.MINUTE, 0);
+        todayCal.set(Calendar.SECOND, 0);
+        todayCal.set(Calendar.MILLISECOND, 0);
+
+        long diffDays = (todayCal.getTimeInMillis() - lastLoginCal.getTimeInMillis()) / (24 * 60 * 60 * 1000);
+        return diffDays;
     }
 
 //    FOR TESTING

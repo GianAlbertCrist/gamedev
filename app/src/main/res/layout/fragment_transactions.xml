@@ -34,6 +34,8 @@
         android:layout_height="0dp"
         android:paddingBottom="70dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topProfilebar">
 
         <LinearLayout
@@ -73,9 +75,12 @@
             <LinearLayout
                 android:id="@+id/transactionListContainer"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:padding="8dp" />
+                android:padding="8dp" >
+
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
