@@ -347,6 +347,92 @@ public class FirestoreManager {
                 );
     }
 
+    public static void getDueNotificationCount(OnNotificationCountListener listener) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            listener.onCountReceived(0);
+            return;
+        }
+
+        // Get current date for comparison
+        Date currentDate = new Date();
+        Calendar currentCal = Calendar.getInstance();
+        currentCal.setTime(currentDate);
+        // Reset time to start of day for accurate comparison
+        currentCal.set(Calendar.HOUR_OF_DAY, 0);
+        currentCal.set(Calendar.MINUTE, 0);
+        currentCal.set(Calendar.SECOND, 0);
+        currentCal.set(Calendar.MILLISECOND, 0);
+        Date todayStart = currentCal.getTime();
+
+        db.collection("users")
+                .document(currentUser.getUid())
+                .collection("notifications")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int dueCount = 0;
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        if (shouldShowNotificationForBadge(doc, todayStart)) {
+                            dueCount++;
+                        }
+                    }
+
+                    Log.d(TAG, "Due notifications count for badge: " + dueCount);
+                    listener.onCountReceived(dueCount);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting notification count", e);
+                    listener.onCountReceived(0);
+                });
+    }
+
+    private static boolean shouldShowNotificationForBadge(DocumentSnapshot doc, Date todayStart) {
+        try {
+            // Get the next due date from the notification document
+            com.google.firebase.Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
+            if (nextDueTimestamp == null) {
+                return false;
+            }
+
+            Date nextDueDate = nextDueTimestamp.toDate();
+
+            // Reset time to start of day for accurate comparison
+            Calendar dueCal = Calendar.getInstance();
+            dueCal.setTime(nextDueDate);
+            dueCal.set(Calendar.HOUR_OF_DAY, 0);
+            dueCal.set(Calendar.MINUTE, 0);
+            dueCal.set(Calendar.SECOND, 0);
+            dueCal.set(Calendar.MILLISECOND, 0);
+            Date dueStart = dueCal.getTime();
+
+            // Show notification if due date is today or in the past (overdue)
+            boolean isDueToday = dueStart.compareTo(todayStart) == 0;
+            boolean isOverdue = dueStart.compareTo(todayStart) < 0;
+            boolean shouldShow = isDueToday || isOverdue;
+
+            // However, hide notifications that are more than 1 day old to prevent clutter
+            Calendar yesterdayStart = Calendar.getInstance();
+            yesterdayStart.setTime(todayStart);
+            yesterdayStart.add(Calendar.DAY_OF_MONTH, -1);
+
+            boolean isTooOld = dueStart.compareTo(yesterdayStart.getTime()) < 0;
+            if (isTooOld) {
+                shouldShow = false;
+            }
+
+            return shouldShow;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking if notification should be shown for badge: " + doc.getId(), e);
+            return false;
+        }
+    }
+
+    public interface OnNotificationCountListener {
+        void onCountReceived(int count);
+    }
+
     // Load user transactions
     public static void loadTransactions(OnTransactionsLoadedListener listener) {
         FirebaseUser currentUser = auth.getCurrentUser();

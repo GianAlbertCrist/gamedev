@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty.fragments;
 
+import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.bumptech.glide.Glide;
 
 import android.annotation.SuppressLint;
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,19 +33,22 @@ import com.budgetapp.thrifty.utils.NotepadManager;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-
+import com.google.firebase.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
 
     private View rootView, loadingSpinner;
     private RecyclerView recyclerView;
-    private TextView emptyMessage, userGreet, notificationBadge;
+    private TextView emptyMessage;
+    private TextView userGreet;
     private ImageView profileIcon;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -68,7 +73,7 @@ public class HomeFragment extends Fragment {
         emptyMessage = rootView.findViewById(R.id.empty_message);
         userGreet = rootView.findViewById(R.id.user_greet);
         profileIcon = rootView.findViewById(R.id.ic_profile);
-        notificationBadge = rootView.findViewById(R.id.notification_badge);
+        TextView notificationBadge = rootView.findViewById(R.id.notification_badge);
         mainContent = rootView.findViewById(R.id.main_content);
 
         ImageButton notificationButton = rootView.findViewById(R.id.ic_notifications);
@@ -110,8 +115,15 @@ public class HomeFragment extends Fragment {
         });
 
         getParentFragmentManager().setFragmentResultListener("notificationsViewed", this, (requestKey, result) -> {
-            loadNotificationCount(); // Refresh badge after notifications are read
+            int newCount = result.getInt("unreadCount", -1);
+            if (newCount >= 0) {
+                updateNotificationBadge();
+            } else {
+                loadNotificationCount();
+            }
         });
+
+        updateNotificationBadge();
 
         return rootView;
     }
@@ -157,33 +169,57 @@ public class HomeFragment extends Fragment {
     private void loadNotificationCount() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            notificationsListener = db.collection("users").document(user.getUid())
+            db.collection("users").document(user.getUid())
                     .collection("notifications")
-                    .whereEqualTo("read", false)
-                    .addSnapshotListener((value, error) -> {
-                        if (error != null) {
-                            return;
+                    .whereEqualTo("isNotified", false)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        int count = 0;
+                        Date today = resetToStartOfDay(new Date());
+
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            Timestamp nextDue = doc.getTimestamp("nextDueDate");
+                            if (nextDue != null && !nextDue.toDate().after(today)) {
+                                count++;
+                            }
                         }
 
-                        if (value != null && !value.isEmpty()) {
-                            int unreadCount = value.size();
-                            updateNotificationBadge(unreadCount);
-                        } else {
-                            updateNotificationBadge(0);
-                        }
+                        Log.d("HomeFragment", "Due notifications today or earlier: " + count);
+                        updateNotificationBadge();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("HomeFragment", "Failed to load notifications", e);
                     });
         }
     }
 
-    private void updateNotificationBadge(int count) {
-        if (notificationBadge != null) {
-            if (count > 0) {
-                notificationBadge.setVisibility(View.VISIBLE);
-                notificationBadge.setText(String.valueOf(count > 99 ? "99+" : count));
-            } else {
-                notificationBadge.setVisibility(View.GONE);
+    private Date resetToStartOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
+    private void updateNotificationBadge() {
+        FirestoreManager.getDueNotificationCount(count -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    TextView notificationBadge = getView().findViewById(R.id.notification_badge);
+
+                    if (count > 0) {
+                        notificationBadge.setText(String.valueOf(count));
+                        notificationBadge.setVisibility(View.VISIBLE);
+                        Log.d("HomeFragment", "Showing notification badge with count: " + count);
+                    } else {
+                        notificationBadge.setVisibility(View.GONE);
+                        Log.d("HomeFragment", "Hiding notification badge - no due notifications");
+                    }
+                });
             }
-        }
+        });
     }
 
     public void refreshUserGreeting() {
@@ -285,6 +321,7 @@ public class HomeFragment extends Fragment {
         refreshAvatarFromPrefs();
         loadNotificationCount();
         updateBalances();
+        updateNotificationBadge();
 
         handleStreak(requireContext());
 
