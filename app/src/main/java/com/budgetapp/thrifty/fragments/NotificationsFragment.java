@@ -99,7 +99,6 @@ public class NotificationsFragment extends Fragment {
 
                     Log.d(TAG, String.format("Processed %d notifications, %d failed parsing",
                             processedCount, failedCount));
-                    updateNotificationUI();
 
                     updateNotificationUI();
                     Log.d(TAG, "Generated " + notificationList.size() + " notifications from transactions");
