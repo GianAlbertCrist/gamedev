@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.PopupWindow;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.handlers.TransactionsHandler;
@@ -25,12 +26,17 @@ import com.budgetapp.thrifty.utils.ThemeSync;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class TransactionsFragment extends Fragment {
 
     private TextView filter;
     private String currentFilterType = "Today";
+    private ArrayList<Transaction> allTransactions = new ArrayList<>();
+    private ArrayList<Transaction> visibleTransactions = new ArrayList<>();
+    private int currentIndex = 0;
+    private final int pageSize = 10;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -44,6 +50,16 @@ public class TransactionsFragment extends Fragment {
 
         filterButton.setOnClickListener(this::showPopupMenu);
 
+        ScrollView scrollView = view.findViewById(R.id.scrollView);
+        scrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            View contentView = scrollView.getChildAt(0);
+            if (contentView.getBottom() <= (scrollView.getHeight() + scrollView.getScrollY())) {
+                if (currentIndex < allTransactions.size()) {
+                    loadNextPage();
+                }
+            }
+        });
+
         return view;
     }
 
@@ -51,18 +67,6 @@ public class TransactionsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         applyDefaultFilter();
-    }
-
-    private void applyDefaultFilter() {
-        requireView().post(() ->
-                ThemeSync.syncNotificationBarColor(requireActivity().getWindow(), requireContext())
-        );
-        if (currentFilterType == null || currentFilterType.isEmpty()) {
-            currentFilterType = "Today";
-        }
-        filter.setText(currentFilterType);
-        ArrayList<Transaction> filteredList = TransactionsHandler.getFilteredTransactions(currentFilterType);
-        updateTransactionList(filteredList);
     }
 
     private void showPopupMenu(View view) {
@@ -318,6 +322,22 @@ public class TransactionsFragment extends Fragment {
 
             container.addView(itemView);
         }
+    }
+
+    private void applyDefaultFilter() {
+        currentIndex = 0;
+        allTransactions = TransactionsHandler.getFilteredTransactions(currentFilterType);
+        visibleTransactions.clear();
+        loadNextPage(); // Initial load
+    }
+
+    private void loadNextPage() {
+        int end = Math.min(currentIndex + pageSize, allTransactions.size());
+        List<Transaction> nextBatch = allTransactions.subList(currentIndex, end);
+        visibleTransactions.addAll(nextBatch);
+        currentIndex = end;
+
+        updateTransactionList(new ArrayList<>(visibleTransactions));
     }
 
     public void refreshTransactions() {
