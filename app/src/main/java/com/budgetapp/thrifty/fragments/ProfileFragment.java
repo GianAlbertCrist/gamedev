@@ -182,23 +182,23 @@ public class ProfileFragment extends Fragment {
         imageView.setImageResource(resourceId);
     }
 
-        private void refreshAvatarFromPrefs() {
-            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-            String customAvatarUriStr = prefs.getString("custom_avatar_uri", null);
+    private void refreshAvatarFromPrefs() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String customAvatarUriStr = prefs.getString(KEY_CUSTOM_AVATAR_URI, null);
 
-            if (customAvatarUriStr != null) {
-                Uri customUri = Uri.parse(customAvatarUriStr);
-                Glide.with(this)
-                        .load(customUri)
-                        .circleCrop()
-                        .into(userAvatar);
-            } else {
-                int avatarId = prefs.getInt("avatarId", 0);
-                if (avatarId > 0) {
-                    updateAvatarImage(userAvatar, avatarId);
-                }
-            }
+        if (customAvatarUriStr != null && !customAvatarUriStr.isEmpty()) {
+            Uri customUri = Uri.parse(customAvatarUriStr);
+            Glide.with(this)
+                    .load(customUri)
+                    .circleCrop()
+                    .placeholder(R.drawable.sample_profile)
+                    .error(R.drawable.sample_profile)
+                    .into(userAvatar);
+        } else {
+            int avatarId = prefs.getInt("avatarId", 0);
+            updateAvatarImage(userAvatar, avatarId);
         }
+    }
 
     private void openEditProfileFragment() {
         EditProfileFragment editProfileFragment = new EditProfileFragment();
@@ -237,11 +237,14 @@ public class ProfileFragment extends Fragment {
         DeleteAccountFragment deleteAccountFragment = new DeleteAccountFragment();
         deleteAccountFragment.show(getParentFragmentManager(), "DeleteAccountDialog");
     }
+
     @Override
     public void onResume() {
         super.onResume();
+
         refreshAvatarFromPrefs();
-        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+
+        SharedPreferences prefs = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String username = prefs.getString("username", null);
         String fullname = prefs.getString("fullname", null);
 
@@ -251,7 +254,8 @@ public class ProfileFragment extends Fragment {
         if (fullname != null && fullnameText != null) {
             fullnameText.setText(fullname.toUpperCase());
         }
+
+        loadUserData();
     }
 
 }
-

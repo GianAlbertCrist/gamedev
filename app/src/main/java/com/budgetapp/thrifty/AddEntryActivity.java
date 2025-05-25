@@ -2,6 +2,7 @@ package com.budgetapp.thrifty;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +23,7 @@ import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.budgetapp.thrifty.utils.KeyboardBehavior;
 import com.budgetapp.thrifty.utils.ThemeSync;
+import com.bumptech.glide.Glide;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -250,14 +252,22 @@ public class AddEntryActivity extends AppCompatActivity {
     }
 
     private void loadUserAvatar() {
-        // First try to get avatar from SharedPreferences
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String customUriString = prefs.getString("custom_avatar_uri", null);
         int avatarId = prefs.getInt("avatarId", 0);
 
-        if (avatarId > 0) {
+        if (customUriString != null) {
+            Uri customUri = Uri.parse(customUriString);
+            Glide.with(this)
+                    .load(customUri)
+                    .circleCrop()
+                    .placeholder(R.drawable.sample_profile)
+                    .error(R.drawable.sample_profile)
+                    .into(profileIcon);
+        } else if (avatarId > 0) {
             updateAvatarImage(profileIcon, avatarId);
         } else {
-            // If not in SharedPreferences, fetch from Firestore
+            // Fallback to Firestore if SharedPreferences doesn't have valid data
             FirebaseUser user = auth.getCurrentUser();
             if (user != null) {
                 db.collection("users").document(user.getUid())
@@ -265,27 +275,20 @@ public class AddEntryActivity extends AppCompatActivity {
                         .get()
                         .addOnSuccessListener(document -> {
                             if (document.exists()) {
+                                String firestoreUri = document.getString("customAvatarUri");
                                 Long avatarIdLong = document.getLong("avatarId");
-                                if (avatarIdLong != null) {
+
+                                if (firestoreUri != null && !firestoreUri.isEmpty()) {
+                                    Glide.with(this)
+                                            .load(Uri.parse(firestoreUri))
+                                            .circleCrop()
+                                            .placeholder(R.drawable.sample_profile)
+                                            .error(R.drawable.sample_profile)
+                                            .into(profileIcon);
+                                } else if (avatarIdLong != null) {
                                     int newAvatarId = avatarIdLong.intValue();
                                     updateAvatarImage(profileIcon, newAvatarId);
-
-                                    // Cache for future use
-                                    prefs.edit().putInt("avatarId", newAvatarId).apply();
                                 }
-                            } else {
-                                // If profile/info doesn't exist, check the root document
-                                db.collection("users").document(user.getUid())
-                                        .get()
-                                        .addOnSuccessListener(rootDoc -> {
-                                            if (rootDoc.exists()) {
-                                                Long avatarIdLong = rootDoc.getLong("avatarId");
-                                                if (avatarIdLong != null) {
-                                                    int newAvatarId = avatarIdLong.intValue();
-                                                    updateAvatarImage(profileIcon, newAvatarId);
-                                                }
-                                            }
-                                        });
                             }
                         });
             }
