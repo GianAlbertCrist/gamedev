@@ -46,14 +46,9 @@ public class NotificationsFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewNotifications);
         noNotificationsText = view.findViewById(R.id.no_notifications_text);
 
-        // Initialize the adapter with the notification list
         adapter = new NotificationAdapter(notificationList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        NotificationsFragment.setNotificationListener(notification -> {
-            requireActivity().runOnUiThread(() -> addNotification(notification));
-        });
 
         isViewCreated = true;
         loadDueNotificationsFromFirestore();
@@ -65,6 +60,8 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // Reload notifications when fragment resumes to get fresh data
+        loadDueNotificationsFromFirestore();
         FirestoreManager.markAllDueNotificationsAsViewed();
     }
 
@@ -73,11 +70,13 @@ public class NotificationsFragment extends Fragment {
         super.onDestroyView();
         isViewCreated = false;
 
+        // Clear the static listener to prevent memory leaks
+        notificationListener = null;
+
         Bundle result = new Bundle();
         result.putBoolean("notificationsViewed", true);
         getParentFragmentManager().setFragmentResult("notificationsViewed", result);
     }
-
 
     private void loadDueNotificationsFromFirestore() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -87,6 +86,9 @@ public class NotificationsFragment extends Fragment {
         }
 
         Log.d(TAG, "Starting to load due notifications from Firestore");
+
+        // FIXED: Clear the list at the start to prevent accumulation
+        notificationList.clear();
 
         // Get current date for comparison
         Date currentDate = new Date();
@@ -110,21 +112,18 @@ public class NotificationsFragment extends Fragment {
                         return;
                     }
 
-                    notificationList.clear();
+                    // Don't clear here since we already cleared at the start
                     int processedCount = 0;
                     int filteredCount = 0;
-                    ArrayList<DocumentSnapshot> notificationsToProcess = new ArrayList<>();
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         // Check if this notification should be shown based on due date
                         if (shouldShowNotification(doc, todayStart)) {
                             Notification notification = parseNotificationFromDocument(doc);
                             if (notification != null) {
-                                notificationList.add(notification);
+                                // FIXED: Use addNotificationSafely to prevent duplicates
+                                addNotificationSafely(notification);
                                 processedCount++;
-
-                                // Add to list for processing recurring updates
-                                notificationsToProcess.add(doc);
                             }
                         } else {
                             filteredCount++;
@@ -134,11 +133,8 @@ public class NotificationsFragment extends Fragment {
                     Log.d(TAG, String.format("Processed %d due notifications, filtered out %d not-due notifications",
                             processedCount, filteredCount));
 
-                    // Process recurring notifications that are due
-                    processRecurringNotifications(notificationsToProcess, todayStart);
-
                     updateNotificationUI();
-                    Log.d(TAG, "Generated " + notificationList.size() + " due notifications");
+                    Log.d(TAG, "Loaded " + notificationList.size() + " due notifications");
 
                     // Mark all displayed notifications as viewed
                     FirestoreManager.markAllDueNotificationsAsViewed();
@@ -148,77 +144,59 @@ public class NotificationsFragment extends Fragment {
                 });
     }
 
-    private void processRecurringNotifications(ArrayList<DocumentSnapshot> dueNotifications, Date todayStart) {
-        for (DocumentSnapshot doc : dueNotifications) {
-            String recurring = doc.getString("recurring");
-            String transactionId = doc.getString("transactionId");
-            Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
-
-            if (recurring != null && !recurring.equals("None") &&
-                    nextDueTimestamp != null && transactionId != null) {
-
-                Date currentDueDate = nextDueTimestamp.toDate();
-
-                // Calculate the next due date based on recurring type
-                Date newNextDueDate = calculateNextDueDate(currentDueDate, recurring);
-
-                if (newNextDueDate != null) {
-                    Log.d(TAG, String.format("Processing recurring notification for transaction %s. " +
-                                    "Current due: %s, Next due: %s",
-                            transactionId,
-                            new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentDueDate),
-                            new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(newNextDueDate)));
-
-                    // Create new notification for next occurrence
-                    FirestoreManager.createNextRecurringNotification(doc, newNextDueDate);
-
-                }
-            }
-        }
-    }
-
-    private Date calculateNextDueDate(Date currentDueDate, String recurring) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(currentDueDate);
-
-        switch (recurring.toLowerCase()) {
-            case "daily":
-                calendar.add(Calendar.DAY_OF_MONTH, 1);
-                break;
-            case "weekly":
-                calendar.add(Calendar.WEEK_OF_YEAR, 1);
-                break;
-            case "monthly":
-                calendar.add(Calendar.MONTH, 1);
-                break;
-            case "yearly":
-                calendar.add(Calendar.YEAR, 1);
-                break;
-            default:
-                Log.w(TAG, "Unknown recurring type: " + recurring);
-                return null;
-        }
-
-        return calendar.getTime();
-    }
-
     private boolean shouldShowNotification(DocumentSnapshot doc, Date todayStart) {
         try {
-            String dueDateStr = doc.getString("dueDate");
-            if (dueDateStr == null || dueDateStr.isEmpty()) {
-                return true; // Show notifications without a due date
+            Boolean isViewed = doc.getBoolean("isViewed");
+
+            Timestamp nextDueTimestamp = doc.getTimestamp("nextDueDate");
+            if (nextDueTimestamp == null) {
+                String dueDateStr = doc.getString("dueDate");
+                if (dueDateStr == null || dueDateStr.isEmpty()) {
+                    return true; // Show notifications without a due date
+                }
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date dueDate = sdf.parse(dueDateStr);
+                if (dueDate != null) {
+                    return !dueDate.before(todayStart); // Show if due date is today or in the future
+                } else {
+                    return true; // Show if there's an issue parsing the date
+                }
             }
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            Date dueDate = sdf.parse(dueDateStr);
+            Date nextDueDate = nextDueTimestamp.toDate();
 
-            if (dueDate != null) {
-                return !dueDate.before(todayStart); // Show if due date is today or in the future
-            } else {
-                return true; // Show if there's an issue parsing the date
+            // Reset time to start of day for accurate comparison
+            Calendar dueCal = Calendar.getInstance();
+            dueCal.setTime(nextDueDate);
+            dueCal.set(Calendar.HOUR_OF_DAY, 0);
+            dueCal.set(Calendar.MINUTE, 0);
+            dueCal.set(Calendar.SECOND, 0);
+            dueCal.set(Calendar.MILLISECOND, 0);
+            Date dueStart = dueCal.getTime();
+
+            // Show notification if due date is today or in the past (overdue)
+            boolean isDueToday = dueStart.compareTo(todayStart) == 0;
+            boolean isOverdue = dueStart.compareTo(todayStart) < 0;
+            boolean shouldShow = isDueToday || isOverdue;
+
+            // However, hide notifications that are more than 7 days old to prevent clutter
+            Calendar weekAgoStart = Calendar.getInstance();
+            weekAgoStart.setTime(todayStart);
+            weekAgoStart.add(Calendar.DAY_OF_MONTH, -7);
+
+            boolean isTooOld = dueStart.compareTo(weekAgoStart.getTime()) < 0;
+            if (isTooOld) {
+                shouldShow = false;
             }
+
+            return shouldShow;
+
         } catch (ParseException e) {
             Log.e(TAG, "Error parsing due date", e);
+            return true; // Show if there's an error
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking if notification should be shown", e);
             return true; // Show if there's an error
         }
     }
@@ -275,13 +253,32 @@ public class NotificationsFragment extends Fragment {
         }
     }
 
-    // Method to add notifications to the list and refresh the UI
+    private void addNotificationSafely(Notification notification) {
+        // Check for duplicates before adding
+        boolean isDuplicate = false;
+        for (Notification existing : notificationList) {
+            if (existing.getDescription().equals(notification.getDescription()) &&
+                    existing.getType().equals(notification.getType()) &&
+                    existing.getRecurring().equals(notification.getRecurring())) {
+                isDuplicate = true;
+                Log.d(TAG, "Duplicate notification detected, skipping: " + notification.getDescription());
+                break;
+            }
+        }
+
+        if (!isDuplicate) {
+            notificationList.add(notification);
+            Log.d(TAG, "Added notification: " + notification.getDescription());
+        }
+    }
+
+    // FIXED: Updated addNotification method to use safe adding
     public void addNotification(Notification notification) {
-        notificationList.add(notification);
+        addNotificationSafely(notification);
         updateNotificationUI();
     }
 
-    // In NotificationsFragment.java
+    // Keep the interface and static methods for backward compatibility, but make them safer
     public interface NotificationListener {
         void onNewNotification(Notification notification);
     }
