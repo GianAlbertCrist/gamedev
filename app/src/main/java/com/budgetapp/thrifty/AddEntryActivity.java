@@ -25,10 +25,15 @@ import com.budgetapp.thrifty.utils.KeyboardBehavior;
 import com.budgetapp.thrifty.utils.ThemeSync;
 import com.bumptech.glide.Glide;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class AddEntryActivity extends AppCompatActivity {
     private static final String TAG = "AddEntryActivity";
@@ -152,7 +157,40 @@ public class AddEntryActivity extends AppCompatActivity {
     }
 
     private void loadNotificationCount() {
-        updateNotificationBadge();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            db.collection("users").document(user.getUid())
+                    .collection("notifications")
+                    .whereEqualTo("isNotified", false)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        int count = 0;
+                        Date today = resetToStartOfDay(new Date());
+
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            Timestamp nextDue = doc.getTimestamp("nextDueDate");
+                            if (nextDue != null && !nextDue.toDate().after(today)) {
+                                count++;
+                            }
+                        }
+
+                        Log.d(TAG, "Due notifications today or earlier: " + count);
+                        updateNotificationBadge();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to load notifications", e);
+                    });
+        }
+    }
+
+    private Date resetToStartOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 
     private void updateNotificationBadge() {
