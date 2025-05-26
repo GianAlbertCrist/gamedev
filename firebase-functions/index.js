@@ -5,28 +5,53 @@ admin.initializeApp()
 // Cloud function that runs daily to check for due transactions and send notifications
 exports.checkRecurringTransactions = functions.pubsub
   .schedule("0 8 * * *")
-  .timeZone("Asia/Manila") // Set to Philippines timezone
+  .timeZone("Asia/Manila")
   .onRun(async (context) => {
     const db = admin.firestore()
-    const today = new Date()
+    const now = new Date()
 
-    // Set time to beginning of day for consistent comparison
+    // Create today's date in Manila timezone for accurate comparison
+    const today = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }))
     today.setHours(0, 0, 0, 0)
 
-    // Set time to end of day for query
     const endOfDay = new Date(today)
     endOfDay.setHours(23, 59, 59, 999)
 
+    console.log(`=== NOTIFICATION CHECK STARTED ===`)
+    console.log(`Current UTC time: ${now.toISOString()}`)
+    console.log(`Manila time: ${now.toLocaleString("en-US", { timeZone: "Asia/Manila" })}`)
     console.log(`Checking for transactions due between ${today.toISOString()} and ${endOfDay.toISOString()}`)
 
     try {
-      // Query all users
       const usersSnapshot = await db.collection("users").get()
+      console.log(`Found ${usersSnapshot.size} users to check`)
+
+      let totalNotificationsSent = 0
+      let totalTransactionsProcessed = 0
 
       for (const userDoc of usersSnapshot.docs) {
         const userId = userDoc.id
+        console.log(`\n--- Checking user: ${userId} ---`)
 
-        // Find transactions for this user where nextDueDate is today
+        // Get user's FCM token first to avoid unnecessary queries
+        const tokenDoc = await db.collection("users").doc(userId).collection("tokens").doc("fcm").get()
+
+        if (!tokenDoc.exists) {
+          console.log(`❌ No FCM token document found for user ${userId}`)
+          continue
+        }
+
+        const tokenData = tokenDoc.data()
+        const fcmToken = tokenData?.fcmToken
+
+        if (!fcmToken) {
+          console.log(`❌ FCM token is empty for user ${userId}`)
+          continue
+        }
+
+        console.log(`✅ FCM token found for user ${userId}: ${fcmToken.substring(0, 20)}...`)
+        console.log(`Token last updated: ${tokenData.lastUpdated?.toDate?.()?.toISOString() || "Unknown"}`)
+
         const transactionsSnapshot = await db
           .collection("users")
           .doc(userId)
@@ -41,60 +66,98 @@ exports.checkRecurringTransactions = functions.pubsub
         // Process each due transaction
         for (const transactionDoc of transactionsSnapshot.docs) {
           const transaction = transactionDoc.data()
+          totalTransactionsProcessed++
 
-          // Get user's FCM token
-          const tokenDoc = await db.collection("users").doc(userId).collection("tokens").doc("fcm").get()
+          console.log(`Processing transaction ${transactionDoc.id}:`, {
+            amount: transaction.amount,
+            description: transaction.description || "No description",
+            type: transaction.type,
+            recurring: transaction.recurring,
+            nextDueDate: transaction.nextDueDate?.toDate?.()?.toISOString() || "No date",
+          })
 
-          if (tokenDoc.exists) {
-            const fcmToken = tokenDoc.data().fcmToken
+          try {
+            // Create notification message with better formatting
+            const notificationTitle = "Transaction Reminder"
+            let notificationBody
 
-            if (fcmToken) {
-              // Create notification message
-              const notificationTitle = "Transaction Reminder"
-              const notificationBody = `Reminder: ₱${transaction.amount.toFixed(2)} for '${transaction.description}' is due today.`
+            if (transaction.description && transaction.description.trim() !== "") {
+              notificationBody = `Reminder: ₱${transaction.amount.toFixed(2)} for '${transaction.description}' is due today.`
+            } else {
+              notificationBody = `Reminder: ₱${transaction.amount.toFixed(2)} ${transaction.type || "transaction"} is due today.`
+            }
 
-              // Send FCM notification
-              await sendNotification(fcmToken, notificationTitle, notificationBody, transactionDoc.id)
-              console.log(`Notification sent to user ${userId} for transaction ${transactionDoc.id}`)
+            // Send FCM notification
+            await sendNotification(fcmToken, notificationTitle, notificationBody, transactionDoc.id, userId)
+            console.log(`✅ Notification sent to user ${userId} for transaction ${transactionDoc.id}`)
+            totalNotificationsSent++
 
-              // Calculate and update next due date
-              const nextDueDate = calculateNextDueDate(transaction.nextDueDate, transaction.recurring)
+            // Calculate and update next due date
+            const currentDueDate = transaction.nextDueDate.toDate()
+            const nextDueDate = calculateNextDueDate(currentDueDate, transaction.recurring)
+
+            if (nextDueDate) {
+              console.log(`Next due date calculated: ${nextDueDate.toISOString()}`)
 
               // Update transaction with new next due date
               await transactionDoc.ref.update({
                 nextDueDate: nextDueDate,
               })
 
-              console.log(`Updated next due date for transaction ${transactionDoc.id} to ${nextDueDate.toISOString()}`)
-
-              // Add to user's notifications collection
-              await db
-                .collection("users")
-                .doc(userId)
-                .collection("notifications")
-                .add({
-                  title: notificationTitle,
-                  message: notificationBody,
-                  timestamp: admin.firestore.FieldValue.serverTimestamp(),
-                  recurring: transaction.recurring,
-                  iconID: transaction.iconID || 0,
-                  transactionId: transactionDoc.id,
-                })
+              console.log(`✅ Updated next due date for transaction ${transactionDoc.id}`)
+            } else {
+              console.log(`❌ Failed to calculate next due date for transaction ${transactionDoc.id}`)
             }
+
+            // Add to user's notifications collection with all required fields
+            await db
+              .collection("users")
+              .doc(userId)
+              .collection("notifications")
+              .add({
+                title: notificationTitle,
+                message: notificationBody,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                lastNotified: admin.firestore.FieldValue.serverTimestamp(),
+                nextDueDate: nextDueDate,
+                recurring: transaction.recurring,
+                iconID: transaction.iconID || 0,
+                transactionId: transactionDoc.id,
+                isNotified: true,
+                isViewed: false,
+                type: transaction.type || "Transaction",
+              })
+
+            console.log(`✅ Added notification to Firestore for transaction ${transactionDoc.id}`)
+          } catch (transactionError) {
+            console.error(`❌ Error processing transaction ${transactionDoc.id}:`, transactionError)
+            // Continue with other transactions even if one fails
           }
         }
       }
 
-      console.log("Recurring transaction check completed successfully")
-      return null
+      console.log(`\n=== NOTIFICATION CHECK COMPLETED ===`)
+      console.log(`Total users checked: ${usersSnapshot.size}`)
+      console.log(`Total transactions processed: ${totalTransactionsProcessed}`)
+      console.log(`Total notifications sent: ${totalNotificationsSent}`)
+
+      return {
+        success: true,
+        usersChecked: usersSnapshot.size,
+        transactionsProcessed: totalTransactionsProcessed,
+        notificationsSent: totalNotificationsSent,
+      }
     } catch (error) {
-      console.error("Error checking recurring transactions:", error)
-      return null
+      console.error("❌ Error in checkRecurringTransactions:", error)
+      return {
+        success: false,
+        error: error.message,
+      }
     }
   })
 
-// Helper function to send FCM notification
-async function sendNotification(token, title, body, transactionId) {
+// Enhanced helper function to send FCM notification
+async function sendNotification(token, title, body, transactionId, userId) {
   const message = {
     token: token,
     notification: {
@@ -105,56 +168,140 @@ async function sendNotification(token, title, body, transactionId) {
       title: title,
       body: body,
       transactionId: transactionId,
+      userId: userId,
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+      type: "transaction_reminder",
     },
     android: {
       notification: {
         icon: "icnotif_transactions",
         color: "#4CAF50",
         channel_id: "transaction_reminders",
+        sound: "default",
+        priority: "high",
+      },
+      priority: "high",
+    },
+    apns: {
+      payload: {
+        aps: {
+          sound: "default",
+          badge: 1,
+        },
       },
     },
   }
 
+  console.log(`Sending FCM message to user ${userId}:`, {
+    token: token.substring(0, 20) + "...",
+    title: title,
+    body: body.substring(0, 50) + "...",
+  })
+
   try {
     const response = await admin.messaging().send(message)
-    console.log("Successfully sent message:", response)
+    console.log(`✅ FCM message sent successfully. Response: ${response}`)
     return response
   } catch (error) {
-    console.error("Error sending message:", error)
+    console.error(`❌ Error sending FCM message to user ${userId}:`, error)
+
+    // Log specific FCM error codes for debugging
+    if (error.code === "messaging/registration-token-not-registered") {
+      console.error(`Token is no longer valid for user ${userId} - user may have uninstalled the app`)
+    } else if (error.code === "messaging/invalid-registration-token") {
+      console.error(`Invalid FCM token format for user ${userId}`)
+    } else if (error.code === "messaging/invalid-argument") {
+      console.error(`Invalid message format for user ${userId}`)
+    }
+
     throw error
   }
 }
 
-// Helper function to calculate next due date based on recurring type
+// Enhanced helper function to calculate next due date based on recurring type
 function calculateNextDueDate(currentDueDate, recurringType) {
-  const date = new Date(currentDueDate)
+  if (!currentDueDate || !recurringType) {
+    console.error("Missing currentDueDate or recurringType:", { currentDueDate, recurringType })
+    return null
+  }
 
-  switch (recurringType) {
-    case "Daily":
+  const date = new Date(currentDueDate)
+  console.log(`Calculating next due date from: ${date.toISOString()} for type: ${recurringType}`)
+
+  // Validate the input date
+  if (isNaN(date.getTime())) {
+    console.error("Invalid date provided:", currentDueDate)
+    return null
+  }
+
+  switch (recurringType.toLowerCase()) {
+    case "daily":
       date.setDate(date.getDate() + 1)
       break
-    case "Weekly":
+    case "weekly":
       date.setDate(date.getDate() + 7)
       break
-    case "Monthly":
+    case "monthly":
       date.setMonth(date.getMonth() + 1)
       break
-    case "Yearly":
+    case "yearly":
       date.setFullYear(date.getFullYear() + 1)
       break
     default:
-      // No change for non-recurring transactions
-      break
+      console.warn(`Unknown recurring type: ${recurringType}`)
+      return null
   }
 
+  console.log(`Next due date calculated: ${date.toISOString()}`)
   return date
 }
 
-// Function to handle token updates
+// Enhanced function to handle token updates
 exports.onUserStatusChange = functions.firestore.document("users/{userId}/tokens/fcm").onWrite((change, context) => {
-  // This function will run whenever a user's FCM token is updated
-  // You could use this to update subscription topics or perform other actions
   const userId = context.params.userId
-  console.log(`FCM token updated for user ${userId}`)
+
+  if (!change.after.exists) {
+    console.log(`FCM token deleted for user ${userId}`)
+    return null
+  }
+
+  const tokenData = change.after.data()
+  const newToken = tokenData?.fcmToken
+
+  if (change.before.exists) {
+    const oldTokenData = change.before.data()
+    const oldToken = oldTokenData?.fcmToken
+
+    if (oldToken !== newToken) {
+      console.log(`FCM token updated for user ${userId}`)
+      console.log(`Old token: ${oldToken?.substring(0, 20)}...`)
+      console.log(`New token: ${newToken?.substring(0, 20)}...`)
+    }
+  } else {
+    console.log(`FCM token created for user ${userId}`)
+    console.log(`New token: ${newToken?.substring(0, 20)}...`)
+  }
+
   return null
+})
+
+// Optional: Manual trigger function for testing
+exports.testNotifications = functions.https.onRequest(async (req, res) => {
+  console.log("Manual notification test triggered")
+
+  try {
+    // Call the main function manually
+    const result = await exports.checkRecurringTransactions.run()
+    res.json({
+      success: true,
+      message: "Test completed",
+      result: result,
+    })
+  } catch (error) {
+    console.error("Test failed:", error)
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    })
+  }
 })

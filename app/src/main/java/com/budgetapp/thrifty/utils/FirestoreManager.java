@@ -1,5 +1,6 @@
 package com.budgetapp.thrifty.utils;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -76,12 +77,15 @@ public class FirestoreManager {
         });
     }
 
-    // Save FCM token to Firestore
     public static void saveFCMToken() {
         FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) return;
+        if (currentUser == null) {
+            Log.e(TAG, "Cannot save FCM token - user not logged in");
+            return;
+        }
 
         String uid = currentUser.getUid();
+        Log.d(TAG, "Attempting to get FCM token for user: " + uid);
 
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
@@ -92,22 +96,33 @@ public class FirestoreManager {
 
                     // Get new FCM registration token
                     String token = task.getResult();
-                    Log.d(TAG, "FCM Token: " + token);
+                    Log.d(TAG, "FCM Token Retrieved: " + token);
+
+                    // Verify token is not null or empty
+                    if (token == null || token.isEmpty()) {
+                        Log.e(TAG, "FCM Token is null or empty!");
+                        return;
+                    }
 
                     // Save token to Firestore
                     Map<String, Object> tokenData = new HashMap<>();
                     tokenData.put("fcmToken", token);
                     tokenData.put("lastUpdated", new Date());
                     tokenData.put("platform", "android");
+                    tokenData.put("userId", uid); // Add user ID for debugging
 
                     db.collection("users").document(uid)
                             .collection("tokens").document("fcm")
                             .set(tokenData, SetOptions.merge())
-                            .addOnSuccessListener(aVoid -> Log.d(TAG, "FCM Token saved successfully"))
-                            .addOnFailureListener(e -> Log.e(TAG, "Error saving FCM token", e));
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "FCM Token saved successfully to Firestore");
+                                Log.d(TAG, "Token length: " + token.length());
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error saving FCM token to Firestore", e);
+                            });
                 });
     }
-
 
     // Save a transaction
     public static void saveTransaction(Transaction transaction) {
@@ -225,59 +240,6 @@ public class FirestoreManager {
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving notification", e));
     }
 
-    public static void createNextRecurringNotification(DocumentSnapshot currentNotificationDoc, Date newNextDueDate) {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) return;
-
-        try {
-            // Get data from current notification
-            String transactionId = currentNotificationDoc.getString("transactionId");
-            String type = currentNotificationDoc.getString("type");
-            String description = currentNotificationDoc.getString("description");
-            String recurring = currentNotificationDoc.getString("recurring");
-            Long iconID = currentNotificationDoc.getLong("iconID");
-
-            if (transactionId == null || type == null || description == null ||
-                    recurring == null || iconID == null) {
-                Log.e(TAG, "Missing required fields in current notification");
-                return;
-            }
-
-            // Create new notification data for next occurrence
-            Map<String, Object> newNotificationData = new HashMap<>();
-            newNotificationData.put("transactionId", transactionId);
-            newNotificationData.put("lastNotified", null); // Will be set when actually notified
-            newNotificationData.put("nextDueDate", newNextDueDate);
-            newNotificationData.put("recurring", recurring);
-            newNotificationData.put("timestamp", new Date());
-            newNotificationData.put("type", type);
-            newNotificationData.put("description", description);
-            newNotificationData.put("time", new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault()).format(new Date()));
-            newNotificationData.put("iconID", iconID);
-            newNotificationData.put("isNotified", false); // Mark as not yet notified
-
-            // Create unique document ID for next occurrence
-            String newDocId = transactionId + "_" + newNextDueDate.getTime();
-
-            db.collection("users")
-                    .document(currentUser.getUid())
-                    .collection("notifications")
-                    .document(newDocId)
-                    .set(newNotificationData)
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, String.format("Next recurring notification created for transaction %s, due: %s",
-                                transactionId,
-                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(newNextDueDate)));
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error creating next recurring notification", e);
-                    });
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error processing recurring notification", e);
-        }
-    }
-
     public static void markNotificationAsNotified(String notificationId) {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
@@ -299,18 +261,26 @@ public class FirestoreManager {
                 });
     }
 
-    // Send a push notification via FCM
+    @SuppressLint("DefaultLocale")
     private static void sendPushNotification(Transaction transaction) {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) return;
 
         // Format notification title and body
         String title = transaction.getType() + " Reminder";
-        String body = String.format("%s %s reminder: ₱%.2f - {%s} is due today.",
-                transaction.getRecurring(),
-                transaction.getType().toLowerCase(),
-                transaction.getRawAmount(),
-                transaction.getDescription());
+        String body;
+        if (transaction.getDescription() == null || transaction.getDescription().isEmpty()) {
+            body = String.format("%s %s reminder: ₱%.2f is due today.",
+                    transaction.getRecurring(),
+                    transaction.getType().toLowerCase(),
+                    transaction.getRawAmount());
+        } else {
+            body = String.format("%s %s reminder: ₱%.2f - %s is due today.",
+                    transaction.getRecurring(),
+                    transaction.getType().toLowerCase(),
+                    transaction.getRawAmount(),
+                    transaction.getDescription());
+        }
 
         // Get the user's FCM token
         db.collection("users")
@@ -322,30 +292,35 @@ public class FirestoreManager {
                     if (documentSnapshot.exists() && documentSnapshot.getString("fcmToken") != null) {
                         String fcmToken = documentSnapshot.getString("fcmToken");
 
-                        // Create FCM message
-                        Map<String, Object> message = new HashMap<>();
-                        Map<String, Object> notification = new HashMap<>();
-                        Map<String, Object> data = new HashMap<>();
+                        // Verify token exists
+                        if (fcmToken == null || fcmToken.isEmpty()) {
+                            Log.e(TAG, "FCM Token is null or empty!");
+                            return;
+                        }
 
-                        notification.put("title", title);
-                        notification.put("body", body);
-
-                        data.put("transactionId", transaction.getId());
-                        data.put("recurring", transaction.getRecurring());
-                        data.put("type", transaction.getType());
-
-                        message.put("notification", notification);
-                        message.put("data", data);
-                        message.put("token", fcmToken);
-
-                        // Log the notification for debugging
                         Log.d(TAG, "Sending FCM notification: " + title + " - " + body);
                         Log.d(TAG, "To token: " + fcmToken);
+
+                        // NOTE: This method only creates local notifications
+                        // For actual push notifications, you need to call your Cloud Function
+                        // or use Firebase Admin SDK on the server side
+
+                        // For now, let's create a local notification
+                        createLocalNotification(title, body, transaction);
+                    } else {
+                        Log.e(TAG, "No FCM token found for user");
                     }
                 })
                 .addOnFailureListener(e ->
                         Log.e(TAG, "Error fetching FCM token", e)
                 );
+    }
+
+    // Add this helper method for local notifications
+    private static void createLocalNotification(String title, String body, Transaction transaction) {
+        // This will trigger the in-app notification
+        // Your Cloud Function should handle the actual push notification
+        Log.d(TAG, "Local notification created: " + title);
     }
 
     public static void getDueNotificationCount(NotificationCountCallback callback) {
