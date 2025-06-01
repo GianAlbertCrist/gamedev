@@ -18,7 +18,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="Notification Icon"
-            android:src="@drawable/icnotif_transactions"
+            android:src="@drawable/ic_notif_transactions"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

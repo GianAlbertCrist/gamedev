@@ -1,12 +1,11 @@
 package com.budgetapp.thrifty.services;
 
+import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -19,93 +18,160 @@ import com.budgetapp.thrifty.utils.FirestoreManager;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.List;
 import java.util.Map;
 
 public class ThriftyMessagingService extends FirebaseMessagingService {
     private static final String TAG = "ThriftyMessagingService";
     private static final String CHANNEL_ID = "transaction_reminders";
-    private static final String CHANNEL_NAME = "Transaction Reminders";
-    private static final String CHANNEL_DESC = "Notifications for recurring transactions";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "=== ThriftyMessagingService Created ===");
+        createNotificationChannel();
+    }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
+        Log.d(TAG, "=== FCM MESSAGE RECEIVED ===");
         Log.d(TAG, "From: " + remoteMessage.getFrom());
+        Log.d(TAG, "Message ID: " + remoteMessage.getMessageId());
+        Log.d(TAG, "Data size: " + remoteMessage.getData().size());
+        Log.d(TAG, "Data: " + remoteMessage.getData());
+        Log.d(TAG, "Has notification: " + (remoteMessage.getNotification() != null));
 
-        // Check if message contains a data payload
-        if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
-            handleDataMessage(remoteMessage.getData());
-        }
-
-        // Check if message contains a notification payload
         if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
-            String title = remoteMessage.getNotification().getTitle();
-            String body = remoteMessage.getNotification().getBody();
-            sendNotification(title, body, null);
+            Log.d(TAG, "Notification title: " + remoteMessage.getNotification().getTitle());
+            Log.d(TAG, "Notification body: " + remoteMessage.getNotification().getBody());
         }
 
-        // Force check for recurring transactions
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-    }
+        // Check if app is in foreground
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> runningProcesses = am.getRunningAppProcesses();
+        boolean isInForeground = false;
+        for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
+            if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                for (String activeProcess : processInfo.pkgList) {
+                    if (activeProcess.equals(getPackageName())) {
+                        isInForeground = true;
+                        break;
+                    }
+                }
+            }
+        }
+        Log.d(TAG, "App is in foreground: " + isInForeground);
 
-    private void handleDataMessage(Map<String, String> data) {
-        String title = data.get("title");
-        String body = data.get("body");
-        String transactionId = data.get("transactionId");
+        // Always create notification regardless of app state
+        String title = "Transaction Reminder";
+        String body = "You have a transaction reminder";
+        String transactionId = null;
 
-        // Send notification to the user
+        if (remoteMessage.getNotification() != null) {
+            title = remoteMessage.getNotification().getTitle();
+            body = remoteMessage.getNotification().getBody();
+        }
+
+        if (remoteMessage.getData().size() > 0) {
+            Map<String, String> data = remoteMessage.getData();
+            if (data.get("title") != null) title = data.get("title");
+            if (data.get("body") != null) body = data.get("body");
+            transactionId = data.get("transactionId");
+        }
+
+        Log.d(TAG, "Creating notification with title: " + title + ", body: " + body);
         sendNotification(title, body, transactionId);
     }
 
-    private void sendNotification(String title, String messageBody, String transactionId) {
-        Intent intent = new Intent(this, MainActivity.class);
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(TAG, "Creating notification channel: " + CHANNEL_ID);
 
-        // If we have a transaction ID, add it to the intent to navigate to the transaction
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Transaction Reminders",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for recurring transactions");
+            channel.enableLights(true);
+            channel.enableVibration(true);
+            channel.setShowBadge(true);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+
+            // Verify channel creation
+            NotificationChannel createdChannel = notificationManager.getNotificationChannel(CHANNEL_ID);
+            Log.d(TAG, "Channel created successfully: " + (createdChannel != null));
+            if (createdChannel != null) {
+                Log.d(TAG, "Channel importance: " + createdChannel.getImportance());
+                Log.d(TAG, "Channel can show badge: " + createdChannel.canShowBadge());
+            }
+        }
+    }
+
+    private void sendNotification(String title, String messageBody, String transactionId) {
+        Log.d(TAG, "=== CREATING NOTIFICATION ===");
+        Log.d(TAG, "Title: " + title);
+        Log.d(TAG, "Body: " + messageBody);
+        Log.d(TAG, "Transaction ID: " + transactionId);
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
         if (transactionId != null) {
             intent.putExtra("navigate_to", "transactions");
             intent.putExtra("transaction_id", transactionId);
         }
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_IMMUTABLE);
+        int requestCode = (int) System.currentTimeMillis();
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
-        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.icnotif_transactions)
-                        .setContentTitle(title != null ? title : "Transaction Reminder")
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setContentTitle(title)
                         .setContentText(messageBody)
                         .setAutoCancel(true)
-                        .setSound(defaultSoundUri)
-                        .setContentIntent(pendingIntent);
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setDefaults(NotificationCompat.DEFAULT_ALL)
+                        .setContentIntent(pendingIntent)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(messageBody));
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // Create the notification channel for Android O and above
+        // Check if notifications are enabled
+        boolean notificationsEnabled = notificationManager.areNotificationsEnabled();
+        Log.d(TAG, "Notifications enabled: " + notificationsEnabled);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription(CHANNEL_DESC);
-            notificationManager.createNotificationChannel(channel);
+            NotificationChannel channel = notificationManager.getNotificationChannel(CHANNEL_ID);
+            if (channel != null) {
+                Log.d(TAG, "Channel importance: " + channel.getImportance());
+                Log.d(TAG, "Channel blocked: " + (channel.getImportance() == NotificationManager.IMPORTANCE_NONE));
+            } else {
+                Log.e(TAG, "Notification channel not found!");
+                createNotificationChannel();
+            }
         }
 
-        // Use a unique ID for each notification
-        int notificationId = (int) System.currentTimeMillis();
+        int notificationId = requestCode;
         notificationManager.notify(notificationId, notificationBuilder.build());
+
+        Log.d(TAG, "Notification posted with ID: " + notificationId);
+        Log.d(TAG, "=== NOTIFICATION CREATION COMPLETE ===");
     }
 
     @Override
     public void onNewToken(@NonNull String token) {
-        Log.d(TAG, "Refreshed token: " + token);
-
-        // Save the new token to Firestore
+        Log.d(TAG, "=== NEW FCM TOKEN RECEIVED ===");
+        Log.d(TAG, "New token: " + token);
         FirestoreManager.saveFCMToken();
     }
 }

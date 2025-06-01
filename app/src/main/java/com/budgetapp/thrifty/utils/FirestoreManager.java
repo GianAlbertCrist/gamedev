@@ -199,7 +199,7 @@ public class FirestoreManager {
                     transaction.getDescription());
         }
         String time = new SimpleDateFormat("h:mm a - MMMM d", Locale.getDefault()).format(new Date());
-        int iconID = R.drawable.icnotif_transactions;
+        int iconID = R.drawable.ic_notif_transactions;
 
         notificationData.put("type", type);
         notificationData.put("description", description);

@@ -264,8 +264,6 @@
                 android:clipToPadding="false"
                 android:text="@string/no_records_found"
                 android:contentDescription="@string/home_transactions_description"
-                android:paddingStart="15dp"
-                android:paddingEnd="15dp"
                 android:paddingBottom="25dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

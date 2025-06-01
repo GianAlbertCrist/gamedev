@@ -51,7 +51,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         } else if ("Expense Reminder".equalsIgnoreCase(notification.getType())) {
             holder.notificationIcon.setImageResource(R.drawable.ic_expense);
         } else {
-            holder.notificationIcon.setImageResource(R.drawable.icnotif_transactions);
+            holder.notificationIcon.setImageResource(R.drawable.ic_notif_transactions);
         }
     }
 

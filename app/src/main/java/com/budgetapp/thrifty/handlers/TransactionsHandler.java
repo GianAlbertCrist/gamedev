@@ -4,7 +4,6 @@ import com.budgetapp.thrifty.transaction.Transaction;
 import com.budgetapp.thrifty.model.Notification;
 import com.budgetapp.thrifty.R;
 import com.budgetapp.thrifty.fragments.NotificationsFragment;
-import com.budgetapp.thrifty.utils.AppLogger;
 import com.budgetapp.thrifty.utils.FirestoreManager;
 
 import java.util.Calendar;
@@ -176,15 +175,15 @@ public class TransactionsHandler {
     private static int getNotificationIcon(String recurring) {
         switch (recurring) {
             case "Daily":
-                return R.drawable.icnotif_transactions;
+                return R.drawable.ic_notif_transactions;
             case "Weekly":
-                return R.drawable.icnotif_transactions;
+                return R.drawable.ic_notif_transactions;
             case "Monthly":
-                return R.drawable.icnotif_transactions;
+                return R.drawable.ic_notif_transactions;
             case "Yearly":
-                return R.drawable.icnotif_transactions;
+                return R.drawable.ic_notif_transactions;
             default:
-                return R.drawable.icnotif_transactions;
+                return R.drawable.ic_notif_transactions;
         }
     }
 

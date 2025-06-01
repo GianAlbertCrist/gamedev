@@ -1,18 +1,23 @@
 package com.budgetapp.thrifty;
 
-
 import com.bumptech.glide.Glide;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.net.Uri;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -37,6 +42,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.messaging.FirebaseMessaging;
 import androidx.annotation.Nullable;
+import com.budgetapp.thrifty.services.NotificationScheduler;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -85,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.bottomNav.setBackground(null);
+
+        new Handler().postDelayed(this::testPushNotification, 5000);
     }
 
     private void requestNotificationPermission() {
@@ -95,6 +103,69 @@ public class MainActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
                         NOTIFICATION_PERMISSION_CODE);
             }
+        }
+    }
+
+    private void testPushNotification() {
+        Log.d("MainActivity", "Setting up local notification scheduler...");
+
+        // Schedule daily notifications
+        NotificationScheduler.scheduleDaily(this);
+
+        // Test immediate notification
+        testImmediateNotification();
+    }
+
+    // ADD this new method to MainActivity:
+    private void testImmediateNotification() {
+        Log.d("MainActivity", "Testing immediate notification...");
+
+        // Create a test notification
+        createNotificationChannel();
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                (int) System.currentTimeMillis(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "transaction_reminders")
+                .setSmallIcon(android.R.drawable.ic_popup_reminder)
+                .setContentTitle("Welcome to Thrifty")
+                .setContentText("Track. Save. Thrive!")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        int notificationId = (int) System.currentTimeMillis();
+        notificationManager.notify(notificationId, builder.build());
+
+        Log.d("MainActivity", "Test notification sent!");
+    }
+
+    // ADD this method to MainActivity:
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "transaction_reminders",
+                    "Transaction Reminders",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for recurring transactions");
+            channel.enableLights(true);
+            channel.enableVibration(true);
+            channel.setShowBadge(true);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 

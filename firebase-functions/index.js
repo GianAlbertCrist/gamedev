@@ -285,7 +285,6 @@ exports.onUserStatusChange = functions.firestore.document("users/{userId}/tokens
   return null
 })
 
-// Optional: Manual trigger function for testing
 exports.testNotifications = functions.https.onRequest(async (req, res) => {
   console.log("Manual notification test triggered")
 
@@ -305,3 +304,68 @@ exports.testNotifications = functions.https.onRequest(async (req, res) => {
     })
   }
 })
+
+exports.testSingleNotification = functions.https.onCall(async (data, context) => {
+  const userId = context.auth.uid;
+  if (!userId) throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+
+  const db = admin.firestore();
+
+  try {
+    console.log('=== TEST NOTIFICATION FUNCTION CALLED ===');
+    console.log('User ID:', userId);
+
+    // Get user's FCM token
+    const tokenDoc = await db.collection('users').doc(userId).collection('tokens').doc('fcm').get();
+
+    if (!tokenDoc.exists) {
+      console.log('❌ No FCM token document found for user:', userId);
+      throw new functions.https.HttpsError('not-found', 'FCM token not found');
+    }
+
+    const tokenData = tokenDoc.data();
+    const fcmToken = tokenData?.fcmToken;
+
+    if (!fcmToken) {
+      console.log('❌ FCM token is empty for user:', userId);
+      throw new functions.https.HttpsError('not-found', 'FCM token is empty');
+    }
+
+    console.log('✅ FCM token found:', fcmToken.substring(0, 20) + '...');
+
+    // Send test notification
+    const message = {
+      token: fcmToken,
+      notification: {
+        title: 'Test Notification',
+        body: 'This is a test notification from your Thrifty app!'
+      },
+      data: {
+        type: 'test',
+        timestamp: new Date().toISOString()
+      },
+      android: {
+        notification: {
+          icon: 'icnotif_transactions',
+          color: '#4CAF50',
+          channel_id: 'transaction_reminders',
+          priority: 'high'
+        },
+        priority: 'high'
+      }
+    };
+
+    console.log('📤 Sending test notification...');
+    const response = await admin.messaging().send(message);
+    console.log('✅ Test notification sent successfully:', response);
+
+    return {
+      success: true,
+      messageId: response,
+      message: 'Test notification sent successfully!'
+    };
+  } catch (error) {
+    console.error('❌ Error sending test notification:', error);
+    throw new functions.https.HttpsError('internal', error.message);
+  }
+});
